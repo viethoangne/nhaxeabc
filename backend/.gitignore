@@ -1,0 +1,17 @@
+﻿# build
+dist
+coverage
+
+# deps
+node_modules
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env (KHÔNG commit)
+.env
+.env.*
