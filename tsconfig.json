@@ -16,7 +16,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "target": "ES2017"
+    "target": "ES2017",
+    "baseUrl": ".",  // Cấu hình baseUrl
+    "paths": {
+      "@backend/*": ["backend/*"]
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -27,4 +31,5 @@
   "exclude": [
     "node_modules"
   ]
+  
 }

@@ -1,14 +1,5 @@
-﻿# deps
-**/node_modules
+node_modules
 
-# builds
-**/.next
-**/out
-**/dist
+/generated/prisma
 
-# env
-**/.env
-**/.env.*
-
-# logs
-*.log
+/generated/prisma

@@ -1,0 +1,77 @@
+/* Tạo nền cho trang */
+body {
+    background: linear-gradient(135deg, #6D7B8D, #F1F2F6);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Thiết kế card đăng nhập */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+}
+
+.login-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 460px;
+    text-align: center;
+}
+
+/* Tiêu đề đăng nhập */
+.login-card h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Nút đăng nhập Google */
+.google-login {
+    padding: 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #db4437; /* Google Red */
+    color: white;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+.google-login:hover {
+    background-color: #c1351d; /* Darker Google Red */
+}
+
+/* Thông báo lỗi */
+.error-message {
+    color: crimson;
+    margin-top: 10px;
+}
+
+/* Liên kết đăng ký */
+.register-link {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.register-link a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}

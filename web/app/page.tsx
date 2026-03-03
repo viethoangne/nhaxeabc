@@ -1,140 +1,120 @@
-import styles from "../src/styles/home.module.css";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useScroll, useTransform } from "framer-motion";
+import HeroBanner from "../components/home/banner-hero";
+import SearchCard from "../components/home/the-tim-kiem";
+
+type TripType = "oneway" | "round";
+
+const POPULAR_FROM = [
+  "TP. Hồ Chí Minh",
+  "Hà Nội",
+  "Đà Lạt",
+  "Nha Trang",
+  "Cần Thơ",
+  "Đà Nẵng",
+  "Vũng Tàu",
+];
+
+const POPULAR_TO = [
+  "Đà Lạt",
+  "Nha Trang",
+  "Phan Thiết",
+  "Đà Nẵng",
+  "Cần Thơ",
+  "TP. Hồ Chí Minh",
+  "Hà Nội",
+];
+
+function normalize(s: string) {
+  return s.trim().toLowerCase();
+}
+
+function todayISO() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
 
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
+
+  const [tripType, setTripType] = useState<TripType>("oneway");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [tickets, setTickets] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [departDate, setDepartDate] = useState<string>("");
+  
+  // ✅ Tạo state cho returnDate
+  const [returnDate, setReturnDate] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+    setDepartDate(todayISO());
+  }, []);
+
+  const { scrollY } = useScroll();
+  const bannerY = useTransform(scrollY, [0, 380], [0, -14]);
+
+  const fromSuggestions = useMemo(() => {
+    if (!from) return POPULAR_FROM.slice(0, 6);
+    const q = normalize(from);
+    const merged = Array.from(new Set([...POPULAR_FROM, ...POPULAR_TO]));
+    return merged.filter((x) => normalize(x).includes(q)).slice(0, 8);
+  }, [from]);
+
+  const toSuggestions = useMemo(() => {
+    if (!to) return POPULAR_TO.slice(0, 6);
+    const q = normalize(to);
+    const merged = Array.from(new Set([...POPULAR_TO, ...POPULAR_FROM]));
+    return merged.filter((x) => normalize(x).includes(q)).slice(0, 8);
+  }, [to]);
+
+  const swap = () => {
+    setFrom(to);
+    setTo(from);
+  };
+
+  async function onSearch() {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      await new Promise((r) => setTimeout(r, 900));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
-    <>
-      {/* TOP BAR */}
-      <header className={styles.topbar}>
-        <div className={styles.container}>
-          <div className={styles.topbarRow}>
-            <div className={styles.brand}>
-              <div className={styles.logo}>ABC</div>
-            </div>
-
-            <nav className={styles.nav}>
-              <a href="#">Đặt</a>
-              <a href="#">Trang</a>
-              <a href="#">Hỗ trợ</a>
-              <a href="#">In/Vé SMS</a>
-              <a href="#">Huỷ vé</a>
-              <a href="#">Vietnamese</a>
-              <a className={styles.avatar} href="#">
-                👤
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* HERO */}
-      <main>
-        <section className={styles.hero}>
-          <div className={styles.heroOverlay} />
-
-          <div className={`${styles.container} ${styles.heroInner}`}>
-            <div className={styles.breadcrumb}>
-              Đặt Vé Xe <span className={styles.sep}>›</span> Vé xe khách{" "}
-              <span className={styles.sep}>›</span> Nhà xe <span className={styles.sep}>›</span>{" "}
-              <b>Phương Trang</b>
-            </div>
-
-            <h1 className={styles.title}>Phương Trang - FUTA Bus Lines</h1>
-
-            <div className={styles.ratingRow}>
-              <span className={styles.ratingBadge}>
-                <b>4.33</b> <span className={styles.star}>★</span>
-              </span>
-              <span className={styles.review}>(2152 Nhận xét)</span>
-            </div>
-
-            <div className={styles.searchWrap}>
-              <div className={styles.searchCard}>
-                <div className={styles.searchGrid}>
-                  <div className={styles.field}>
-                    <label>Từ</label>
-                    <div className={styles.inputWrap}>
-                      <span className={styles.icon}>🚌</span>
-                      <input placeholder="VD: TP.HCM" />
-                    </div>
-                  </div>
-
-                  <div className={styles.swapCol}>
-                    <button className={styles.swapBtn} type="button" aria-label="Đổi điểm">
-                      ⇄
-                    </button>
-                  </div>
-
-                  <div className={styles.field}>
-                    <label>Đến</label>
-                    <div className={styles.inputWrap}>
-                      <span className={styles.icon}>🚌</span>
-                      <input placeholder="VD: Đà Lạt" />
-                    </div>
-                  </div>
-
-                  <div className={styles.field}>
-                    <label>Ngày đi</label>
-                    <div className={styles.inputWrap}>
-                      <span className={styles.icon}>📅</span>
-                      <input type="date" />
-                    </div>
-                  </div>
-
-                  <div className={styles.ctaCol}>
-                    <button className={styles.ctaBtn} type="button">
-                      TÌM KIẾM XE
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.trustRow}>
-              <div className={styles.trustItem}>
-                <span className={styles.trustIcon}>✅</span> Đối tác đặt vé chính thức
-              </div>
-              <div className={styles.trustItem}>
-                <span className={styles.trustIcon}>🏷️</span> Cam kết giá tốt nhất
-              </div>
-              <div className={styles.trustItem}>
-                <span className={styles.trustIcon}>🪑</span> Chọn ghế theo ý bạn
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PROMO */}
-        <section className={`${styles.container} ${styles.section}`}>
-          <h2 className={styles.h2}>ƯU ĐÃI</h2>
-
-          <div className={styles.promoGrid}>
-            <div className={styles.promoCard}>
-              <div className={styles.promoBadge}>BUS</div>
-              <div className={styles.promoTitle}>Tiết kiệm tới 30%</div>
-              <div className={styles.promoDesc}>khi đặt vé xe lần đầu (demo)</div>
-              <div className={styles.promoFooter}>Có hiệu lực đến ngày 31/…</div>
-            </div>
-
-            <div className={`${styles.promoCard} ${styles.promoGreen}`}>
-              <div className={styles.promoBadge}>BUS</div>
-              <div className={styles.promoTitle}>Tiết kiệm 20%</div>
-              <div className={styles.promoDesc}>cho lần đặt vé tiếp theo (demo)</div>
-              <div className={styles.promoFooter}>Có hiệu lực đến ngày 31/…</div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      {/* FOOTER */}
-      <footer className={styles.footer}>
-        <div className={styles.containerFooter}>
-          <div>
-            <b>Nhà xe ABC</b>
-            <div className={styles.footerMuted}>Đặt vé • Chọn ghế • Vé QR</div>
-          </div>
-          <div className={styles.footerMuted}>© {new Date().getFullYear()}</div>
-        </div>
-      </footer>
-    </>
+    <main className="bg-slate-50">
+      <div className="mx-auto max-w-6xl px-4 pt-10 pb-6">
+        <HeroBanner mounted={mounted} bannerY={bannerY} />
+        <SearchCard
+          tripType={tripType}
+          setTripType={setTripType}
+          from={from}
+          setFrom={setFrom}
+          to={to}
+          setTo={setTo}
+          departDate={departDate}
+          setDepartDate={setDepartDate}
+          
+          // ✅ Truyền returnDate và setReturnDate xuống
+          returnDate={returnDate} 
+          setReturnDate={setReturnDate}
+          
+          tickets={tickets}
+          setTickets={setTickets}
+          fromSuggestions={fromSuggestions}
+          toSuggestions={toSuggestions}
+          swap={swap}
+          isLoading={isLoading}
+          onSearch={onSearch}
+        />
+      </div>
+    </main>
   );
 }

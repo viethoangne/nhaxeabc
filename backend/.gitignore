@@ -15,3 +15,7 @@ pnpm-debug.log*
 # env (KHÔNG commit)
 .env
 .env.*
+
+/generated/prisma
+
+/generated/prisma

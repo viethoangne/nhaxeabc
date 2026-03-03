@@ -1,14 +1,22 @@
-import "../src/styles/globals.css";
+import "./globals.css";
+import Header from "../components/layout/Header";
 
 export const metadata = {
-  title: "Nhà xe ABC - Đặt vé",
-  description: "Đặt vé nhà xe ABC: tìm chuyến, chọn ghế, nhận vé QR.",
+  title: "ABC-ABC Bus Lines",
+  description: "Đặt vé • Chọn ghế • Vé QR",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="vi">
-      <body>{children}</body>
+      <body>
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }

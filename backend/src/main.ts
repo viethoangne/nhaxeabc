@@ -1,18 +1,19 @@
+import cookieParser from 'cookie-parser';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Thêm CORS ở đây
+  // Sử dụng cookie-parser để xử lý cookie
+  app.use(cookieParser());
+
+  // Cấu hình CORS để frontend có thể kết nối
   app.enableCors({
-    origin: 'http://localhost:3000',
-    credentials: true,
+    origin: 'http://localhost:3000', // URL frontend
+    credentials: true,                // Cho phép gửi cookie với yêu cầu
   });
 
-  const port = process.env.PORT ? Number(process.env.PORT) : 3001;
-  await app.listen(port);
-
-  console.log(`Backend running on http://localhost:${port}`);
+  await app.listen(3001);
 }
 bootstrap();

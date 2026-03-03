@@ -1,0 +1,35 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")  // Đảm bảo rằng `url` được giữ lại trong `schema.prisma`
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id String @id @default(uuid())
+  email         String   @unique
+  name          String?
+  picture       String?
+  passwordHash  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+model Trip {
+  id          Int      @id @default(autoincrement())
+  from        String
+  to          String
+  departDate  DateTime
+  returnDate  DateTime?
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id          Int      @id @default(autoincrement())
+  tripId      Int
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  numTickets  Int
+  createdAt   DateTime @default(now())
+}
+
