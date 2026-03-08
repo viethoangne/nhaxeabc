@@ -4,36 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
-import ThemeToggle from "../ui/ThemeToggle";
-
-const NAV = [
-  { label: "TRANG CHỦ", href: "/" },
-  { label: "LỊCH TRÌNH", href: "/schedule" },
-  { label: "TRA CỨU VÉ", href: "/lookup" },
-  { label: "TIN TỨC", href: "/news" },
-  { label: "HÓA ĐƠN", href: "/invoice" },
-  { label: "LIÊN HỆ", href: "/contact" },
-  { label: "VỀ CHÚNG TÔI", href: "/about" },
-];
+import { useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import ThemeToggle from "@components/ui/ThemeToggle";
+import { NAV_ITEMS } from "@lib/constants";
 
 export default function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const activeHref = useMemo(() => {
-    const found = NAV.find((x) =>
-      x.href === "/" ? pathname === "/" : pathname?.startsWith(x.href)
-    );
-    return found?.href ?? "/";
-  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50">
@@ -152,26 +139,56 @@ export default function Header() {
                 </Link>
               </div>
 
-              {/* Right: Login trắng + theme */}
+              {/* Right: Login/User + theme */}
               <div className="flex items-center gap-2">
-                <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}>
-                  <Link
-                    href="/login"
-                    className={[
-                      "inline-flex items-center gap-2",
-                      "rounded-full bg-white px-4 py-2",
-                      "text-sm font-extrabold text-orange-700",
-                      "shadow-[0_14px_35px_rgba(2,6,23,0.16)]",
-                      "ring-1 ring-black/10",
-                      "hover:bg-white/95 transition",
-                    ].join(" ")}
-                  >
-                    <span className="grid h-6 w-6 place-items-center rounded-full bg-orange-50 ring-1 ring-orange-200">
-                      👤
-                    </span>
-                    Đăng nhập/Đăng ký
-                  </Link>
-                </motion.div>
+                {session?.user ? (
+                  <>
+                    <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}>
+                      <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-orange-700 shadow-[0_14px_35px_rgba(2,6,23,0.16)] ring-1 ring-black/10">
+                        {session.user.image ? (
+                          <Image
+                            src={session.user.image}
+                            alt={session.user.name ?? ""}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <span className="grid h-6 w-6 place-items-center rounded-full bg-orange-50 ring-1 ring-orange-200">👤</span>
+                        )}
+                        <span className="max-w-[100px] truncate">{session.user.name ?? session.user.email}</span>
+                      </div>
+                    </motion.div>
+                    <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}>
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className="rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/30 transition"
+                        type="button"
+                      >
+                        Đăng xuất
+                      </button>
+                    </motion.div>
+                  </>
+                ) : (
+                  <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.99 }}>
+                    <Link
+                      href="/login"
+                      className={[
+                        "inline-flex items-center gap-2",
+                        "rounded-full bg-white px-4 py-2",
+                        "text-sm font-extrabold text-orange-700",
+                        "shadow-[0_14px_35px_rgba(2,6,23,0.16)]",
+                        "ring-1 ring-black/10",
+                        "hover:bg-white/95 transition",
+                      ].join(" ")}
+                    >
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-orange-50 ring-1 ring-orange-200">
+                        👤
+                      </span>
+                      Đăng nhập/Đăng ký
+                    </Link>
+                  </motion.div>
+                )}
 
                 <div className="rounded-full bg-white/15 px-1.5 py-1.5 hover:bg-white/20 transition">
                   <ThemeToggle />
@@ -184,7 +201,7 @@ export default function Header() {
           <div className="relative z-10 border-t border-white/18">
             <div className="mx-auto max-w-6xl px-2 md:px-4">
               <nav className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-                {NAV.map((item) => {
+                {NAV_ITEMS.map((item) => {
                   const active =
                     item.href === "/"
                       ? pathname === "/"

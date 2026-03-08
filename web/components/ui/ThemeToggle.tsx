@@ -1,32 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "@hooks/useTheme";
 
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [dark, setDark] = useState(false);
+  const { theme, toggleTheme, isDark, mounted } = useTheme();
 
-  useEffect(() => {
-    setMounted(true);
-
-    const saved = localStorage.getItem("theme");
-    const isDark =
-      saved === "dark" ||
-      (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
-
-  function toggle() {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
-
-  // tránh SSR/client render khác nhau => hết hydration warning
+  // Avoid hydration mismatch
   if (!mounted) {
     return (
       <button
@@ -46,7 +26,7 @@ export default function ThemeToggle() {
   return (
     <motion.button
       type="button"
-      onClick={toggle}
+      onClick={toggleTheme}
       whileTap={{ scale: 0.98 }}
       whileHover={{ y: -1 }}
       className={[
@@ -67,10 +47,10 @@ export default function ThemeToggle() {
         ].join(" ")}
         aria-hidden="true"
       >
-        {dark ? "🌙" : "☀️"}
+        {isDark ? "🌙" : "☀️"}
       </span>
 
-      <span className="whitespace-nowrap">{dark ? "Dark" : "Light"}</span>
+      <span className="whitespace-nowrap">{isDark ? "Dark" : "Light"}</span>
     </motion.button>
   );
 }

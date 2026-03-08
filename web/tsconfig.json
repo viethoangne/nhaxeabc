@@ -16,8 +16,13 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@backend/*": ["../backend/*"]
+      "@/*": ["./*"],
+      "@backend/*": ["../backend/*"],
+      "@components/*": ["./components/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@utils/*": ["./utils/*"],
+      "@lib/*": ["./lib/*"],
+      "@types/*": ["./types/*"]
     },
 
     "plugins": [

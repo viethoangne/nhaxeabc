@@ -44,22 +44,11 @@ export class AuthController {
   }
 
   @Post('google-login')
-  async googleLogin(@Body() body: { email: string }, @Res({ passthrough: true }) res: Response) {
-    const result = await this.authService.googleLogin(body.email);
-
-    res.cookie('access_token', result.token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-    });
-
-    return { user: result.user };
-  }
-
-  @Post('google-register')
-  async googleRegister(@Body() body: { email: string }, @Res({ passthrough: true }) res: Response) {
-    const result = await this.authService.googleRegister(body.email);
+  async googleLogin(
+    @Body() body: { email: string; name?: string; picture?: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.googleLogin(body.email, body.name, body.picture);
 
     res.cookie('access_token', result.token, {
       httpOnly: true,

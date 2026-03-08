@@ -2,7 +2,6 @@
 
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
 import '../../src/styles/login.css';
 
 export default function LoginPage() {
@@ -10,10 +9,8 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     setMsg(null);
-    // OAuth sẽ redirect sang Google, xong quay về callbackUrl
-    signIn('google', { callbackUrl: 'http://localhost:3000/api/register/google-callback' }).catch(() => {
+    signIn('google', { callbackUrl: '/auth/callback' }).catch(() => {
       setMsg('Đăng nhập qua Google thất bại');
-      toast.error('Đăng nhập qua Google thất bại');
     });
   };
 
@@ -21,9 +18,9 @@ export default function LoginPage() {
     <div className="login-container">
       <div className="login-card">
         <h1>Đăng nhập</h1>
-        <button className="google-login" onClick={handleGoogleLogin}>
-  Đăng nhập với Google
-</button>
+        <button className="google-login" onClick={handleGoogleLogin} type="button">
+          Đăng nhập với Google
+        </button>
         {msg && <p className="error-message">{msg}</p>}
         <p className="register-link">
           Chưa có tài khoản? <a href="/register">Đăng ký</a>

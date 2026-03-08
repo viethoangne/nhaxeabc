@@ -9,21 +9,32 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === 'google') {
-        const email = user?.email ?? (profile as any)?.email;
-        if (!email) return false; // Nếu không có email => Không cho phép đăng nhập
+        if (!user?.email) return false;
       }
       return true;
     },
-    async jwt({ token, user }) {
-      if (user?.email) token.email = user.email;
+    async jwt({ token, user, account }) {
+      // Lần đầu đăng nhập: lưu thông tin từ Google
+      if (account?.provider === 'google' && user) {
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image;
+      }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) session.user.email = token.email as string;
+      if (session.user) {
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.image = token.picture as string;
+      }
       return session;
     },
+  },
+  pages: {
+    signIn: '/login',
   },
 };
 

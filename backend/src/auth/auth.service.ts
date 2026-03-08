@@ -39,7 +39,8 @@ export class AuthService {
       throw new UnauthorizedException('Sai email hoặc mật khẩu');
     }
     
-    const ok = await bcrypt.compare(password, user.passwordHash);    
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('Sai email hoặc mật khẩu');
 
     const token = await this.jwt.signAsync({
       sub: user.id, // id STRING
@@ -52,16 +53,22 @@ export class AuthService {
     };
   }
 
-  // Đăng nhập qua Google
-  async googleLogin(email: string) {
+  // Đăng nhập / Đăng ký qua Google (upsert)
+  async googleLogin(email: string, name?: string, picture?: string) {
     email = email.trim().toLowerCase();
 
-    let user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: { email, name: '', passwordHash: '' }, // Mặc định không có mật khẩu
-      });
-    }
+    const user = await this.prisma.user.upsert({
+      where: { email },
+      update: {
+        ...(name && { name: name.trim() }),
+        ...(picture && { picture }),
+      },
+      create: {
+        email,
+        name: name?.trim() || '',
+        picture: picture || null,
+      },
+    });
 
     const token = await this.jwt.signAsync({
       sub: user.id,
@@ -70,29 +77,7 @@ export class AuthService {
 
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name },
-    };
-  }
-
-  // Đăng ký người dùng qua Google (mới)
-  async googleRegister(email: string) {
-    email = email.trim().toLowerCase();
-
-    let user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: { email, name: '', passwordHash: '' }, // Mặc định không có mật khẩu
-      });
-    }
-
-    const token = await this.jwt.signAsync({
-      sub: user.id,
-      email: user.email,
-    });
-
-    return {
-      token,
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, picture: user.picture },
     };
   }
 
