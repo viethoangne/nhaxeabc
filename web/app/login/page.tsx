@@ -17,13 +17,16 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-card">
+        <div className="login-icon">🚌</div>
         <h1>Đăng nhập</h1>
+        <p className="login-subtitle">Chào mừng trở lại Nhà Xe ABC</p>
+        <div className="login-divider"><span>Tiếp tục với</span></div>
         <button className="google-login" onClick={handleGoogleLogin} type="button">
           Đăng nhập với Google
         </button>
         {msg && <p className="error-message">{msg}</p>}
         <p className="register-link">
-          Chưa có tài khoản? <a href="/register">Đăng ký</a>
+          Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
         </p>
       </div>
     </div>

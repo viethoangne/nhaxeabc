@@ -1,77 +1,159 @@
-/* Tạo nền cho trang */
-body {
-    background: linear-gradient(135deg, #6D7B8D, #F1F2F6);
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Thiết kế card đăng nhập */
+/* ===== CONTAINER ===== */
 .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 120px); /* trừ chiều cao header */
+  padding: 24px 16px;
+  background: linear-gradient(145deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%);
 }
 
+/* ===== CARD ===== */
 .login-card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 40px;
-    width: 100%;
-    max-width: 460px;
-    text-align: center;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow:
+    0 20px 60px rgba(226, 77, 18, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 48px 40px 40px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Tiêu đề đăng nhập */
+/* dải cam trên đầu card */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF8A2A, #E24D12);
+}
+
+/* ===== LOGO / ICON ===== */
+.login-card .login-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border-radius: 16px;
+  border: 1px solid #fed7aa;
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+/* ===== TIÊU ĐỀ ===== */
 .login-card h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #333;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
 }
 
-/* Nút đăng nhập Google */
+.login-card .login-subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0 0 32px;
+}
+
+/* ===== DIVIDER ===== */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f3f4f6;
+}
+
+.login-divider span {
+  font-size: 12px;
+  color: #d1d5db;
+  white-space: nowrap;
+}
+
+/* ===== NÚT GOOGLE ===== */
 .google-login {
-    padding: 15px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background-color: #db4437; /* Google Red */
-    color: white;
-    cursor: pointer;
-    width: 100%;
-    transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.google-login::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  flex-shrink: 0;
 }
 
 .google-login:hover {
-    background-color: #c1351d; /* Darker Google Red */
+  border-color: #f97316;
+  background: #fff7ed;
+  color: #ea580c;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.15);
+  transform: translateY(-1px);
 }
 
-/* Thông báo lỗi */
+.google-login:active {
+  transform: translateY(0);
+}
+
+/* ===== THÔNG BÁO LỖI ===== */
 .error-message {
-    color: crimson;
-    margin-top: 10px;
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
 }
 
-/* Liên kết đăng ký */
+/* ===== LINK DƯỚI ===== */
 .register-link {
-    margin-top: 20px;
-    font-size: 14px;
-    color: #666;
+  margin-top: 28px;
+  font-size: 14px;
+  color: #9ca3af;
 }
 
 .register-link a {
-    color: #4CAF50;
-    text-decoration: none;
+  color: #f97316;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s;
 }
 
 .register-link a:hover {
-    text-decoration: underline;
+  color: #ea580c;
+  text-decoration: underline;
 }
