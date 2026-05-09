@@ -12,22 +12,28 @@ dotenv.config({
   path: path.resolve(process.cwd(), '.env'),
 });
 
-console.log("JWT TEST:", process.env.JWT_SECRET);
-console.log("DB TEST:", process.env.DATABASE_URL);
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
+  // Hỗ trợ cả localhost và Vercel domain
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3002',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   });
 
   app.use(cookieParser());
 
-  await app.listen(3001);
+  // Railway cung cấp $PORT tự động, fallback về 3001 cho local
+  const port = process.env.PORT || 3001;
+  await app.listen(port, '0.0.0.0');
 
   // ✅ LẤY Prisma từ Nest
   const prisma = app.get(PrismaService);
@@ -38,7 +44,7 @@ async function bootstrap() {
   // ✅ chạy job
   startTripMaintenance();
 
-  console.log('Backend đang chạy tại http://localhost:3001');
+  console.log(`Backend đang chạy tại port ${port}`);
 }
 
-bootstrap();
+bootstrap();

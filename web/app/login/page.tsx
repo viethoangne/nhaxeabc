@@ -2,7 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
-import '../../src/styles/login.css';
+import '@/src/styles/login.css';
 
 export default function LoginPage() {
   const [msg, setMsg] = useState<string | null>(null);
