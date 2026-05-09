@@ -1,12 +1,11 @@
-import { Body, Controller, Post, Get, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { CurrentUserPayload } from './current-user.decorator';
 
-
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -19,12 +18,7 @@ export class AuthController {
   async login(@Body() body: { email: string; password: string }, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(body.email, body.password);
 
-    res.cookie('access_token', result.token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false, // true khi deploy với HTTPS
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-    });
+    this.setCookie(res, result.token);
 
     return { user: result.user };
   }
@@ -35,11 +29,9 @@ export class AuthController {
     return { ok: true };
   }
 
-  // ✅ CHUẨN NEST: dùng guard, không tự verify trong controller
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async me(@CurrentUser() user: CurrentUserPayload) {
-    // user.userId đã là string từ JwtStrategy.validate()
     return this.authService.me(user.userId);
   }
 
@@ -50,13 +42,18 @@ export class AuthController {
   ) {
     const result = await this.authService.googleLogin(body.email, body.name, body.picture);
 
-    res.cookie('access_token', result.token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-    });
+    this.setCookie(res, result.token);
 
     return { user: result.user };
+  }
+
+  // Hàm phụ trợ để tái sử dụng việc cấu hình Cookie
+  private setCookie(res: Response, token: string) {
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      sameSite: 'lax', // 'lax' giúp tránh lỗi khi redirect từ Google về Localhost
+      secure: false,   // Đặt thành true nếu bạn dùng HTTPS/Production
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
   }
 }

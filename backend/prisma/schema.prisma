@@ -1,35 +1,370 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")  // Đảm bảo rằng `url` được giữ lại trong `schema.prisma`
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id String @id @default(uuid())
-  email         String   @unique
-  name          String?
-  picture       String?
-  passwordHash  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
+
+// 🟢 MỚI: Các Enum chuẩn hóa trạng thái cho Hệ thống Điều phối
+enum DriverStatus {
+  AVAILABLE // Sẵn sàng nhận chuyến
+  ON_TRIP   // Đang chạy trên đường
+  RESTING   // Đang nghỉ ngơi (bắt buộc sau chuyến)
+  OFF       // Nghỉ phép / Không hoạt động
+}
+
+enum BusStatus {
+  READY       // Sẵn sàng chạy
+  ON_TRIP     // Đang chạy
+  MAINTENANCE // Đang bảo trì / Sửa chữa
+  OFF         // Ngưng hoạt động
+}
+
+enum AssignStatus {
+  ASSIGNED  // Đã phân công (chờ xác nhận)
+  CONFIRMED // Tài xế đã xác nhận
+  COMPLETED // Đã hoàn thành chuyến
+  CANCELLED // Đã hủy phân công
+}
+
+enum UserRole {
+  CUSTOMER // Khách hàng bình thường
+  ADMIN    // Quản trị viên (Full quyền)
+  STAFF    // Nhân viên bán vé / CSKH
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  picture      String?
+  language     String   @default("vi")
+  
+  role         UserRole @default(CUSTOMER)
+  
+  preferences  UserPreference?
+  orders       Order[] 
+  
+  points       Int      @default(0)  
+  totalTrips   Int      @default(0)  
+  vouchers     UserVoucher[]       
+
+  chatMessages ChatMessage[] 
+  
+  adminLogs    AdminLog[]
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  role      String   
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Voucher {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  title        String
+  type         String   
+  value        Int      
+  maxAmount    Int?     
+  costInPoints Int?     
+  createdAt    DateTime @default(now())
+  
+  users        UserVoucher[]
+}
+
+model UserVoucher {
+  id        String   @id @default(uuid())
+  userId    String
+  voucherId String
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voucher   Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([voucherId])
+}
+
+enum TripStatus {
+  DRAFT       
+  PUBLISHED   
+  RUNNING     
+  COMPLETED   
+  CANCELLED   
+}
+
 model Trip {
-  id          Int      @id @default(autoincrement())
-  from        String
-  to          String
-  departDate  DateTime
-  returnDate  DateTime?
-  tickets     Ticket[]
+  id              Int         @id @default(autoincrement())
+  from            String
+  to              String
+  departDate      DateTime
+  arrivalDate     DateTime?
+  returnDate      DateTime?
+  arrivalTime     DateTime?
+  busType         String?
+  distanceKm      Int
+  dropoffPoint    String
+  durationMinutes Int
+  pickupPoint     String
+  price           Int?
+  busPlate        String?
+  driverName      String?
+  
+  busId           Int?
+  driverId        Int?
+  status          TripStatus  @default(PUBLISHED)
+  bus             Bus?        @relation(fields: [busId], references: [id], onDelete: SetNull)
+  driver          Driver?     @relation(fields: [driverId], references: [id], onDelete: SetNull)
+
+  // 🟢 MỚI: Liên kết 1-1 với Bảng Phân công Điều phối
+  driverAssignment DriverAssignment?
+
+  outboundOrders  Order[]     @relation("OutboundTripOrders")
+  returnOrders    Order[]     @relation("ReturnTripOrders")
+  orderSeats      OrderSeat[] @relation("TripOrderSeats")
+  tickets         Ticket[]    @relation("TripTickets")
+  lockedSeats     String[]    @default([])
+
+  @@unique([from, to, departDate, pickupPoint, dropoffPoint], name: "trip_lookup")
+}
+
+// 🟢 ĐÃ NÂNG CẤP: Quản lý Xe theo Tuyến
+model Bus {
+  id          Int       @id @default(autoincrement())
+  busCode     String    @unique @default(uuid()) // VD: XE-SG-001
+  plateNumber String    @unique 
+  busType     String    
+  capacity    Int       
+  routeCode   String    @default("ALL") // Tuyến đường hoạt động (VD: SG-DL)
+  status      BusStatus @default(READY) // Trạng thái chuẩn
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  currentLocation String  @default("Chưa xác định")
+  defaultDriver   Driver?
+
+  trips       Trip[]
+}
+
+// 🟢 ĐÃ NÂNG CẤP: Quản lý Tài xế theo Vùng và Tuyến
+model Driver {
+  id           Int          @id @default(autoincrement())
+  driverCode   String       @unique @default(uuid()) // VD: TX-SG-001
+  name         String
+  phone        String       @unique
+  licenseNo    String?
+  baseLocation String       @default("Chưa xác định") // Nơi cư trú/Bến bãi gốc
+  routeCode    String       @default("ALL") // Tuyến phụ trách chính (VD: SG-DL)
+  status       DriverStatus @default(AVAILABLE) // Trạng thái chuẩn
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  trips        Trip[]       // Backward compatibility
+  
+  // 🟢 MỚI: Lịch sử và Kế hoạch phân công
+  assignments  DriverAssignment[] 
+  defaultBusId  Int?      @unique 
+  defaultBus    Bus?      @relation(fields: [defaultBusId], references: [id])
+}
+
+// 🚀 TÍNH NĂNG LÕI MỚI: BẢNG PHÂN CÔNG (DISPATCHING)
+model DriverAssignment {
+  id          Int          @id @default(autoincrement())
+  
+  driverId    Int
+  driver      Driver       @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  
+  tripId      Int          @unique // Mỗi chuyến (trip) chỉ có 1 phân công chính
+  trip        Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  
+  startTime   DateTime     // Giờ bắt đầu tính công (thường trước giờ xuất bến 30p)
+  endTime     DateTime     // Giờ dự kiến kết thúc chuyến
+  
+  status      AssignStatus @default(ASSIGNED)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([driverId])
+  @@index([startTime, endTime]) // Index để tăng tốc độ truy vấn trùng lịch
 }
 
 model Ticket {
-  id          Int      @id @default(autoincrement())
-  tripId      Int
-  trip        Trip     @relation(fields: [tripId], references: [id])
-  numTickets  Int
-  createdAt   DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  tripId     Int
+  numTickets Int
+  createdAt  DateTime @default(now())
+  trip       Trip     @relation("TripTickets", fields: [tripId], references: [id], onDelete: Cascade)
 }
 
+model Order {
+  id                              Int           @id @default(autoincrement())
+  orderCode                       String        @unique
+  requestId                       String?       @unique
+  momoOrderId                     String?       @unique
+  momoTransId                     String?
+  customerName                    String?
+  customerPhone                   String?
+  customerEmail                   String?
+  tripType                        TripType
+  outboundTripId                  Int?
+  returnTripId                    Int?
+  from                            String
+  to                              String
+  date                            DateTime
+  returnDate                      DateTime?
+  tickets                         Int
+  amount                          Int
+  
+  appliedPromoCode                String?
+  
+  paymentMethod                   PaymentMethod @default(MOMO)
+  paymentStatus                   PaymentStatus @default(PENDING)
+  bookingStatus                   BookingStatus @default(HOLD)
+  momoResultCode                  Int?
+  momoMessage                     String?
+  payType                         String?
+  responseTime                    BigInt?
+  rawExtraData                    String?
+  rawIpnPayload                   Json?
+  checkoutUrl                     String?
+  qrCode                          String?
+  createdAt                       DateTime      @default(now())
+  updatedAt                       DateTime      @updatedAt
+  qrExpiredAt                     DateTime?     // Thời gian hết hạn mã QR (5 phút)
+  
+  outboundArrivalTimeSnapshot     DateTime?
+  outboundBusTypeSnapshot         String?
+  outboundDepartDateSnapshot      DateTime?
+  outboundDistanceKmSnapshot      Int?
+  outboundDropoffPointSnapshot    String?
+  outboundDurationMinutesSnapshot Int?
+  outboundFromSnapshot            String?
+  outboundPickupPointSnapshot     String?
+  outboundPriceSnapshot           Int?
+  outboundToSnapshot              String?
+  returnArrivalTimeSnapshot       DateTime?
+  returnBusTypeSnapshot           String?
+  returnDepartDateSnapshot        DateTime?
+  returnDistanceKmSnapshot        Int?
+  returnDropoffPointSnapshot      String?
+  returnDurationMinutesSnapshot   Int?
+  returnFromSnapshot              String?
+  returnPickupPointSnapshot       String?
+  returnPriceSnapshot             Int?
+  returnToSnapshot                String?
+  userId                          String?
+
+  outboundTrip                    Trip?         @relation("OutboundTripOrders", fields: [outboundTripId], references: [id], onDelete: SetNull)
+  returnTrip                      Trip?         @relation("ReturnTripOrders", fields: [returnTripId], references: [id], onDelete: SetNull)
+  user                            User?         @relation(fields: [userId], references: [id])
+  seats                           OrderSeat[]   @relation("OrderSeatsForOrder")
+
+  @@index([outboundTripId])
+  @@index([returnTripId])
+  @@index([paymentStatus])
+  @@index([bookingStatus])
+  @@index([userId])
+}
+
+model OrderSeat {
+  id            Int           @id @default(autoincrement())
+  orderId       Int
+  tripId        Int?
+  tripDirection TripDirection
+  seatNumber    String
+  price         Int
+  
+  isCheckedIn   Boolean       @default(false) 
+  checkInTime   DateTime?
+  
+  createdAt     DateTime      @default(now())
+
+  order Order @relation("OrderSeatsForOrder", fields: [orderId], references: [id], onDelete: Cascade)
+  trip  Trip? @relation("TripOrderSeats", fields: [tripId], references: [id], onDelete: SetNull)
+
+  @@unique([tripId, seatNumber])
+  @@index([orderId])
+}
+
+enum PaymentMethod { 
+  MOMO 
+  VIETQR
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+}
+
+enum BookingStatus {
+  HOLD
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  ARCHIVED
+}
+
+enum TripType { 
+  oneway  
+  round 
+}
+
+enum TripDirection { 
+  outbound  
+  return 
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  email     String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([email])
+}
+
+model UserPreference {
+  id                  String  @id @default(uuid())
+  userId              String  @unique
+  preferredTime       String? 
+  preferredVehicle    String? 
+  preferredSeatFloor  String? 
+  preferredSeatPosition String? 
+
+  user                User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AdminLog {
+  id          String   @id @default(uuid())
+  adminId     String?  // 🟢 THÊM DẤU ? ĐỂ CHO PHÉP BOT (NULL)
+  action      String   
+  entityType  String   
+  entityId    String   
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  admin       User?    @relation(fields: [adminId], references: [id], onDelete: SetNull) // 🟢 THÊM DẤU ? VÀ ĐỔI ONDELETE
+  
+  @@index([adminId])
+}

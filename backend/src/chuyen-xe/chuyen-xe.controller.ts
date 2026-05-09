@@ -1,18 +1,26 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ChuyenXeService } from './chuyen-xe.service';
 
-@Controller('api/ChuyenXe')
+@Controller('chuyenXe')
 export class ChuyenXeController {
+  constructor(private readonly chuyenXeService: ChuyenXeService) {}
+
   @Get()
-  getBusStations(@Query('action') action: string) {
-    if (action === 'getBusStations') {
-      return {
-        stations: [
-          { id: 1, name: 'Bến xe Miền Đông' },
-          { id: 2, name: 'Bến xe Miền Tây' },
-          { id: 3, name: 'Bến xe Đà Lạt' },
-        ],
-      };
+  async handleQuery(
+    @Query('action') action: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('date') date: string,
+  ) {
+    // Ép kiểu action để đảm bảo luôn chạy đúng hàm searchTrips
+    if (action === 'searchTrips') {
+      const result = await this.chuyenXeService.searchTrips(from, to, date);
+      return result;
     }
-    return { stations: [] };
+
+    return {
+      message: 'Invalid action',
+      trips: [],
+    };
   }
 }

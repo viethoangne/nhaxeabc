@@ -9,7 +9,8 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     setMsg(null);
-    signIn('google', { callbackUrl: '/auth/callback' }).catch(() => {
+    // 🟢 SỬA TẠI ĐÂY: Đổi callbackUrl về trạm trung chuyển phân quyền
+    signIn('google', { callbackUrl: '/auth-check' }).catch(() => {
       setMsg('Đăng nhập qua Google thất bại');
     });
   };
@@ -25,9 +26,6 @@ export default function LoginPage() {
           Đăng nhập với Google
         </button>
         {msg && <p className="error-message">{msg}</p>}
-        <p className="register-link">
-          Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
-        </p>
       </div>
     </div>
   );

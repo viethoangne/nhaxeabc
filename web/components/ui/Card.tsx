@@ -1,4 +1,5 @@
 // Reusable Card component
+'use client';
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 

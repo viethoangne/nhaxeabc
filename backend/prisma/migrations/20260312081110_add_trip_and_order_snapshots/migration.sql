@@ -1,0 +1,30 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "outboundArrivalTimeSnapshot" TIMESTAMP(3),
+ADD COLUMN     "outboundBusTypeSnapshot" TEXT,
+ADD COLUMN     "outboundDepartDateSnapshot" TIMESTAMP(3),
+ADD COLUMN     "outboundDistanceKmSnapshot" INTEGER,
+ADD COLUMN     "outboundDropoffPointSnapshot" TEXT,
+ADD COLUMN     "outboundDurationMinutesSnapshot" INTEGER,
+ADD COLUMN     "outboundFromSnapshot" TEXT,
+ADD COLUMN     "outboundPickupPointSnapshot" TEXT,
+ADD COLUMN     "outboundPriceSnapshot" INTEGER,
+ADD COLUMN     "outboundToSnapshot" TEXT,
+ADD COLUMN     "returnArrivalTimeSnapshot" TIMESTAMP(3),
+ADD COLUMN     "returnBusTypeSnapshot" TEXT,
+ADD COLUMN     "returnDepartDateSnapshot" TIMESTAMP(3),
+ADD COLUMN     "returnDistanceKmSnapshot" INTEGER,
+ADD COLUMN     "returnDropoffPointSnapshot" TEXT,
+ADD COLUMN     "returnDurationMinutesSnapshot" INTEGER,
+ADD COLUMN     "returnFromSnapshot" TEXT,
+ADD COLUMN     "returnPickupPointSnapshot" TEXT,
+ADD COLUMN     "returnPriceSnapshot" INTEGER,
+ADD COLUMN     "returnToSnapshot" TEXT;
+
+-- AlterTable
+ALTER TABLE "Trip" ADD COLUMN     "arrivalTime" TIMESTAMP(3),
+ADD COLUMN     "busType" TEXT,
+ADD COLUMN     "distanceKm" INTEGER,
+ADD COLUMN     "dropoffPoint" TEXT,
+ADD COLUMN     "durationMinutes" INTEGER,
+ADD COLUMN     "pickupPoint" TEXT,
+ADD COLUMN     "price" INTEGER;

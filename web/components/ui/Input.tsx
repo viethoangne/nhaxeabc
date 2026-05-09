@@ -1,4 +1,3 @@
-// Reusable Input component
 'use client';
 
 import { forwardRef, InputHTMLAttributes } from 'react';
@@ -25,45 +24,51 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   ref
 ) {
   return (
-    <div className="group">
+    <div className="group w-full">
+      {/* 1. Label nhỏ lại và sát hơn */}
       {label && (
-        <label className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+        <label className="text-[13px] font-bold text-slate-600 dark:text-slate-400 ml-1">
           {label}
         </label>
       )}
       
-      <div className="mt-2 relative">
+      <div className="mt-1 relative">
         <div
           className={[
-            'relative flex items-center gap-3',
-            'rounded-2xl border',
+            'relative flex items-center gap-2.5',
+            'rounded-xl border', // Giảm độ bo góc để nhìn cứng cáp hơn
             error
-              ? 'border-red-300 bg-white ring-4 ring-red-100'
-              : 'border-slate-200 bg-white',
-            'px-4 py-4 shadow-sm transition',
-            'group-focus-within:border-primary-300 group-focus-within:ring-4 group-focus-within:ring-primary-100',
-            'dark:border-white/10 dark:bg-white/5',
+              ? 'border-red-500 bg-white ring-2 ring-red-50'
+              : 'border-slate-200 bg-white dark:border-white/10 dark:bg-white/5',
+            'px-3 py-2.5 shadow-sm transition-all duration-200', // ĐIỂM CHÍNH: Giảm py-4 xuống py-2.5
+            'group-focus-within:border-orange-500 group-focus-within:ring-2 group-focus-within:ring-orange-100',
             className,
           ].join(' ')}
         >
-          {icon && <span className="text-slate-500 dark:text-slate-400">{icon}</span>}
+          {/* Icon tinh chỉnh nhỏ lại */}
+          {icon && (
+            <span className="text-lg opacity-70 group-focus-within:opacity-100 transition-opacity">
+              {icon}
+            </span>
+          )}
           
           <input
             ref={ref}
             value={value}
             className={[
-              'w-full bg-transparent text-[16px] font-semibold outline-none',
-              'placeholder:text-slate-400',
+              'w-full bg-transparent text-[15px] font-medium outline-none', // Giảm text-16 xuống 15 cho dẹt
+              'placeholder:text-slate-400 placeholder:font-normal',
               'dark:text-white dark:placeholder:text-slate-500',
             ].join(' ')}
             {...props}
           />
           
+          {/* Nút Clear nhỏ gọn hơn */}
           {clearable && value && (
             <button
               type="button"
               onClick={onClear}
-              className="rounded-full px-2 py-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-white/10"
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] text-slate-500 hover:bg-slate-200 transition dark:bg-white/10 dark:text-slate-400"
               aria-label="Clear input"
             >
               ✕
@@ -72,7 +77,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         </div>
         
         {error && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 font-medium">{error}</p>
         )}
       </div>
     </div>

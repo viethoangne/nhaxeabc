@@ -1,4 +1,8 @@
+import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from "next";
+
+// Khởi tạo plugin next-intl
+const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -12,6 +16,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // Rewrite API sang backend
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path((?!auth).*)', 
+        destination: 'http://localhost:3001/api/:path*',
+      },
+    ];
+  },
 };
 
-export default nextConfig;
+// Bọc nextConfig bằng withNextIntl trước khi export
+export default withNextIntl(nextConfig);

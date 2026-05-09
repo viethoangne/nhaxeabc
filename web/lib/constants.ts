@@ -4,7 +4,8 @@ export const NAV_ITEMS = [
   { label: 'LỊCH TRÌNH', href: '/schedule' },
   { label: 'TRA CỨU VÉ', href: '/lookup' },
   { label: 'TIN TỨC', href: '/news' },
-  { label: 'HÓA ĐƠN', href: '/invoice' },
+  // Đổi 'HÓA ĐƠN' thành 'LỊCH SỬ MUA VÉ' và trỏ về route /history
+  { label: 'LỊCH SỬ MUA VÉ', href: '/history' }, 
   { label: 'LIÊN HỆ', href: '/contact' },
   { label: 'VỀ CHÚNG TÔI', href: '/about' },
 ] as const;
