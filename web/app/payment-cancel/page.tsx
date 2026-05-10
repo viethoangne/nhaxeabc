@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -17,7 +18,7 @@ export default function PaymentSuccessPage() {
     // 1. NẾU THÀNH CÔNG (resultCode = 0)
     if (resultCode === '0') {
       setStatus('Đang xác nhận thanh toán...');
-      fetch(`http://localhost:3001/api/payment/confirm-local/${orderCode}`)
+      fetch(`${API_BASE}/payment/confirm-local/${orderCode}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
@@ -36,7 +37,7 @@ export default function PaymentSuccessPage() {
       setStatus('Giao dịch đã bị hủy. Đang tiến hành hoàn trả ghế...');
       
       // Gọi API báo Backend hủy đơn và nhả ghế ngay lập tức
-      fetch(`http://localhost:3001/api/payment/failed-local/${orderCode}`)
+      fetch(`${API_BASE}/payment/failed-local/${orderCode}`)
         .then(() => {
           setStatus('Giao dịch không thành công hoặc đã bị hủy. Ghế đã được nhả!');
         })

@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import React, { useState, useEffect, useRef,  } from 'react';
 import axios from 'axios';
@@ -114,7 +115,7 @@ export default function AdminOrdersPage() {
     if (!userId) return;
     setIsLoading(true);
     try {
-      const res = await axios.get('http://localhost:3001/api/admin/orders', {
+      const res = await axios.get('${API_BASE}/admin/orders', {
         headers: { 'x-user-id': userId }
       });
       setOrders(res.data);
@@ -132,7 +133,7 @@ export default function AdminOrdersPage() {
     const reason = prompt('Vui lòng nhập lý do huỷ vé (Bắt buộc để ghi Log):');
     if (!reason) return;
     try {
-      await axios.put(`http://localhost:3001/api/admin/orders/${orderCode}/cancel`, { reason }, { headers: { 'x-user-id': userId } });
+      await axios.put(`${API_BASE}/admin/orders/${orderCode}/cancel`, { reason }, { headers: { 'x-user-id': userId } });
       alert('Đã huỷ vé thành công!');
       fetchOrders(); 
     } catch (error: any) {

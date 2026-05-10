@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -119,7 +120,7 @@ export default function ChairPage() {
 
       const userId = (session.user as any)?.id;
       if (userId) {
-        axios.get(`http://localhost:3001/api/loyalty?userId=${userId}`)
+        axios.get(`${API_BASE}/loyalty?userId=${userId}`)
           .then(res => {
             setUserPoints(res.data.points);
             setMyVouchers(res.data.myVouchers);
@@ -136,7 +137,7 @@ export default function ChairPage() {
       const fetchSeats = async (tripId: number, setBooked: any, setLocked: any) => {
         if (!tripId) return;
         try {
-          const res = await axios.get(`http://localhost:3001/api/payment/booked-seats/${tripId}`);
+          const res = await axios.get(`${API_BASE}/payment/booked-seats/${tripId}`);
           
           // Tương thích với cấu trúc API mới (có cả booked và locked)
           if (res.data && !Array.isArray(res.data)) {
@@ -170,7 +171,7 @@ export default function ChairPage() {
     }
 
     try {
-      const response = await axios.post(`http://localhost:3001/api/loyalty/redeem`, {
+      const response = await axios.post(`${API_BASE}/loyalty/redeem`, {
         userId: userId,
         voucherId: promo.id
       });
@@ -309,7 +310,7 @@ export default function ChairPage() {
     
     setLoading(true);
     try {
-      await axios.post('http://localhost:3001/api/otp/send-otp', { email: customerInfo.email.trim() });
+      await axios.post('${API_BASE}/otp/send-otp', { email: customerInfo.email.trim() });
       setIsOtpSent(true);
       setCountdown(60);
       alert("Mã OTP đã được gửi vào email của bạn!");
@@ -325,7 +326,7 @@ export default function ChairPage() {
     
     setLoading(true);
     try {
-      await axios.post('http://localhost:3001/api/otp/verify', { 
+      await axios.post('${API_BASE}/otp/verify', { 
         email: customerInfo.email.trim(),
         otp: otp 
       });
@@ -383,7 +384,7 @@ export default function ChairPage() {
         paymentMethod: paymentMethod === 'BANK' ? 'VIETQR' : 'MOMO'
       };
 
-      const response = await axios.post('http://localhost:3001/api/payment/create-link', payload);
+      const response = await axios.post('${API_BASE}/payment/create-link', payload);
       
       if (response.data?.isVietQR) {
         const query = new URLSearchParams({

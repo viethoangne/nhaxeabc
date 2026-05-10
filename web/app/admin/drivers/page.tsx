@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -42,7 +43,7 @@ const [isLocationOpen, setIsLocationOpen] = useState(false);
     const fetchRoutes = async () => {
       try {
         // Gọi API từ schedule.controller.ts của bạn
-        const res = await axios.get('http://localhost:3001/api/schedule/routes');
+        const res = await axios.get('${API_BASE}/schedule/routes');
         setDynamicRoutes(res.data);
       } catch (error) {
         console.error('Lỗi tải danh sách tuyến:', error);
@@ -57,7 +58,7 @@ const [isLocationOpen, setIsLocationOpen] = useState(false);
       const token = (session as any)?.accessToken || (session?.user as any)?.token || '';
       const userId = (session?.user as any)?.id;
       
-      const res = await axios.get('http://localhost:3001/api/admin/trips/drivers/paginated', {
+      const res = await axios.get('${API_BASE}/admin/trips/drivers/paginated', {
         params: { 
           page, 
           limit: 20, 
@@ -118,11 +119,11 @@ const [isLocationOpen, setIsLocationOpen] = useState(false);
     const token = (session as any)?.accessToken || (session?.user as any)?.token || '';
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:3001/api/admin/trips/drivers/${formData.id}`, formData, { 
+        await axios.put(`${API_BASE}/admin/trips/drivers/${formData.id}`, formData, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
       } else {
-        await axios.post('http://localhost:3001/api/admin/trips/drivers', formData, { 
+        await axios.post('${API_BASE}/admin/trips/drivers', formData, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
       }
@@ -148,7 +149,7 @@ const [isLocationOpen, setIsLocationOpen] = useState(false);
 
     try {
       const token = (session as any)?.accessToken || (session?.user as any)?.token || '';
-      await axios.delete(`http://localhost:3001/api/admin/trips/drivers/${id}`, {
+      await axios.delete(`${API_BASE}/admin/trips/drivers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("✅ Đã xóa tài xế thành công!");
@@ -165,7 +166,7 @@ const [isLocationOpen, setIsLocationOpen] = useState(false);
       setIsLoading(true);
       const token = (session as any)?.accessToken || (session?.user as any)?.token || '';
       
-      const res = await axios.get('http://localhost:3001/api/admin/trips/emergency-sync', {
+      const res = await axios.get('${API_BASE}/admin/trips/emergency-sync', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       

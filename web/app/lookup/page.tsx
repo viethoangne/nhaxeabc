@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import { useState } from 'react';
 import axios from 'axios';
@@ -68,7 +69,7 @@ export default function LookupPage() {
     const searchCode = orderCode.replace('#', '').trim();
 
     try {
-      const res = await axios.get(`http://localhost:3001/api/lookup`, {
+      const res = await axios.get(`${API_BASE}/lookup`, {
         params: { 
           orderCode: searchCode, 
           phone: phone.trim() 
@@ -124,7 +125,7 @@ export default function LookupPage() {
   
     setCancelLoading(true);
     try {
-      const res = await axios.post(`http://localhost:3001/api/cancel-ticket`, {
+      const res = await axios.post(`${API_BASE}/cancel-ticket`, {
         orderCode: ticketInfo.orderCode,
         phone: confirmPhone.trim(), // Gửi số điện thoại đã xác nhận
         email: confirmEmail.trim() 

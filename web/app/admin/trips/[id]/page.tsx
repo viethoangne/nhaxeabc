@@ -6,6 +6,7 @@
   import { ChevronLeft, Users, Package, FileText, User, Phone, CheckCircle2, BadgeCheck, CarFront, CircleDollarSign, Activity } from 'lucide-react';
   import axios from 'axios';
   import { motion, AnimatePresence } from 'framer-motion'; // 🟢 Import Framer Motion cho Modal
+  import { API_BASE } from '@/lib/api';
 
   export default function TripDetailPage() {
     const params = useParams();
@@ -39,7 +40,7 @@
 
       setIsLoading(true);
       try {
-        const res = await axios.get(`http://localhost:3001/api/admin/trips/${tripId}`, {
+        const res = await axios.get(`${API_BASE}/admin/trips/${tripId}`, {
           headers: { 
             'x-user-id': userId,
             'Authorization': `Bearer ${token}` 
@@ -128,8 +129,8 @@
     
           try {
             const [resDrivers, resBuses] = await Promise.all([
-              axios.get(`http://localhost:3001/api/admin/trips/${tripId}/drivers/suggest`, { headers }),
-              axios.get(`http://localhost:3001/api/admin/trips/${tripId}/buses/suggest`, { headers })
+              axios.get(`${API_BASE}/admin/trips/${tripId}/drivers/suggest`, { headers }),
+              axios.get(`${API_BASE}/admin/trips/${tripId}/buses/suggest`, { headers })
             ]);
             
             setDrivers(resDrivers.data);
@@ -154,7 +155,7 @@
           busId: editData.busId ? Number(editData.busId) : null,
         };
 
-        await axios.put(`http://localhost:3001/api/admin/trips/${tripId}/assign`, payload, {
+        await axios.put(`${API_BASE}/admin/trips/${tripId}/assign`, payload, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'x-user-id': userId // 🟢 Bắt buộc phải có dòng này để Backend cho phép qua cửa
@@ -196,7 +197,7 @@
         const userId = (session?.user as any)?.id;
         const token = (session as any)?.accessToken || (session?.user as any)?.accessToken || (session?.user as any)?.token || '';
 
-        await axios.post(`http://localhost:3001/api/admin/trips/${tripId}/seats/lock`, {
+        await axios.post(`${API_BASE}/admin/trips/${tripId}/seats/lock`, {
           seatId: seatId,
           isLocked: !isCurrentlyLocked
         }, {

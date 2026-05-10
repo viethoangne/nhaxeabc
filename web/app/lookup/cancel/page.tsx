@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -38,7 +39,7 @@ export default function CancelTicketPage() {
     if (!confirmEmail.trim()) return alert("Vui lòng nhập Email xác nhận!");
     setLoading(true);
     try {
-      const res = await axios.post(`http://localhost:3001/api/cancel-ticket`, {
+      const res = await axios.post(`${API_BASE}/cancel-ticket`, {
         orderCode, phone, email: confirmEmail.trim()
       });
       alert(res.data.message || 'Hủy vé thành công!');

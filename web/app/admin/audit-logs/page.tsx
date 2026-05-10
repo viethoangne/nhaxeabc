@@ -79,7 +79,8 @@ export default function AuditLogsPage() {
         const actionQuery = filterAction !== 'ALL' ? `&action=${filterAction}` : '';
         
         // Bây giờ nhúng actionQuery vào URL sẽ không bị báo lỗi nữa
-        const res = await axios.get(`http://localhost:3001/api/admin/audit-logs?limit=100${actionQuery}`, {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const res = await axios.get(`${apiBase}/admin/audit-logs?limit=100${actionQuery}`, {
           headers: { 'x-user-id': userId }
         });
         

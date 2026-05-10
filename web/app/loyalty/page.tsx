@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
@@ -105,7 +106,7 @@ export default function LoyaltyPage() {
     if (session?.user) {
       const userId = (session.user as any)?.id;
       setLoading(true);
-      axios.get(`http://localhost:3001/api/loyalty?userId=${userId}`)
+      axios.get(`${API_BASE}/loyalty?userId=${userId}`)
         .then(res => {
           setPoints(res.data.points || 0);
           setVouchers(res.data.redeemableVouchers || []);
@@ -125,7 +126,7 @@ export default function LoyaltyPage() {
     if (points < item.cost) return showToast('Bạn không đủ điểm để đổi mã này!', 'error');
 
     try {
-      const response = await axios.post('http://localhost:3001/api/loyalty/redeem', { userId, voucherId: item.id });
+      const response = await axios.post('${API_BASE}/loyalty/redeem', { userId, voucherId: item.id });
       if (response.data) {
         setPoints(response.data.newPoints);
         setMyVouchers(prev => [response.data.newVoucher, ...prev]);

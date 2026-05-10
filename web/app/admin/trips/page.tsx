@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion'; // 🟢 Thêm dòng này để hết lỗi
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
@@ -57,7 +58,7 @@ const [selectedDay, setSelectedDay] = useState(''); // Định dạng YYYY-MM-DD
 
     try {
       const userId = (session?.user as any)?.id;
-      await axios.delete(`http://localhost:3001/api/admin/trips/${id}`, {
+      await axios.delete(`${API_BASE}/admin/trips/${id}`, {
         headers: { 'x-user-id': userId }
       });
       alert("✅ Đã xóa chuyến xe thành công!");
@@ -73,7 +74,7 @@ const [selectedDay, setSelectedDay] = useState(''); // Định dạng YYYY-MM-DD
 
     setIsLoading(true);
     try {
-      const res = await axios.get(`http://localhost:3001/api/admin/trips?date=${selectedDate}`, {
+      const res = await axios.get(`${API_BASE}/admin/trips?date=${selectedDate}`, {
         headers: { 'x-user-id': userId }
       });
       setTrips(res.data);
@@ -103,7 +104,7 @@ useEffect(() => {
   
     try {
       const userId = (session?.user as any)?.id;
-      await axios.post('http://localhost:3001/api/admin/trips/manual', payload, {
+      await axios.post('${API_BASE}/admin/trips/manual', payload, {
         headers: { 'x-user-id': userId }
       });
       alert("✅ Thêm chuyến xe thành công!");

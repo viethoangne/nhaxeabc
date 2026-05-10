@@ -1,11 +1,12 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Users, Gift, Wand2, Plus, Edit, Trash2, X, Search, ShieldCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
-const API_BASE = 'http://localhost:3001/api/admin/loyalty';
+const API_BASE = '${API_BASE}/admin/loyalty';
 
 export default function AdminLoyaltyPage() {
   const { data: session } = useSession();

@@ -1,3 +1,5 @@
+'use client';
+import { API_BASE } from '@/lib/api';
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,7 +84,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
     try {
       // Gửi dữ liệu để lưu vào CSDL
-      const res = await fetch("http://localhost:3001/api/contact", {
+      const res = await fetch("${API_BASE}/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -22,7 +23,7 @@ export default function AdminCustomersPage() {
       try {
         // Có truyền thêm searchTerm để DB tự tìm kiếm
         const query = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : '';
-        const res = await axios.get(`http://localhost:3001/api/admin/customers${query}`, {
+        const res = await axios.get(`${API_BASE}/admin/customers${query}`, {
           headers: { 'x-user-id': userId }
         });
         

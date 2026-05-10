@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Breadcrumb } from '@/components/ui/Breadcrumb'; // <-- THÊM IMPORT COMPONENT BREADCRUMB
@@ -10,7 +11,7 @@ export default function RouteList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/schedule/routes')
+    axios.get('${API_BASE}/schedule/routes')
       .then(res => setAllRoutes(res.data))
       .catch(err => console.error("Lỗi lấy dữ liệu:", err))
       .finally(() => setLoading(false));

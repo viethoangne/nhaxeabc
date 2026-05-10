@@ -1,4 +1,5 @@
 'use client';
+import { API_BASE } from '@/lib/api';
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -49,7 +50,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (userId) {
       setIsAiLoading(true);
-      axios.get('http://localhost:3001/api/admin/dashboard/ai-insights', { headers: { 'x-user-id': userId } })
+      axios.get('${API_BASE}/admin/dashboard/ai-insights', { headers: { 'x-user-id': userId } })
         .then(res => setAiInsights(res.data))
         .catch(err => console.error(err))
         .finally(() => setIsAiLoading(false));
@@ -60,9 +61,9 @@ export default function AdminDashboardPage() {
     if (!userId) return;
     setIsLoading(true);
     try {
-      let url = `http://localhost:3001/api/admin/dashboard?timeRange=${timeRange}`;
+      let url = `${API_BASE}/admin/dashboard?timeRange=${timeRange}`;
       if (filterMode === 'custom' && startDate && endDate) {
-        url = `http://localhost:3001/api/admin/dashboard?startDate=${startDate}&endDate=${endDate}`;
+        url = `${API_BASE}/admin/dashboard?startDate=${startDate}&endDate=${endDate}`;
       }
 
       const response = await axios.get(url, { headers: { 'x-user-id': userId } });
