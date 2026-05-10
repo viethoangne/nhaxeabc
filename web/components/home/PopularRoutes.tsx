@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion'; 
@@ -85,7 +86,7 @@ export default function PopularRoutes() {
   useEffect(() => {
     const fetchRoutes = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/schedule/routes');
+        const response = await axios.get(`${API_BASE}/schedule/routes`);
         const allRoutes: RouteData[] = response.data;
         const newGrouped: Record<string, RouteData[]> = {
           "TP. Hồ Chí Minh": [], "Đà Lạt": [], "Đà Nẵng": [] 

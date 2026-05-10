@@ -9,6 +9,7 @@ import ThemeToggle from "@components/ui/ThemeToggle";
 import { NAV_ITEMS } from "@lib/constants";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE } from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { useUserStore } from "../../src/store/useUserStore";
 import {
@@ -77,12 +78,7 @@ export default function Header() {
       const userId = (session?.user as any)?.id;
       if (userId) {
         try {
-          const res = await axios.get(`http://localhost:3001/api/loyalty?userId=${userId}`);
-          setUserPoints(res.data.points || 0);
-          // Gợi ý nhỏ: Nếu muốn đồng bộ mượt với Loyalty Page, bạn có thể gọi setPoints(res.data.points) của useUserStore ở đây.
-        } catch (error) {
-          console.error("Lỗi lấy điểm Loyalty:", error);
-        }
+          const res = await axios.get(`${API_BASE}/loyalty?userId=${userId}`);
       }
     };
 

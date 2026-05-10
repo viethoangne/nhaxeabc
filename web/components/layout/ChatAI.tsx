@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { API_BASE } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation'; // 🟢 THÊM DÒNG NÀY
 import { 
@@ -48,7 +49,7 @@ export default function ChatAI() {
   // --- 1. ĐỒNG BỘ LỊCH SỬ ---
   useEffect(() => {
     if (status === 'authenticated' && userId) {
-      axios.get(`http://localhost:3001/api/chat/history?userId=${userId}`)
+      axios.get(`${API_BASE}/chat/history?userId=${userId}`)
         .then(response => {
           if (response.data && response.data.length > 0) {
             // response.data đã trả về 'asc' (cũ trên, mới dưới) từ Backend
@@ -70,7 +71,7 @@ export default function ChatAI() {
     if (!isConfirm) return;
 
     try {
-      await axios.delete(`http://localhost:3001/api/chat/history?userId=${userId}`);
+      await axios.delete(`${API_BASE}/chat/history?userId=${userId}`);
       // Xóa thành công thì reset UI về tin nhắn mặc định
       setMessages([DEFAULT_MESSAGE]);
     } catch (error) {
@@ -114,7 +115,7 @@ export default function ChatAI() {
     setIsLoading(true);
   
     try {
-      const res = await axios.post('http://localhost:3001/api/chat', { 
+      const res = await axios.post(`${API_BASE}/chat`, { 
         message: input,
         history: messages,
         userId: userId 
