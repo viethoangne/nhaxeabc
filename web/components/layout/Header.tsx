@@ -79,6 +79,10 @@ export default function Header() {
       if (userId) {
         try {
           const res = await axios.get(`${API_BASE}/loyalty?userId=${userId}`);
+          setUserPoints(res.data.points || 0);
+        } catch (error) {
+          console.error("Lỗi lấy điểm Loyalty:", error);
+        }
       }
     };
 

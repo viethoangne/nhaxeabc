@@ -6,11 +6,11 @@ import axios from 'axios';
 import { Users, Gift, Wand2, Plus, Edit, Trash2, X, Search, ShieldCheck } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
-const API_BASE = '${API_BASE}/admin/loyalty';
 
 export default function AdminLoyaltyPage() {
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id;
+  const LOYALTY_API = `${API_BASE}/admin/loyalty`;
 
   const [activeTab, setActiveTab] = useState<'users' | 'vouchers'>('users');
   const [users, setUsers] = useState<any[]>([]);
@@ -45,13 +45,13 @@ export default function AdminLoyaltyPage() {
     setLoading(true);
     try {
       if (activeTab === 'users') {
-        const res = await axios.get(`${API_BASE}/users`, { 
+        const res = await axios.get(`${LOYALTY_API}/users`, { 
           params: { search: q },
           headers: { 'x-user-id': userId }
         });
         setUsers(res.data);
       } else {
-        const res = await axios.get(`${API_BASE}/vouchers`, {
+        const res = await axios.get(`${LOYALTY_API}/vouchers`, {
           headers: { 'x-user-id': userId }
         });
         setVouchers(res.data);
@@ -72,7 +72,7 @@ export default function AdminLoyaltyPage() {
     e.preventDefault();
     if (!selectedUser || !adjustAmount || !userId) return;
     try {
-      await axios.post(`${API_BASE}/users/${selectedUser.id}/adjust`, {
+      await axios.post(`${LOYALTY_API}/users/${selectedUser.id}/adjust`, {
         pointsToAdd: parseInt(adjustAmount),
         reason: adjustReason
       }, { headers: { 'x-user-id': userId } });
@@ -92,10 +92,10 @@ export default function AdminLoyaltyPage() {
     if (!userId) return;
     try {
       if (editingVoucher) {
-        await axios.put(`${API_BASE}/vouchers/${editingVoucher.id}`, formData, { headers: { 'x-user-id': userId } });
+        await axios.put(`${LOYALTY_API}/vouchers/${editingVoucher.id}`, formData, { headers: { 'x-user-id': userId } });
         alert('Cập nhật thành công!');
       } else {
-        await axios.post(`${API_BASE}/vouchers`, formData, { headers: { 'x-user-id': userId } });
+        await axios.post(`${LOYALTY_API}/vouchers`, formData, { headers: { 'x-user-id': userId } });
         alert('Tạo voucher thành công!');
       }
       setShowVoucherModal(false);
@@ -109,7 +109,7 @@ export default function AdminLoyaltyPage() {
     if (!confirm('Bạn có chắc chắn muốn xoá voucher này?')) return;
     if (!userId) return;
     try {
-      await axios.delete(`${API_BASE}/vouchers/${id}`, { headers: { 'x-user-id': userId } });
+        await axios.delete(`${LOYALTY_API}/vouchers/${id}`, { headers: { 'x-user-id': userId } });
       fetchData();
     } catch (error) {
       alert('Không thể xoá voucher.');
@@ -121,7 +121,7 @@ export default function AdminLoyaltyPage() {
     if (!userId) return;
     setIsAiLoading(true);
     try {
-      const res = await axios.post(`${API_BASE}/ai-suggest`, {
+      const res = await axios.post(`${LOYALTY_API}/vouchers/suggest`, {
         topic: aiTopic,
         discountLevel: aiDiscount || '20%'
       }, { headers: { 'x-user-id': userId } });

@@ -1,7 +1,6 @@
 'use client';
-import { API_BASE } from '@/lib/api';
-"use client";
 
+import { API_BASE } from '@/lib/api';
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
