@@ -1,0 +1,6 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm --prefix backend install && npm --prefix backend run build"
+
+[deploy]
+startCommand = "npm --prefix backend run start:prod"
