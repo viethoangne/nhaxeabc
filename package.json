@@ -1,6 +1,9 @@
 {
   "name": "nha-xe-abc",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "concurrently \"npm --prefix web run dev\" \"npm --prefix backend run start:dev\""
   },
