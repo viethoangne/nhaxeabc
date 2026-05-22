@@ -8,7 +8,7 @@ export class AuthService {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
   // Đăng ký người dùng
-  async register(email: string, password: string, name?: string) {
+  async register(email: string, password: string, name?: string, phone?: string) {
     email = email.trim().toLowerCase();
     const exists = await this.prisma.user.findUnique({ where: { email } });
     if (exists) throw new BadRequestException('Email đã tồn tại');
@@ -18,9 +18,10 @@ export class AuthService {
       data: {
         email,
         name: name?.trim() || null,
+        phone: phone?.trim() || null,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, role: true, createdAt: true }, // 🟢 Thêm role ở đây
+      select: { id: true, email: true, name: true, phone: true, role: true, createdAt: true },
     });
 
     return user;
@@ -38,16 +39,15 @@ export class AuthService {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) throw new UnauthorizedException('Sai email hoặc mật khẩu');
 
-    // 🟢 SỬA TẠI ĐÂY: Phải nhét role vào Token tương tự googleLogin
     const token = await this.jwt.signAsync({
       sub: user.id,
       email: user.email,
-      role: user.role, // <-- CỰC KỲ QUAN TRỌNG
+      role: user.role,
     });
 
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      user: { id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role },
     };
   }
 
@@ -73,7 +73,7 @@ export class AuthService {
     const token = await this.jwt.signAsync({
       sub: user.id,
       email: user.email,
-      role: user.role, // <-- ĐÃ CÓ (Chuẩn)
+      role: user.role,
     });
 
     return {
@@ -82,6 +82,7 @@ export class AuthService {
         id: user.id, 
         email: user.email, 
         name: user.name, 
+        phone: user.phone,
         picture: user.picture,
         role: user.role 
       },
@@ -98,7 +99,8 @@ export class AuthService {
         id: true, 
         email: true, 
         name: true, 
-        role: true,    // 🟢 CỰC KỲ QUAN TRỌNG: Phải lấy role để FE kiểm tra quyền khi F5
+        phone: true,
+        role: true,
         picture: true, 
         createdAt: true 
       },

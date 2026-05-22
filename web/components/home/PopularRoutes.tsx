@@ -124,17 +124,23 @@ export default function PopularRoutes() {
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.15 } }
+    show: { opacity: 1, transition: { staggerChildren: 0.2 } }
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80, damping: 15 } }
+    hidden: { opacity: 0, y: 60, scale: 0.94, filter: 'blur(4px)' },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1, 
+      filter: 'blur(0px)',
+      transition: { type: "spring", stiffness: 50, damping: 16, mass: 1.1 } 
+    }
   };
 
   return (
-    // Đã giảm padding tổng (py-24 -> py-16)
-    <section className="py-16 bg-slate-50 relative overflow-hidden">
+    // Đã đổi thành bg-transparent để hòa nhập 100% không để lộ vết cắt
+    <section className="py-16 bg-transparent relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-[#EF5222]/5 to-transparent blur-3xl" />
         <div className="absolute bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tr from-[#00613D]/5 to-transparent blur-3xl" />
@@ -175,68 +181,77 @@ export default function PopularRoutes() {
               <motion.div 
                 key={idx} 
                 variants={itemVariants}
-                // Bo góc nhỏ lại một chút (rounded-[24px])
-                className="group flex flex-col bg-white rounded-[24px] shadow-[0_8px_30px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_-10px_rgba(239,82,34,0.12)] transition-all duration-500 overflow-hidden border border-slate-100 relative"
+                whileHover={{ y: -10 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="group flex flex-col bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_15px_40px_-15px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(239,82,34,0.15)] transition-all duration-500 overflow-hidden border border-slate-100 dark:border-slate-800 relative cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-[#EF5222]/0 to-[#EF5222]/0 group-hover:from-[#EF5222]/5 group-hover:to-transparent transition-colors duration-500 pointer-events-none z-10" />
 
-                {/* THU GỌN CHIỀU CAO ẢNH: h-[240px] -> h-[180px] */}
-                <div className="relative h-[180px] w-full overflow-hidden">
+                {/* THU GỌN CHIỀU CAO ẢNH: h-[240px] -> h-[200px] */}
+                <div className="relative h-[200px] w-full overflow-hidden">
                   <ImageSlideshow images={loc.images} alt={`Tuyến xe từ ${loc.displayName}`} />
                   
+                  {/* Glowing active hub indicator */}
                   <div className="absolute top-4 left-4 z-30">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-wider">
-                      <svg className="w-3 h-3 text-[#EF5222]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/55 backdrop-blur-md border border-white/10 text-white/95 text-[10px] font-black uppercase tracking-wider shadow-sm">
+                      <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse shadow-[0_0_8px_#f97316]" />
                       {t('depart_from')}
                     </span>
                   </div>
 
-                  <div className="absolute bottom-4 left-4 z-30 right-4">
-                    {/* Chữ tên thành phố trên ảnh nhỏ lại một chút */}
-                    <h3 className="text-[26px] font-black text-white tracking-wide drop-shadow-md leading-tight">
+                  <div className="absolute bottom-4 left-5 z-30 right-5">
+                    {/* Chữ tên thành phố trên ảnh nhỏ lại một chút và có bóng mờ */}
+                    <h3 className="text-[28px] font-black text-white tracking-wide drop-shadow-[0_3px_6px_rgba(0,0,0,0.55)] leading-tight">
                       {loc.displayName}
                     </h3>
                   </div>
                 </div>
                 
-                <div className="flex-1 flex flex-col p-2 relative z-20 bg-white">
+                <div className="flex-1 flex flex-col p-3.5 relative z-20 bg-white dark:bg-slate-900 gap-1.5">
                   {routesForThisCard.length > 0 ? (
                     routesForThisCard.map((route, index) => (
                       <Link 
                         key={index} 
                         href={`/search-trip?from=${encodeURIComponent(loc.displayName)}&to=${encodeURIComponent(route.to)}&date=${defaultDate}&tickets=1&tripType=oneway`}
-                        // Thu gọn padding p-4 -> p-3
-                        className="group/item relative flex items-center justify-between p-3 my-0.5 rounded-[16px] hover:bg-slate-50 transition-all duration-300"
+                        className="group/item relative flex items-center justify-between p-3.5 rounded-[1.25rem] hover:bg-orange-500/5 dark:hover:bg-orange-500/10 border border-transparent hover:border-orange-500/10 transition-all duration-300 overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-[#EF5222]/5 rounded-[16px] opacity-0 group-hover/item:opacity-100 transition-opacity duration-300" />
+                        {/* Soft left brand line on hover */}
+                        <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-orange-500 rounded-r opacity-0 group-hover/item:opacity-100 transition-opacity duration-300" />
                         
                         <div className="relative z-10 w-full flex justify-between items-center">
-                          <div>
-                            {/* Font size điểm đến nhỏ gọn hơn */}
-                            <h4 className="text-[16px] font-bold text-slate-800 group-hover/item:text-[#EF5222] transition-colors duration-300 flex items-center gap-2">
+                          <div className="flex flex-col gap-1.5">
+                            <h4 className="text-[16px] font-bold text-slate-800 dark:text-slate-100 group-hover/item:text-orange-500 transition-colors duration-300 flex items-center gap-2">
                               {route.to}
                             </h4>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span className="flex items-center gap-1 text-[12px] text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-md">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            
+                            {/* Premium colorized tags */}
+                            <div className="flex items-center gap-1.5">
+                              <span className="flex items-center gap-1 text-[11px] text-orange-600 dark:text-orange-400 font-bold bg-orange-50 dark:bg-orange-950/30 px-2.5 py-0.5 rounded-md border border-orange-100/30">
+                                <svg className="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                 {route.distanceKm}km
                               </span>
-                              <span className="flex items-center gap-1 text-[12px] text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-md">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              <span className="flex items-center gap-1 text-[11px] text-teal-600 dark:text-teal-400 font-bold bg-teal-50 dark:bg-teal-950/30 px-2.5 py-0.5 rounded-md border border-teal-100/30">
+                                <svg className="w-3 h-3 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 {`${Math.floor(route.durationMinutes / 60)}h${route.durationMinutes % 60 !== 0 ? (route.durationMinutes % 60) + 'p' : ''}`}
                               </span>
                             </div>
                           </div>
                           
-                          <div className="text-right flex flex-col items-end justify-center">
-                            {/* Font size giá tiền gọn hơn */}
-                            <div className="text-[#EF5222] group-hover/item:text-[#EF5222] font-black text-[16px] transition-colors duration-300">
-                              {route.price ? `${route.price.toLocaleString()}đ` : t('updating')}
+                          {/* Price & Book now sliding arrow */}
+                          <div className="flex items-center gap-3">
+                            <div className="text-right flex flex-col items-end">
+                              <span className="text-orange-500 dark:text-orange-400 font-black text-lg group-hover/item:scale-105 transition-transform duration-300">
+                                {route.price ? `${route.price.toLocaleString()}đ` : t('updating')}
+                              </span>
+                              <span className="text-[10px] font-black text-[#EF5222]/80 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300 uppercase tracking-wider">
+                                {t('book_now')}
+                              </span>
                             </div>
-                            <div className="flex items-center gap-1 text-[11px] font-bold text-[#EF5222] opacity-0 translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300 mt-0.5">
-                              {t('book_now')}
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            
+                            {/* Slide-in glowing arrow circle button */}
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white shadow-md shadow-orange-500/25 transition-all duration-300 transform scale-0 -translate-x-2 opacity-0 group-hover/item:scale-100 group-hover/item:translate-x-0 group-hover/item:opacity-100 group-hover/item:rotate-45">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                               </svg>
                             </div>
                           </div>

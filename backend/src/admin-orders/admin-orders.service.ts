@@ -1,13 +1,17 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PaymentStatus, BookingStatus } from '@prisma/client';
+import { PaymentStatus, BookingStatus, TripDirection } from '@prisma/client';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { MailerService } from '@nestjs-modules/mailer';
+import * as QRCode from 'qrcode';
+import nodeHtmlToImage from 'node-html-to-image';
 
 @Injectable()
 export class AdminOrdersService {
   constructor(
     private prisma: PrismaService,
-    private auditLog: AuditLogService
+    private auditLog: AuditLogService,
+    private mailerService: MailerService
   ) {}
 
   async getAllOrders() {
@@ -19,6 +23,23 @@ export class AdminOrdersService {
         returnTrip: true 
       }
     });
+
+    // Gom nhóm số lần huỷ vé và đổi ghế CHỈ DỰA VÀO EMAIL khách hàng (dùng chung cho cả khách vãng lai và thành viên)
+    const cancelCountsByEmail: Record<string, number> = {};
+    const swapCountsByEmail: Record<string, number> = {};
+
+    for (const order of orders) {
+      if (order.customerEmail) {
+        if (order.bookingStatus === BookingStatus.CANCELLED) {
+          cancelCountsByEmail[order.customerEmail] = (cancelCountsByEmail[order.customerEmail] || 0) + 1;
+        }
+
+        const orderSwapCount = (order as any).seatSwapCount || 0;
+        if (orderSwapCount > 0) {
+          swapCountsByEmail[order.customerEmail] = (swapCountsByEmail[order.customerEmail] || 0) + orderSwapCount;
+        }
+      }
+    }
 
     return orders.map((order) => {
       const seatNames = order.seats.map(seat => seat.seatNumber);
@@ -39,26 +60,40 @@ export class AdminOrdersService {
       const returnDepart = order.returnTrip?.departDate || (order as any).returnDepartDateSnapshot || order.returnDate;
       const returnArrival = order.returnTrip?.arrivalDate || (order as any).returnArrivalTimeSnapshot || calculateArrival(returnDepart, order.returnTrip?.durationMinutes || 240);
 
+      let finalCancelCount = 0;
+      let finalSwapCount = 0;
+      if (order.customerEmail) {
+        finalCancelCount = cancelCountsByEmail[order.customerEmail] || 0;
+        finalSwapCount = swapCountsByEmail[order.customerEmail] || 0;
+      }
+
       return {
         id: order.orderCode,
         customerName: order.customerName || 'Khách vãng lai',
         customerPhone: order.customerPhone || 'Không có SĐT',
         
-        route: `${order.from} ➔ ${order.to}`,
+        route: `${order.from} ➤ ${order.to}`,
         outboundDepart,
         outboundArrival,
 
-        returnRoute: `${order.to} ➔ ${order.from}`,
+        returnRoute: `${order.to} ➤ ${order.from}`,
         returnDepart,
         returnArrival,
 
         amount: order.amount,
+        refundAmount: (order as any).refundAmount ?? 0, // Số tiền đã hoàn
+        netAmount: order.amount - ((order as any).refundAmount ?? 0), // Doanh thu thực
         ticketsCount: order.tickets,
         seats: seatNames,
         paymentStatus: order.paymentStatus,
         bookingStatus: order.bookingStatus, 
         tripType: order.tripType, 
         createdAt: order.createdAt,
+        cancelCount: finalCancelCount,
+        seatSwapCount: finalSwapCount,
+        userId: order.userId,
+        outboundTripId: order.outboundTripId,
+        returnTripId: order.returnTripId,
       };
     });
   }
@@ -66,16 +101,21 @@ export class AdminOrdersService {
   async cancelOrder(orderCode: string, adminId: string, reason: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderCode },
-      include: { seats: true } 
+      include: { seats: true, user: true } 
     });
 
     if (!order) throw new BadRequestException('Không tìm thấy đơn hàng!');
     if (order.paymentStatus === PaymentStatus.CANCELLED || order.bookingStatus === BookingStatus.CANCELLED) {
       throw new BadRequestException('Đơn hàng này đã bị huỷ trước đó!');
     }
-    // Chặn huỷ vé đã hoàn thành/lưu trữ (Giữ nguyên tính năng bảo mật tuyệt đối)
     if (order.bookingStatus === BookingStatus.COMPLETED || (order.bookingStatus as any) === 'ARCHIVED') {
       throw new BadRequestException('Không thể huỷ vé của chuyến đi đã hoàn thành hoặc lưu trữ!');
+    }
+    
+    // Chặn huỷ vé nếu xe đã khởi hành (chỉ cho phép huỷ vé chưa khởi hành)
+    const rawDepartureDate = (order as any).outboundDepartDateSnapshot || order.date;
+    if (rawDepartureDate && new Date(rawDepartureDate).getTime() < Date.now()) {
+      throw new BadRequestException('Chuyến xe này đã khởi hành (hoặc đang đi), không thể huỷ vé!');
     }
 
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
@@ -94,6 +134,48 @@ export class AdminOrdersService {
       return cancelled;
     });
 
+    // 🔴 GỬI EMAIL THÔNG BÁO HỦY BỞI ADMIN
+    const targetEmail = order.customerEmail || (order as any).user?.email; 
+    if (targetEmail) {
+      const seatNames = order.seats.map(s => s.seatNumber).join(', ');
+      const rawDepartureDate = (order as any).outboundDepartDateSnapshot || order.date;
+      const departureDateStr = rawDepartureDate ? new Date(rawDepartureDate).toLocaleDateString('vi-VN') : 'N/A';
+      const departureTimeStr = rawDepartureDate ? new Date(rawDepartureDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+      
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #eee; border-radius: 10px;">
+          <div style="background-color: #EF5222; padding: 20px; text-align: center; color: white;">
+            <h2 style="margin: 0; text-transform: uppercase;">Thông báo Hủy vé</h2>
+            <p style="margin: 5px 0 0 0;">Mã đơn hàng: #${order.orderCode}</p>
+          </div>
+          <div style="padding: 20px;">
+            <p>Chào bạn <strong>${order.customerName || 'Quý khách'}</strong>,</p>
+            <p>Chúng tôi rất tiếc phải thông báo rằng đơn đặt vé của bạn đã bị hủy bởi <strong>Quản trị viên</strong> Hệ thống.</p>
+            <p><strong>Lý do hủy:</strong> ${reason}</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <h3 style="color: #EF5222;">Chi tiết vé đã hủy</h3>
+            <p><strong>Tuyến xe:</strong> ${order.from} ➔ ${order.to}</p>
+            <p><strong>Khởi hành:</strong> ${departureTimeStr} - ${departureDateStr}</p>
+            <p><strong>Vị trí ghế:</strong> ${seatNames || 'Chưa xếp'}</p>
+            <p>Nếu bạn đã thanh toán, tiền sẽ được hoàn lại theo chính sách của nhà xe. Kế toán sẽ liên hệ trong thời gian sớm nhất.</p>
+          </div>
+          <div style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #999;">
+            <p>Hệ thống Nhà Xe ABC - Chất lượng là danh dự</p>
+          </div>
+        </div>
+      `;
+
+      try {
+        await this.mailerService.sendMail({
+          to: targetEmail,
+          subject: `[Nhà Xe] Thông báo hủy vé từ Hệ thống - Mã ${order.orderCode}`,
+          html: emailHtml,
+        });
+      } catch (error: any) {
+        console.error(`Lỗi gửi mail hủy vé ${order.orderCode}: ${error.message}`);
+      }
+    }
+
     await this.auditLog.logAction(
       adminId,
       'CANCEL_ORDER',
@@ -108,5 +190,639 @@ export class AdminOrdersService {
     );
 
     return { success: true, message: 'Đã huỷ vé và nhả ghế thành công!' };
+  }
+
+  async deleteOrder(orderCode: string, adminId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderCode }
+    });
+
+    if (!order) throw new BadRequestException('Không tìm thấy đơn hàng!');
+
+    if (order.bookingStatus !== BookingStatus.COMPLETED && order.bookingStatus !== BookingStatus.CANCELLED && (order.bookingStatus as any) !== 'ARCHIVED') {
+      throw new BadRequestException('Chỉ có thể xoá các đơn hàng đã Hoàn thành hoặc Đã huỷ!');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.orderSeat.deleteMany({
+        where: { orderId: order.id }
+      });
+
+      await tx.order.delete({
+        where: { orderCode }
+      });
+    });
+
+    await this.auditLog.logAction(
+      adminId,
+      'DELETE_ORDER',
+      'Order',
+      orderCode,
+      { 
+        reason: 'Admin xoá vé vĩnh viễn khỏi CSDL'
+      }
+    );
+
+    return { success: true, message: 'Đã xoá vé vĩnh viễn khỏi hệ thống!' };
+  }
+
+  async previewRefund(orderCode: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderCode },
+      include: { outboundTrip: true }
+    });
+
+    if (!order) throw new BadRequestException('Không tìm thấy đơn hàng!');
+    if (order.bookingStatus !== BookingStatus.CANCELLED) {
+      throw new BadRequestException('Chỉ có thể hoàn tiền cho vé đã huỷ!');
+    }
+    if (order.paymentStatus === PaymentStatus.REFUNDED) {
+      throw new BadRequestException('Vé này đã được hoàn tiền rồi!');
+    }
+    if (order.paymentStatus !== PaymentStatus.PAID && order.paymentStatus !== PaymentStatus.CANCELLED) {
+       // Note: Nếu admin huỷ, paymentStatus bị đổi thành CANCELLED, nhưng tiền khách đã PAID trước đó. 
+       // Thường thì chỉ hoàn tiền nếu khách thực sự đã trả.
+    }
+
+    // Thời điểm huỷ vé (lần cập nhật cuối)
+    const cancelTime = order.updatedAt; 
+    const rawDepartureDate = order.outboundTrip?.departDate || (order as any).outboundDepartDateSnapshot || order.date;
+    
+    if (!rawDepartureDate) {
+      throw new BadRequestException('Không xác định được thời gian khởi hành của vé này.');
+    }
+
+    const departureTime = new Date(rawDepartureDate);
+    const timeDiffHours = (departureTime.getTime() - cancelTime.getTime()) / (1000 * 60 * 60);
+
+    let refundPercentage = 0;
+    if (timeDiffHours >= 24) {
+      refundPercentage = 100;
+    } else if (timeDiffHours >= 12 && timeDiffHours < 24) {
+      refundPercentage = 50;
+    } else {
+      refundPercentage = 0;
+    }
+
+    const refundAmount = (order.amount * refundPercentage) / 100;
+
+    return {
+      orderCode: order.orderCode,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      amount: order.amount,
+      cancelTime,
+      departureTime,
+      timeDiffHours: Math.max(0, timeDiffHours), // Tránh số âm nếu huỷ sau giờ chạy
+      refundPercentage,
+      refundAmount,
+    };
+  }
+
+  async processRefund(orderCode: string, adminId: string) {
+    const preview = await this.previewRefund(orderCode); // Xác thực lại
+    const order = await this.prisma.order.findUnique({
+      where: { orderCode },
+      include: { user: true }
+    });
+
+    if (!order) throw new BadRequestException('Không tìm thấy đơn hàng');
+
+    await this.prisma.order.update({
+      where: { orderCode },
+      data: { 
+        paymentStatus: PaymentStatus.REFUNDED,
+        refundAmount: preview.refundAmount  // Lưu số tiền đã hoàn vào DB
+      }
+    });
+
+    await this.auditLog.logAction(
+      adminId,
+      'REFUND_ORDER',
+      'Order',
+      orderCode,
+      { 
+        refundAmount: preview.refundAmount,
+        refundPercentage: preview.refundPercentage
+      }
+    );
+
+    // 🔴 GỬI EMAIL THÔNG BÁO HOÀN TIỀN
+    const targetEmail = order.customerEmail || order.user?.email;
+    if (targetEmail) {
+      const formatCurrency = (amount: number) => amount.toLocaleString('vi-VN') + 'đ';
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #eee; border-radius: 10px;">
+          <div style="background-color: #06b6d4; padding: 20px; text-align: center; color: white;">
+            <h2 style="margin: 0; text-transform: uppercase;">Thông báo Hoàn tiền</h2>
+            <p style="margin: 5px 0 0 0;">Mã đơn hàng: #${order.orderCode}</p>
+          </div>
+          <div style="padding: 20px;">
+            <p>Chào bạn <strong>${order.customerName || 'Quý khách'}</strong>,</p>
+            <p>Kế toán của chúng tôi đã thực hiện chuyển khoản hoàn tiền cho vé xe đã hủy của bạn.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <h3 style="color: #06b6d4;">Chi tiết Hoàn tiền</h3>
+            <p><strong>Tuyến xe:</strong> ${order.from} ➔ ${order.to}</p>
+            <p><strong>Tổng tiền vé ban đầu:</strong> ${formatCurrency(order.amount)}</p>
+            <p><strong>Tỉ lệ hoàn tiền áp dụng:</strong> ${preview.refundPercentage}%</p>
+            <p><strong>Số tiền thực nhận:</strong> <span style="font-size: 18px; font-weight: bold; color: #ef4444;">${formatCurrency(preview.refundAmount)}</span></p>
+            <p><em>Vui lòng kiểm tra tài khoản ngân hàng hoặc ví điện tử của bạn. Tùy thuộc vào hệ thống thanh toán, tiền có thể nổi trong vòng 24h.</em></p>
+          </div>
+          <div style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #999;">
+            <p>Hệ thống Nhà Xe ABC - Cảm ơn Quý khách đã tin tưởng</p>
+          </div>
+        </div>
+      `;
+
+      try {
+        await this.mailerService.sendMail({
+          to: targetEmail,
+          subject: `[Nhà Xe] Biên lai Hoàn tiền vé - Mã ${order.orderCode}`,
+          html: emailHtml,
+        });
+      } catch (error: any) {
+        console.error(`Lỗi gửi mail hoàn tiền ${order.orderCode}: ${error.message}`);
+      }
+    }
+
+    return { success: true, message: 'Đã xác nhận hoàn tiền thành công!' };
+  }
+
+  async clearCancelled() {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        OR: [
+          { bookingStatus: BookingStatus.CANCELLED },
+          { paymentStatus: PaymentStatus.REFUNDED },
+          { paymentStatus: PaymentStatus.CANCELLED }
+        ]
+      }
+    });
+
+    for (const o of orders) {
+      await this.prisma.orderSeat.deleteMany({ where: { orderId: o.id } });
+    }
+
+    const result = await this.prisma.order.deleteMany({
+      where: {
+        OR: [
+          { bookingStatus: BookingStatus.CANCELLED },
+          { paymentStatus: PaymentStatus.REFUNDED },
+          { paymentStatus: PaymentStatus.CANCELLED }
+        ]
+      }
+    });
+
+    return { deletedCount: result.count };
+  }
+
+  async swapSeat(orderCode: string, currentSeat: string, newSeat: string, direction: string = 'outbound') {
+    const order = await this.prisma.order.findUnique({
+      where: { orderCode },
+      include: {
+        seats: true,
+        outboundTrip: true,
+        returnTrip: true
+      }
+    });
+
+    if (!order) {
+      throw new BadRequestException('Không tìm thấy đơn hàng!');
+    }
+
+    if (order.bookingStatus === 'CANCELLED') {
+      throw new BadRequestException('Đơn hàng này đã bị huỷ trước đó, không thể đổi ghế!');
+    }
+
+    const currentSeatUpper = currentSeat.trim().toUpperCase();
+    const newSeatUpper = newSeat.trim().toUpperCase();
+    const directionLower = direction.trim().toLowerCase();
+
+    const targetSeatRecord = order.seats.find(
+      s => s.seatNumber.toUpperCase() === currentSeatUpper && s.tripDirection === directionLower
+    );
+
+    if (!targetSeatRecord) {
+      throw new BadRequestException(`Ghế ${currentSeatUpper} không nằm trong đơn hàng #${orderCode}!`);
+    }
+
+    const tripId = targetSeatRecord.tripId;
+
+    // 🟢 THỜI GIAN GIỚI HẠN: Chỉ được đổi trước giờ khởi hành ít nhất 5 tiếng!
+    const trip = targetSeatRecord.tripDirection === 'return' ? order.returnTrip : order.outboundTrip;
+    const departDateRaw = trip?.departDate || (targetSeatRecord.tripDirection === 'return' ? (order as any).returnDepartDateSnapshot || order.returnDate : (order as any).outboundDepartDateSnapshot || order.date);
+    
+    if (!departDateRaw) {
+      throw new BadRequestException('Không xác định được giờ khởi hành chuyến xe!');
+    }
+
+    const fiveHoursInMs = 5 * 60 * 60 * 1000;
+    const timeDiff = new Date(departDateRaw).getTime() - Date.now();
+    if (timeDiff < fiveHoursInMs) {
+      throw new BadRequestException('🚨 LỖI: Chỉ được phép đổi ghế trước giờ khởi hành ít nhất 5 tiếng!');
+    }
+
+    // Chống trùng ghế: Tìm đơn hàng active đang giữ ghế mới
+    const occupiedSeat = await this.prisma.orderSeat.findFirst({
+      where: {
+        tripId: tripId,
+        tripDirection: targetSeatRecord.tripDirection,
+        seatNumber: newSeatUpper,
+        order: {
+          bookingStatus: {
+            not: 'CANCELLED'
+          }
+        }
+      },
+      include: {
+        order: true
+      }
+    });
+
+    if (occupiedSeat) {
+      throw new BadRequestException(`Ghế [${newSeatUpper}] đã được giữ bởi khách ${(occupiedSeat as any).order.customerName} (Đơn #${(occupiedSeat as any).order.orderCode})!`);
+    }
+
+    // Tiến hành đổi ghế trong Transaction + tăng counter
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      await tx.orderSeat.update({
+        where: { id: targetSeatRecord.id },
+        data: { seatNumber: newSeatUpper }
+      });
+      return tx.order.update({
+        where: { id: order.id },
+        data: { seatSwapCount: { increment: 1 } } as any,
+        select: { seatSwapCount: true } as any
+      });
+    });
+
+    const swapCount = (updatedOrder as any).seatSwapCount;
+
+    // 🟢 GỬI LẠI EMAIL VÉ XE ĐIỆN TỬ MỚI CHO KHÁCH HÀNG
+    if (order.customerEmail) {
+      const emailRecipient = order.customerEmail;
+      (async () => {
+        try {
+          const updatedSeats = await this.prisma.orderSeat.findMany({
+            where: { orderId: order.id }
+          });
+
+          const outboundSeatStrs = updatedSeats.filter(s => s.tripDirection === 'outbound').map(s => s.seatNumber).join(', ') || '--';
+          const returnSeatStrs = updatedSeats.filter(s => s.tripDirection === 'return').map(s => s.seatNumber).join(', ');
+          
+          let seatDisplay = outboundSeatStrs;
+          if (order.tripType === 'round' && returnSeatStrs) {
+            seatDisplay = `Đi: ${outboundSeatStrs} | Về: ${returnSeatStrs}`;
+          }
+
+          const departAt = (order as any).outboundDepartDateSnapshot || order.outboundTrip?.departDate || order.date;
+          const arrivalAt = (order as any).outboundArrivalTimeSnapshot || order.outboundTrip?.arrivalDate || order.outboundTrip?.arrivalTime || null;
+
+          const returnDepartAt = (order as any).returnDepartDateSnapshot || order.returnTrip?.departDate || order.returnDate;
+          const returnArrivalAt = (order as any).returnArrivalTimeSnapshot || order.returnTrip?.arrivalDate || order.returnTrip?.arrivalTime || null;
+
+          const formatDateTime = (dateVal: any) => {
+            if (!dateVal) return '--- | ---';
+            const d = new Date(dateVal);
+            const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            const date = d.toLocaleDateString('vi-VN');
+            return `${time} | ${date}`;
+          };
+
+          const departureFormatted = formatDateTime(departAt);
+          const arrivalFormatted = formatDateTime(arrivalAt);
+          const returnDepartureFormatted = formatDateTime(returnDepartAt);
+          const returnArrivalFormatted = formatDateTime(returnArrivalAt);
+
+          const totalPrice = Number(order.amount).toLocaleString('vi-VN');
+          const busType = (order as any).outboundBusTypeSnapshot || order.outboundTrip?.busType || 'LIMOUSINE';
+
+          const ticketImageBuffer = (await nodeHtmlToImage({
+            puppeteerArgs: { args: ['--no-sandbox'] },
+            html: `
+              <html>
+                <head>
+                  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                  <style>
+                    * { box-sizing: border-box; }
+                    body { 
+                      font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+                      background: transparent;
+                      margin: 0; 
+                      padding: 20px;
+                      width: 900px;
+                    }
+                    .ticket-container {
+                      background: #ffffff;
+                      border-radius: 12px;
+                      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+                      overflow: hidden;
+                      width: 100%;
+                    }
+                    .top-line {
+                      height: 6px;
+                      background-color: #EF5222;
+                      width: 100%;
+                    }
+                    .content {
+                      padding: 40px;
+                    }
+                    .header {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: flex-start;
+                      margin-bottom: 40px;
+                    }
+                    .brand-name {
+                      font-size: 24px;
+                      font-weight: 700;
+                      color: #1e293b;
+                      margin: 0;
+                    }
+                    .brand-sub {
+                      font-size: 10px;
+                      font-weight: 600;
+                      color: #94a3b8;
+                      letter-spacing: 2px;
+                      margin-top: 4px;
+                      text-transform: uppercase;
+                    }
+                    .order-code-wrapper {
+                      text-align: right;
+                    }
+                    .order-code-label {
+                      font-size: 10px;
+                      font-weight: 600;
+                      color: #94a3b8;
+                      text-transform: uppercase;
+                    }
+                    .order-code-val {
+                      font-size: 18px;
+                      font-weight: 700;
+                      color: #EF5222;
+                      margin-top: 4px;
+                      letter-spacing: 1px;
+                    }
+                    
+                    .route-section {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 40px;
+                    }
+                    .route-point {
+                      flex: 1;
+                    }
+                    .route-point.right {
+                      text-align: right;
+                    }
+                    .route-label {
+                      font-size: 11px;
+                      color: #94a3b8;
+                      text-transform: uppercase;
+                      margin-bottom: 8px;
+                      font-weight: 600;
+                    }
+                    .route-city {
+                      font-size: 28px;
+                      font-weight: 750;
+                      color: #0f172a;
+                    }
+                    .route-arrow {
+                      flex: 0 0 auto;
+                      padding: 0 20px;
+                      color: #fca5a5;
+                      margin-top: 15px;
+                    }
+                    
+                    .info-grid {
+                      display: grid;
+                      grid-template-columns: repeat(4, 1fr);
+                      gap: 30px 20px;
+                      border-top: 1px solid #f1f5f9;
+                      padding-top: 30px;
+                    }
+                    .info-col {
+                      display: flex;
+                      flex-direction: column;
+                    }
+                    .info-label {
+                      font-size: 10px;
+                      color: #94a3b8;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                      margin-bottom: 6px;
+                    }
+                    .info-val {
+                      font-size: 14px;
+                      color: #334155;
+                      font-weight: 600;
+                    }
+                    .info-sub {
+                      font-size: 12px;
+                      color: #64748b;
+                      font-weight: 400;
+                      margin-top: 4px;
+                    }
+                    .seat-badge {
+                      display: inline-block;
+                      padding: 2px 8px;
+                      border: 1px solid #fed7aa;
+                      color: #EF5222;
+                      background: #fff7ed;
+                      border-radius: 4px;
+                      font-weight: 600;
+                      font-size: 13px;
+                    }
+                    .price-val {
+                      font-size: 18px;
+                      font-weight: 700;
+                      color: #1e293b;
+                    }
+                    .price-val span {
+                      font-size: 12px;
+                      font-weight: 600;
+                      margin-left: 2px;
+                    }
+                    .type-val {
+                      color: #3b82f6;
+                    }
+                    .status-val {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      color: #10b981;
+                      font-weight: 600;
+                    }
+                    .barcode-mock {
+                      height: 35px;
+                      background: repeating-linear-gradient(
+                        90deg,
+                        #1e293b,
+                        #1e293b 2px,
+                        transparent 2px,
+                        transparent 4px,
+                        #1e293b 4px,
+                        #1e293b 8px,
+                        transparent 8px,
+                        transparent 10px
+                      );
+                      opacity: 0.7;
+                      width: 100%;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="ticket-container">
+                    <div class="top-line"></div>
+                    <div class="content">
+                      
+                      <div class="header">
+                        <div>
+                          <div class="brand-name">NHÀ XE ABC</div>
+                          <div class="brand-sub">VIP BOARDING PASS${order.tripType === 'round' ? ' (ROUND TRIP)' : ''}</div>
+                        </div>
+                        <div class="order-code-wrapper">
+                          <div class="order-code-label">MÃ ĐẶT CHỖ</div>
+                          <div class="order-code-val">#${order.orderCode}</div>
+                        </div>
+                      </div>
+
+                      <div class="route-section">
+                        <div class="route-point">
+                          <div class="route-label">ĐIỂM ĐI</div>
+                          <div class="route-city">${order.from}</div>
+                        </div>
+                        <div class="route-arrow">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="${order.tripType === 'round' ? 'M4 12h16M20 12l-6-6M20 12l-6 6 M4 16h16M4 16l6-6M4 16l6 6' : 'M4 12H20M20 12L14 6M20 12L14 18'}" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                        <div class="route-point right">
+                          <div class="route-label">ĐIỂM ĐẾN</div>
+                          <div class="route-city">${order.to}</div>
+                        </div>
+                      </div>
+
+                      <div class="info-grid">
+                        <div class="info-col">
+                          <div class="info-label">XUẤT BẾN ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
+                          <div class="info-val">${departureFormatted}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">HÀNH KHÁCH</div>
+                          <div class="info-val">${order.customerName}</div>
+                          <div class="info-sub">${order.customerPhone || ''}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">SỐ GHẾ CẬP NHẬT</div>
+                          <div><span class="seat-badge">${seatDisplay}</span></div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">TỔNG THANH TOÁN</div>
+                          <div class="price-val">${totalPrice}<span>đ</span></div>
+                        </div>
+
+                        <div class="info-col">
+                          <div class="info-label">ĐẾN NƠI (DỰ KIẾN) ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
+                          <div class="info-val">${arrivalFormatted}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">LOẠI XE</div>
+                          <div class="info-val type-val">${busType}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">TRẠNG THÁI</div>
+                          <div class="status-val">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Đã thanh toán
+                          </div>
+                        </div>
+                        <div class="info-col">
+                           <div class="barcode-mock"></div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label" style="color: ${swapCount > 0 ? '#f59e0b' : '#94a3b8'};">SỐ LẦN ĐỔI GHẾ</div>
+                          <div style="font-size: 22px; font-weight: 800; color: ${swapCount > 0 ? '#d97706' : '#94a3b8'}; letter-spacing: -0.5px;">
+                            ${swapCount} lần
+                            ${swapCount > 0 ? '<span style="font-size: 10px; font-weight: 600; color: #f59e0b; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: middle;">(ĐÃ ĐỔI)</span>' : ''}
+                          </div>
+                        </div>
+
+                        ${order.tripType === 'round' ? `
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
+                          <div class="info-label">XUẤT BẾN (VỀ)</div>
+                          <div class="info-val">${returnDepartureFormatted}</div>
+                        </div>
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
+                          <div class="info-label">ĐẾN NƠI (VỀ)</div>
+                          <div class="info-val">${returnArrivalFormatted}</div>
+                        </div>
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
+                        ` : ''}
+                      </div>
+
+                    </div>
+                  </div>
+                </body>
+              </html>
+            `,
+          })) as Buffer;
+
+          const qrDataText =
+            `Mã vé: ${order.orderCode}\n` +
+            `Khách: ${order.customerName}\n` +
+            `Ghế: ${seatDisplay}\n` +
+            `Số lần đổi ghế: ${swapCount}\n` +
+            `Lộ trình: ${order.from}->${order.to}`;
+
+          const qrCodeUrl = await QRCode.toDataURL(qrDataText, { width: 300 });
+
+          await this.mailerService.sendMail({
+            to: emailRecipient.trim(),
+            subject: `[VÉ ĐIỆN TỬ CẬP NHẬT] ĐỔI GHẾ THÀNH CÔNG #${order.orderCode}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f8fafc; padding: 40px 20px;">
+                <h2 style="color: #EF5222; margin-bottom: 20px;">XÁC NHẬN CẬP NHẬT VÀ ĐỔI GHẾ THÀNH CÔNG</h2>
+                <p style="color: #475569; margin-bottom: 30px;">Hành trình của bạn đã được cập nhật số ghế mới thành công. Dưới đây là Vé xe điện tử mới của bạn:</p>
+                
+                <img src="cid:ticket_image" style="width: 100%; max-width: 800px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" alt="Vé xe điện tử mới" />
+                
+                <div>
+                  <p style="font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase;">Mã QR Check-in Mới</p>
+                  <img src="cid:qr_image" style="width: 150px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 5px; background: white;" alt="QR Code" />
+                </div>
+                
+                <div style="margin-top: 30px; padding: 15px; background: #eff6ff; color: #1d4ed8; border-radius: 8px; display: inline-block; font-size: 13px; border: 1px solid #dbeafe;">
+                  <strong>Thông báo:</strong> Vé cũ của bạn đã được cập nhật thành số ghế mới là <strong>${seatDisplay}</strong>. Quý khách vui lòng lưu lại vé mới này để check-in lên xe.
+                </div>
+              </div>
+            `,
+            attachments: [
+              {
+                filename: `ve-xe-cap-nhat-${order.orderCode}.png`,
+                content: ticketImageBuffer,
+                cid: 'ticket_image',
+              },
+              {
+                filename: 'qr.png',
+                content: qrCodeUrl.split('base64,')[1],
+                encoding: 'base64',
+                cid: 'qr_image',
+              },
+            ],
+          });
+          console.log(`[Email Success] Đã gửi lại vé điện tử mới thành công cho đơn ${order.orderCode}`);
+        } catch (err: any) {
+          console.error('Lỗi sinh ảnh vé hoặc gửi lại mail đổi ghế:', err);
+        }
+      })();
+    }
+
+    return {
+      success: true,
+      message: `Đã chuyển đổi ghế [${currentSeatUpper}] sang [${newSeatUpper}] thành công!`
+    };
   }
 }

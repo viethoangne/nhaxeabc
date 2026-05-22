@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { MAX_TICKETS, MIN_TICKETS } from '@lib/constants';
 import { useTripSearch } from '@hooks/useTripSearch';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 type SearchCardProps = Omit<ReturnType<typeof useTripSearch>, 'searchParams' | 'setIsLoading'>;
 
@@ -29,6 +29,7 @@ const CustomCalendar = ({
   onSelect: (date: string) => void;
   minDate?: string;
 }) => {
+  const locale = useLocale();
   const [currentMonth, setCurrentMonth] = useState(
     selectedDate ? new Date(selectedDate) : new Date()
   );
@@ -46,10 +47,9 @@ const CustomCalendar = ({
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
 
-  const monthNames = [
-    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
-  ];
+  const monthNames = locale === 'en'
+    ? ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    : ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
 
   return (
     <div className="absolute left-0 bottom-full z-50 mb-4 min-w-[300px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-800">
@@ -66,7 +66,10 @@ const CustomCalendar = ({
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-semibold text-slate-400">
-        <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+        {locale === 'en' 
+          ? <><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div></>
+          : <><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div></>
+        }
       </div>
 
       <div className="grid grid-cols-7 gap-1">
@@ -206,31 +209,31 @@ export default function SearchCard({
         <button
           type="button"
           onClick={() => { setTripType('oneway'); setReturnDate(''); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-sm ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
             tripType === 'oneway' 
               ? 'bg-orange-500 text-white shadow-orange-500/30' 
               : 'bg-white/80 text-slate-700 hover:bg-white backdrop-blur-md'
           }`}
         >
           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'oneway' ? 'border-white' : 'border-slate-400'}`}>
-            {tripType === 'oneway' && <div className="w-2 h-2 bg-white rounded-full" />}
+            {tripType === 'oneway' && <div className="w-2 h-2 bg-white rounded-full animate-scale" />}
           </div>
-          Một chiều
+          {t('oneWay')}
         </button>
 
         <button
           type="button"
           onClick={() => setTripType('round')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-sm ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
             tripType === 'round' 
               ? 'bg-orange-500 text-white shadow-orange-500/30' 
               : 'bg-white/80 text-slate-700 hover:bg-white backdrop-blur-md'
           }`}
         >
           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'round' ? 'border-white' : 'border-slate-400'}`}>
-            {tripType === 'round' && <div className="w-2 h-2 bg-white rounded-full" />}
+            {tripType === 'round' && <div className="w-2 h-2 bg-white rounded-full animate-scale" />}
           </div>
-          Khứ hồi
+          {t('roundTrip')}
         </button>
       </div>
 
@@ -241,14 +244,18 @@ export default function SearchCard({
         <div className="relative flex-1 min-w-[160px] transition-all duration-500">
           <div 
             onClick={() => setActiveDropdown('from')} 
-            className="group h-full flex flex-col justify-center px-5 py-3 bg-white dark:bg-slate-800 rounded-2xl cursor-pointer hover:bg-orange-50 transition-colors shadow-sm"
+            className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
+              activeDropdown === 'from'
+                ? 'bg-orange-50/40 dark:bg-orange-950/10 border-orange-400 dark:border-orange-500/50 ring-2 ring-orange-500/10'
+                : 'bg-white dark:bg-slate-800 border-transparent hover:bg-orange-50/40 dark:hover:bg-slate-700/80 hover:border-orange-100 dark:hover:border-slate-700'
+            }`}
           >
             <div className="flex items-center gap-2 mb-1">
               <span className="text-slate-400 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-orange-500">📍</span>
-              <span className="text-xs font-medium text-slate-500">Điểm đi</span>
+              <span className="text-xs font-medium text-slate-500">{t('from')}</span>
             </div>
             <span className={`text-base font-bold truncate pl-6 pr-8 ${!from ? 'text-slate-400 font-normal' : 'text-slate-900 dark:text-white'}`}>
-              {from || 'Chọn điểm đi'}
+              {from || t('selectFrom')}
             </span>
             {/* Nút X xoá */}
             {from && (
@@ -273,7 +280,7 @@ export default function SearchCard({
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
                 className="absolute left-0 bottom-full z-50 mb-4 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl dark:bg-slate-800"
               >
-                <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 Chọn điểm đi</div>
+                <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 {t('selectFrom')}</div>
                 <ul className="flex flex-col gap-1">
                   {fromSuggestions.map((suggestion) => (
                     <li key={suggestion}>
@@ -307,14 +314,18 @@ export default function SearchCard({
        <div className="relative flex-1 min-w-[160px] transition-all duration-500">
           <div 
             onClick={() => setActiveDropdown('to')} 
-            className="relative group h-full flex flex-col justify-center px-5 py-3 bg-white dark:bg-slate-800 rounded-2xl cursor-pointer hover:bg-orange-50 transition-colors shadow-sm"
+            className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
+              activeDropdown === 'to'
+                ? 'bg-orange-50/40 dark:bg-orange-950/10 border-orange-400 dark:border-orange-500/50 ring-2 ring-orange-500/10'
+                : 'bg-white dark:bg-slate-800 border-transparent hover:bg-orange-50/40 dark:hover:bg-slate-700/80 hover:border-orange-100 dark:hover:border-slate-700'
+            }`}
           >
             <div className="flex items-center gap-2 mb-1">
               <span className="text-slate-400 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-orange-500">📍</span>
-              <span className="text-xs font-medium text-slate-500">Điểm đến</span>
+              <span className="text-xs font-medium text-slate-500">{t('to')}</span>
             </div>
             <span className={`text-base font-bold truncate pl-6 pr-8 ${!to ? 'text-slate-400 font-normal' : 'text-slate-900 dark:text-white'}`}>
-              {to || 'Chọn điểm đến'}
+              {to || t('selectTo')}
             </span>
 
             {/* Nút X xoá */}
@@ -340,7 +351,7 @@ export default function SearchCard({
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
                 className="absolute left-0 bottom-full z-50 mb-4 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl dark:bg-slate-800"
               >
-                <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 Chọn điểm đến</div>
+                <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 {t('selectTo')}</div>
                 <ul className="flex flex-col gap-1">
                   {toSuggestions.map((suggestion) => (
                     <li key={suggestion}>
@@ -365,14 +376,18 @@ export default function SearchCard({
           <div className="relative w-full md:w-[170px] shrink-0">
             <div 
               onClick={() => setActiveDropdown('departDate')} 
-              className="group h-full flex flex-col justify-center px-5 py-3 bg-white dark:bg-slate-800 rounded-2xl cursor-pointer hover:bg-orange-50 transition-colors shadow-sm"
+              className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
+                activeDropdown === 'departDate'
+                  ? 'bg-orange-50/40 dark:bg-orange-950/10 border-orange-400 dark:border-orange-500/50 ring-2 ring-orange-500/10'
+                  : 'bg-white dark:bg-slate-800 border-transparent hover:bg-orange-50/40 dark:hover:bg-slate-700/80 hover:border-orange-100 dark:hover:border-slate-700'
+              }`}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-slate-400 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-orange-500">📅</span>
-                <span className="text-xs font-medium text-slate-500">Ngày đi</span>
+                <span className="text-xs font-medium text-slate-500">{t('departDate')}</span>
               </div>
               <span className={`text-base font-bold pl-6 ${!departDate ? 'text-slate-400 font-normal' : 'text-slate-900 dark:text-white'}`}>
-                {departDate ? formatDateToVN(departDate) : 'Chọn ngày'}
+                {departDate ? formatDateToVN(departDate) : t('selectDate')}
               </span>
             </div>
             <AnimatePresence>
@@ -393,21 +408,24 @@ export default function SearchCard({
                 animate={{ opacity: 1, width: "auto" }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                // SỬA DÒNG CLASSNAME NÀY: Mở khóa overflow khi active
                 className={`shrink-0 origin-left ${activeDropdown === 'returnDate' ? 'overflow-visible' : 'overflow-hidden'}`}
               >
                 {/* Fixed width inner container to prevent text squeezing */}
                 <div className="relative w-full md:w-[170px] h-full">
                   <div 
                     onClick={() => setActiveDropdown('returnDate')} 
-                    className="group h-full flex flex-col justify-center px-5 py-3 bg-white dark:bg-slate-800 rounded-2xl cursor-pointer hover:bg-orange-50 transition-colors shadow-sm"
+                    className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
+                      activeDropdown === 'returnDate'
+                        ? 'bg-orange-50/40 dark:bg-orange-950/10 border-orange-400 dark:border-orange-500/50 ring-2 ring-orange-500/10'
+                        : 'bg-white dark:bg-slate-800 border-transparent hover:bg-orange-50/40 dark:hover:bg-slate-700/80 hover:border-orange-100 dark:hover:border-slate-700'
+                    }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-slate-400 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-orange-500">📅</span>
-                      <span className="text-xs font-medium text-slate-500">Ngày về</span>
+                      <span className="text-xs font-medium text-slate-500">{t('returnDate')}</span>
                     </div>
                     <span className={`text-base font-bold pl-6 ${!returnDate ? 'text-slate-400 font-normal' : 'text-slate-900 dark:text-white'}`}>
-                      {returnDate ? formatDateToVN(returnDate) : 'Chọn ngày'}
+                      {returnDate ? formatDateToVN(returnDate) : t('selectDate')}
                     </span>
                   </div>
                   <AnimatePresence>
@@ -428,14 +446,18 @@ export default function SearchCard({
         <div className="relative flex-1 md:max-w-[160px]">
           <div 
             onClick={() => setActiveDropdown('tickets')} 
-            className="group h-full flex flex-col justify-center px-5 py-3 bg-white dark:bg-slate-800 rounded-2xl cursor-pointer hover:bg-orange-50 transition-colors shadow-sm"
+            className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
+              activeDropdown === 'tickets'
+                ? 'bg-orange-50/40 dark:bg-orange-950/10 border-orange-400 dark:border-orange-500/50 ring-2 ring-orange-500/10'
+                : 'bg-white dark:bg-slate-800 border-transparent hover:bg-orange-50/40 dark:hover:bg-slate-700/80 hover:border-orange-100 dark:hover:border-slate-700'
+            }`}
           >
             <div className="flex items-center gap-2 mb-1">
               <span className="text-slate-400 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-orange-500">👥</span>
-              <span className="text-xs font-medium text-slate-500">Hành khách</span>
+              <span className="text-xs font-medium text-slate-500">{t('passenger')}</span>
             </div>
-            <span className="text-base font-bold text-slate-900 pl-6 dark:text-white">
-              {tickets} Người
+            <span className="text-base font-bold text-slate-900 pl-6 dark:text-white truncate">
+              {tickets} {t('peopleCount')}
             </span>
           </div>
           <AnimatePresence>
@@ -445,7 +467,7 @@ export default function SearchCard({
               className="absolute right-0 bottom-full z-50 mb-4 w-64 rounded-2xl bg-white p-5 shadow-2xl dark:bg-slate-800"
             >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Số lượng vé</span>
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('ticketQty')}</span>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => handleTicketChange(false)} disabled={tickets <= MIN_TICKETS} className="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-orange-100 hover:text-orange-600 disabled:opacity-40 transition-colors dark:bg-slate-700 dark:text-slate-300">−</button>
                     <span className="font-bold text-slate-900 dark:text-white w-4 text-center">{tickets}</span>
@@ -470,9 +492,9 @@ export default function SearchCard({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </motion.svg>
           )}
-          <span className="ml-2 font-bold md:hidden">Tìm Chuyến</span>
+          <span className="ml-2 font-bold md:hidden">{t('searchTrips')}</span>
         </button>
       </div>
     </section>
   );
-}
+}

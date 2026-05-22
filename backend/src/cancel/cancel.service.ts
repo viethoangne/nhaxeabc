@@ -64,10 +64,8 @@ export class CancelService {
 
     if (timeDiffHours >= 24) {
       refundPercentage = 100;
-      newPaymentStatus = order.paymentStatus === 'PAID' ? PaymentStatus.REFUNDED : order.paymentStatus;
     } else if (timeDiffHours >= 12 && timeDiffHours < 24) {
       refundPercentage = 50;
-      newPaymentStatus = order.paymentStatus === 'PAID' ? PaymentStatus.REFUNDED : order.paymentStatus; 
     }
 
     const refundAmount = (order.amount * refundPercentage) / 100;

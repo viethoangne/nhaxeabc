@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { AdminDashboardService } from './admin-dashboard.service';
 import { Roles } from '../auth/guards/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -20,7 +20,22 @@ export class AdminDashboardController {
     return { success: true, message: 'Thành công', data: data };
   }
   @Get('ai-insights')
-  async getAiInsights() {
-    return this.dashboardService.getAIInsights();
+  async getAiInsights(@Query('enableWeather') enableWeather?: string) {
+    const isWeatherEnabled = enableWeather === 'true';
+    return this.dashboardService.getAIInsights(isWeatherEnabled);
+  }
+
+  // PUBLIC: Trả về trạng thái bảo trì
+  @Get('system-status')
+  async getSystemStatus() {
+    return this.dashboardService.getSystemStatus();
+  }
+
+  // PROTECTED: Admin bật/tắt trạng thái bảo trì
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @Post('system-maintenance')
+  async toggleMaintenance(@Body() body: { isMaintenance: boolean }) {
+    return this.dashboardService.toggleMaintenance(body.isMaintenance);
   }
 }

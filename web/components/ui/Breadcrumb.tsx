@@ -4,6 +4,8 @@
 import Link from 'next/link';
 import { Home, ChevronRight } from 'lucide-react';
 
+import { useTranslations } from 'next-intl';
+
 export interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -14,14 +16,16 @@ interface BreadcrumbProps {
 }
 
 export function Breadcrumb({ items }: BreadcrumbProps) {
+  const t = useTranslations();
+
   return (
-    <nav className="flex text-sm text-gray-500 font-medium mb-2" aria-label="Breadcrumb">
+    <nav className="flex text-sm text-gray-500 dark:text-slate-400 font-medium mb-2" aria-label="Breadcrumb">
       <ol className="flex items-center space-x-1 sm:space-x-2">
         {/* Nút Trang chủ mặc định */}
         <li>
           <Link href="/" className="hover:text-[#ea580c] transition-colors flex items-center gap-1">
             <Home size={16} className="mb-[2px]" />
-            <span className="hidden sm:inline">Trang chủ</span>
+            <span className="hidden sm:inline">{t('home')}</span>
           </Link>
         </li>
 
@@ -31,9 +35,9 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
 
           return (
             <li key={index} className="flex items-center space-x-1 sm:space-x-2">
-              <ChevronRight size={16} className="text-gray-400" />
+              <ChevronRight size={16} className="text-gray-400 dark:text-slate-500" />
               {isLast || !item.href ? (
-                <span className="text-gray-900 font-semibold" aria-current="page">
+                <span className="text-gray-900 dark:text-white font-semibold" aria-current="page">
                   {item.label}
                 </span>
               ) : (

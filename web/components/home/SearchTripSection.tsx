@@ -3,7 +3,7 @@
 import TripCard from '@/components/ui/TripCard';
 import EmptyState from '@/components/ui/EmptyState';
 import type { Trip } from '@/types';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   title: string;
@@ -68,14 +68,16 @@ export default function SearchTripSection({
     selectedTrip?.arrivalDate || (selectedTrip as any)?.arrivalTime,
   );
 
+  const tSection = useTranslations('SearchTrip');
+
   return (
     <section className="space-y-4">
-      <h2 className="text-[28px] md:text-[32px] font-semibold text-slate-900">{title}</h2>
+      <h2 className="text-[28px] md:text-[32px] font-semibold text-slate-900 dark:text-white">{title}</h2>
       
 
       {/* Hiển thị tóm tắt chuyến đi đã chọn (chỉ hiện khi user đang ở bước chọn chuyến về) */}
       {selectedTrip && (
-        <div className="mb-6 overflow-hidden rounded-2xl border border-orange-200 bg-orange-50 shadow-sm transition-all animate-in fade-in slide-in-from-top-4">
+        <div className="mb-6 overflow-hidden rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-orange-50 dark:bg-slate-900 shadow-sm transition-all animate-in fade-in slide-in-from-top-4">
           <div className="bg-orange-500 px-4 py-2 text-sm font-bold text-white">
             {labels.selectedOutboundLabel}
           </div>
@@ -85,43 +87,43 @@ export default function SearchTripSection({
               <div className="flex items-center gap-4">
                 {/* Giờ đi */}
                 <div className="text-center min-w-[70px]">
-                  <div className="text-2xl font-black text-slate-900">
+                  <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {selectedDepart.time}
                   </div>
-                  <div className="text-xs text-slate-500">{selectedDepart.date}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{selectedDepart.date}</div>
                 </div>
 
                 {/* Đường nối */}
                 <div className="flex flex-col items-center gap-1">
                   <div className="h-2 w-2 rounded-full bg-orange-500" />
-                  <div className="h-8 w-[2px] bg-slate-300" />
+                  <div className="h-8 w-[2px] bg-slate-300 dark:bg-slate-700" />
                   <div className="h-2 w-2 rounded-full bg-green-600" />
                 </div>
 
                 {/* Giờ đến */}
                 <div className="text-center min-w-[70px]">
-                  <div className="text-2xl font-black text-slate-900">
+                  <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {selectedArrival.time}
                   </div>
-                  <div className="text-xs text-slate-500">{selectedArrival.date}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{selectedArrival.date}</div>
                 </div>
 
                 {/* Tuyến đường */}
                 <div className="ml-4">
-                  <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-800">
+                  <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-800 dark:text-slate-200">
                     <span>{selectedTrip.from}</span>
                     <span className="text-slate-400">→</span>
                     <span>{selectedTrip.to}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
-                    <span className="bg-white px-2 py-0.5 rounded border border-orange-100">{selectedTrip.busType}</span>
+                  <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                    <span className="bg-white dark:bg-slate-950 px-2 py-0.5 rounded border border-orange-100 dark:border-orange-900/30">{selectedTrip.busType}</span>
                   </div>
                 </div>
               </div>
 
               {/* Tổng tiền */}
-              <div className="flex flex-row items-center justify-between border-t border-orange-100 pt-4 md:flex-col md:items-end md:border-none md:pt-0">
-                <div className="text-xs font-medium uppercase text-slate-400">
+              <div className="flex flex-row items-center justify-between border-t border-orange-100 dark:border-orange-900/20 pt-4 md:flex-col md:items-end md:border-none md:pt-0">
+                <div className="text-xs font-medium uppercase text-slate-400 dark:text-slate-500">
                   {labels.totalFare}
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-orange-600">
@@ -147,7 +149,7 @@ export default function SearchTripSection({
               {(trip as any).isRecommended && (
                 <div className="absolute -top-3 -right-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 z-20 animate-pulse border border-orange-300/50">
                   {/* Bỏ icon SVG sao chổi ở đây đi vì ta đã nhét Icon 🔥 và ✨ vào thẳng chữ recommendTag rồi */}
-                  {(trip as any).recommendTag}
+                  {tSection(`ai.${(trip as any).recommendTag}`)}
                 </div>
               )}
 

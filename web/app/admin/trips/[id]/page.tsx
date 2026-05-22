@@ -32,6 +32,14 @@
     const [driverSearch, setDriverSearch] = useState('');
     const [showDriverDropdown, setShowDriverDropdown] = useState(false);
 
+    // 🟢 THÊM STATE CHO TOAST CAO CẤP
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 3000);
+    };
+
     // 🟢 1. HÀM TẢI DỮ LIỆU ĐÃ ĐƯỢC GẮN TOKEN
     const fetchTripDetail = async () => {
       if (!session) return;
@@ -57,13 +65,6 @@
           price: tripData.price || 0,
           status: tripData.status || 'PUBLISHED'
         });
-        // 🟢 Đổ dữ liệu chuyến xe vào Form Modal Cài đặt
-        setEditData({
-          driverId: tripData.driverId || '',
-          busId: tripData.busId || '',
-          price: tripData.price || 0,
-          status: tripData.status || 'PUBLISHED'
-        });
 
         // 🟢 THÊM ĐOẠN NÀY: Hiển thị tên bác tài vào ô Input nếu đã được phân công
         if (tripData.driver) {
@@ -75,24 +76,21 @@
         const newSeatStatus: Record<string, any> = {};
 
         // 🟢 ĐÃ SỬA: Xử lý ghế đã đặt (BOOKED) chuẩn với Database mới
-      if (tripData.outboundOrders && tripData.outboundOrders.length > 0) {
-        tripData.outboundOrders.forEach((order: any) => {
-          
-          // Lấy mảng tên ghế từ quan hệ OrderSeat (VD: ['A1', 'A2'])
-          const seatsArray = order.seats ? order.seats.map((s: any) => s.seatNumber) : [];
+        if (tripData.outboundOrders && tripData.outboundOrders.length > 0) {
+          tripData.outboundOrders.forEach((order: any) => {
+            const seatsArray = order.seats ? order.seats.map((s: any) => s.seatNumber) : [];
 
-          seatsArray.forEach((seatCode: string) => {
-            if (seatCode) {
-              newSeatStatus[seatCode] = {
-                status: 'BOOKED',
-                // Sửa thành đúng tên trường customerName và customerPhone trong schema.prisma
-                passengerName: order.customerName || 'Khách vãng lai',
-                phone: order.customerPhone || 'N/A'
-              };
-            }
+            seatsArray.forEach((seatCode: string) => {
+              if (seatCode) {
+                newSeatStatus[seatCode] = {
+                  status: 'BOOKED',
+                  passengerName: order.customerName || 'Khách vãng lai',
+                  phone: order.customerPhone || 'N/A'
+                };
+              }
+            });
           });
-        });
-      }
+        }
 
         // Xử lý ghế bị khóa (LOCKED) từ DB hiển thị lên
         if (tripData.lockedSeats && Array.isArray(tripData.lockedSeats)) {
@@ -118,7 +116,6 @@
     useEffect(() => {
       if (isSettingOpen && session) {
         const fetchData = async () => {
-          // 🟢 Đảm bảo lấy Token và ID chuẩn từ Session
           const userId = (session.user as any)?.id;
           const token = (session as any)?.accessToken || (session.user as any)?.token || '';
           
@@ -144,7 +141,6 @@
     }, [isSettingOpen, session, tripId]);
 
     const handleUpdateTrip = async () => {
-      // 🟢 Lấy token và userId y hệt như lúc tải dữ liệu để không bị lỗi 403
       const userId = (session?.user as any)?.id;
       const token = (session as any)?.accessToken || (session?.user as any)?.accessToken || (session?.user as any)?.token || '';
       
@@ -158,16 +154,16 @@
         await axios.put(`${API_BASE}/admin/trips/${tripId}/assign`, payload, {
           headers: { 
             'Authorization': `Bearer ${token}`,
-            'x-user-id': userId // 🟢 Bắt buộc phải có dòng này để Backend cho phép qua cửa
+            'x-user-id': userId
           }
         });
-        alert("Đã cập nhật phân công chuyến xe!");
+        showToast("Đã cập nhật phân công chuyến xe thành công!", "success");
         setIsSettingOpen(false);
         setDriverSearch(''); 
-        fetchTripDetail(); // Tự động load lại dữ liệu mới nhất
+        fetchTripDetail(); 
       } catch (error: any) {
         console.error("Lỗi cập nhật:", error.response?.data || error.message);
-        alert("Có lỗi khi cập nhật! Vui lòng kiểm tra lại quyền hoặc đăng nhập lại.");
+        showToast("Có lỗi khi cập nhật! Vui lòng kiểm tra lại quyền hoặc đăng nhập lại.", "error");
       }
     };
 
@@ -180,14 +176,13 @@
       const currentStatus = seatStatus[seatId]?.status || 'AVAILABLE';
 
       if (currentStatus === 'BOOKED') {
-        alert(`Ghế ${seatId} đã được đặt. Không thể khóa!`);
+        showToast(`Ghế ${seatId} đã được khách đặt chỗ. Không thể khóa bảo trì!`, "error");
         return;
       }
 
       const isCurrentlyLocked = currentStatus === 'LOCKED';
       const newStatus = isCurrentlyLocked ? 'AVAILABLE' : 'LOCKED';
 
-      // UI thay đổi mượt mà
       setSeatStatus(prev => ({
         ...prev,
         [seatId]: { status: newStatus }
@@ -206,47 +201,47 @@
             'Authorization': `Bearer ${token}`
           }
         });
+        showToast(isCurrentlyLocked ? `Đã mở khóa ghế ${seatId}` : `Đã khóa bảo trì ghế ${seatId}`, "success");
       } catch (error) {
         console.error("Lỗi khi khóa ghế:", error);
         setSeatStatus(prev => ({
           ...prev,
           [seatId]: { status: currentStatus }
         }));
-        alert("Có lỗi xảy ra, không thể thay đổi trạng thái ghế!");
+        showToast("Có lỗi xảy ra, không thể thay đổi trạng thái ghế!", "error");
       }
     };
+
     // 🟢 HÀM XUẤT DANH SÁCH HÀNH KHÁCH RA EXCEL (CSV)
-  const handleExportExcel = () => {
-    // Lọc ra những ghế có trạng thái BOOKED
-    const passengers = Object.keys(seatStatus)
-      .filter(k => seatStatus[k].status === 'BOOKED')
-      .map(seatId => ({
-        seat: seatId,
-        name: seatStatus[seatId].passengerName,
-        phone: seatStatus[seatId].phone,
-        status: 'Đã thanh toán'
-      }));
+    const handleExportExcel = () => {
+      const passengers = Object.keys(seatStatus)
+        .filter(k => seatStatus[k].status === 'BOOKED')
+        .map(seatId => ({
+          seat: seatId,
+          name: seatStatus[seatId].passengerName,
+          phone: seatStatus[seatId].phone,
+          status: 'Đã thanh toán'
+        }));
 
-    if (passengers.length === 0) {
-      alert('Chưa có hành khách nào để xuất!');
-      return;
-    }
+      if (passengers.length === 0) {
+        showToast('Chưa có hành khách nào đặt chỗ để xuất file!', "error");
+        return;
+      }
 
-    // Tạo nội dung file CSV
-    const headers = ['Ghế,Tên khách hàng,Số điện thoại,Trạng thái'];
-    const rows = passengers.map(p => `${p.seat},"${p.name}",="${p.phone}",${p.status}`);
-    const csvContent = headers.concat(rows).join('\n');
-    
-    // Thêm BOM (\ufeff) để Excel không bị lỗi font Tiếng Việt
-    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' }); 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `Danh_sach_khach_Chuyen_${tripId}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+      const headers = ['Ghế,Tên khách hàng,Số điện thoại,Trạng thái'];
+      const rows = passengers.map(p => `${p.seat},"${p.name}",="${p.phone}",${p.status}`);
+      const csvContent = headers.concat(rows).join('\n');
+      
+      const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' }); 
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Danh_sach_khach_Chuyen_${tripId}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Xuất danh sách hành khách thành công!", "success");
+    };
 
     // Hàm Render giao diện từng ghế
     const renderSeat = (seatId: string) => {
@@ -274,6 +269,31 @@
 
     return (
       <div className="space-y-6 pb-20">
+        {/* 🟢 BEAUTIFUL PREMIUM TOAST NOTIFICATION BANNER */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-md border ${
+                toast.type === 'success' ? 'bg-emerald-500/95 border-emerald-400 text-white' :
+                toast.type === 'error' ? 'bg-rose-500/95 border-rose-400 text-white' :
+                'bg-amber-500/95 border-amber-400 text-white'
+              }`}
+            >
+              <div className="p-1 rounded-lg bg-white/20">
+                {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <Activity className="w-6 h-6 animate-pulse" />}
+              </div>
+              <div>
+                <p className="text-xs font-semibold tracking-wider uppercase text-white/80">
+                  {toast.type === 'success' ? 'Thành công' : toast.type === 'error' ? 'Cảnh báo' : 'Thông báo'}
+                </p>
+                <p className="text-sm font-bold text-white">{toast.message}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* HEADER */}
         <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
@@ -432,9 +452,14 @@
                 </div>
                 <div className="p-6 space-y-5">
                   {/* Chọn Tài xế */}
-                  {/* 🟢 CUSTOM SEARCHABLE DROPDOWN: Chọn Tài xế */}
+                  {/* 🟢 CUSTOM SEARCHABLE DROPDOWN: Chọn Tài xế (Tích hợp Cân bằng tải & Cảnh báo xung đột) */}
                   <div className="space-y-2 relative">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Phân công Tài xế</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Phân công Tài xế</label>
+                      <span className="text-[10px] font-extrabold text-[#EF5222] bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                        ⚡ AI Auto Workload Balancing
+                      </span>
+                    </div>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors z-10">
                         <BadgeCheck size={18} strokeWidth={2.5} />
@@ -474,7 +499,7 @@
                             initial={{ opacity: 0, y: -10 }} 
                             animate={{ opacity: 1, y: 0 }} 
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar"
+                            className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50"
                           >
                             {drivers.filter(d => 
                               d.name.toLowerCase().includes(driverSearch.toLowerCase()) || 
@@ -491,6 +516,9 @@
                                 <div 
                                   key={d.id}
                                   onClick={() => {
+                                    if (d.isConflicting) {
+                                      if (!window.confirm(`⚠️ CẢNH BÁO XUNG ĐỘT: ${d.conflictReason}\nBác tài đang không khả dụng. Ngài vẫn muốn cưỡng chế phân công?`)) return;
+                                    }
                                     // 🟢 CẬP NHẬT GÁN ID TÀI XẾ VÀ ID XE (NẾU CÓ) VÀO FORM
                                     setEditData({
                                       ...editData, 
@@ -500,15 +528,30 @@
                                     setDriverSearch(`[${d.driverCode}] ${d.name} • ${d.phone}`);
                                     setShowDriverDropdown(false);
                                   }}
-                                  className="px-4 py-3 hover:bg-orange-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors flex flex-col"
+                                  className={`px-4 py-3 cursor-pointer transition-colors flex flex-col ${d.isConflicting ? 'bg-rose-50/80 hover:bg-rose-100/90' : 'hover:bg-orange-50'}`}
                                 >
-                                  <span className="text-[13px] font-bold text-slate-800 flex justify-between">
-    <span>{d.name}</span>
-    <span className="text-[#EF5222]">[{d.driverCode}]</span> {/* Vẫn giữ chuẩn màu cam sáng của bạn */}
-  </span>
-  <span className="text-[11px] font-medium text-slate-500">
-    Khu vực: {d.baseLocation} • SĐT: {d.phone}
-  </span>
+                                  <span className="text-[13px] font-bold text-slate-800 flex justify-between items-center">
+                                    <span className="flex items-center gap-2">
+                                      <span>{d.name}</span>
+                                      {d.isConflicting ? (
+                                        <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase animate-pulse">Xung đột</span>
+                                      ) : (
+                                        <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Sẵn sàng</span>
+                                      )}
+                                    </span>
+                                    <span className="text-[#EF5222] font-mono font-black">[{d.driverCode}]</span>
+                                  </span>
+                                  <span className="text-[11px] font-medium text-slate-500 flex justify-between items-center mt-1.5">
+                                    <span>Khu vực: {d.baseLocation} • SĐT: {d.phone}</span>
+                                    <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-black border border-slate-200">
+                                      Số ca đã chạy: {d.workloadCount ?? 0}
+                                    </span>
+                                  </span>
+                                  {d.isConflicting && (
+                                    <span className="text-[11px] text-rose-600 font-bold mt-1.5 bg-white px-2.5 py-1 rounded-lg border border-rose-200 shadow-2xs block">
+                                      ⚠️ {d.conflictReason}
+                                    </span>
+                                  )}
                                 </div>
                               ))
                             )}
@@ -525,9 +568,17 @@
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors">
                         <CarFront size={18} strokeWidth={2.5} />
                       </div>
-                      <select value={editData.busId} onChange={(e) => setEditData({...editData, busId: e.target.value})} className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-[14px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all appearance-none cursor-pointer">
+                      <select 
+                        value={editData.busId} 
+                        onChange={(e) => setEditData({...editData, busId: e.target.value})} 
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-[14px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all appearance-none cursor-pointer"
+                      >
                         <option value="">-- Click để điều xe --</option>
-                        {buses.map(b => <option key={b.id} value={b.id}>{b.plateNumber} • {b.busType}</option>)}
+                        {buses.map(b => (
+                          <option key={b.id} value={b.id} disabled={b.isConflicting}>
+                            {b.plateNumber} • {b.busType} {b.isConflicting ? `(⚠️ ${b.conflictReason})` : '(🟢 Sẵn sàng tại bến)'}
+                          </option>
+                        ))}
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">▾</div>
                     </div>

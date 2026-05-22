@@ -4,9 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import * as qs from 'qs';
 import * as QRCode from 'qrcode';
 import nodeHtmlToImage from 'node-html-to-image';
 import { OtpService } from '../otp/otp.service'; // Import service OTP
+import PayOS from '@payos/node';
 import {
   Prisma,
   BookingStatus,
@@ -34,17 +36,27 @@ type CreatePaymentDto = {
   userId?: string;
   appliedPromoCode?: string; // Dữ liệu mã khuyến mãi gửi từ Frontend
   otp?: string;              // THÊM DÒNG NÀY ĐỂ NHẬN OTP
-  paymentMethod?: 'MOMO' | 'VIETQR';
+  paymentMethod?: 'MOMO' | 'VIETQR' | 'VNPAY';
 };
 
 @Injectable()
 export class PaymentService {
+  private payos: any = null;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly otpService: OtpService, // Inject vào đây
-  ) {}
+  ) {
+    const clientId = this.configService.get<string>('PAYOS_CLIENT_ID');
+    const apiKey = this.configService.get<string>('PAYOS_API_KEY');
+    const checksumKey = this.configService.get<string>('PAYOS_CHECKSUM_KEY');
+
+    if (clientId && apiKey && checksumKey) {
+      this.payos = new (PayOS as any)(clientId, apiKey, checksumKey);
+    }
+  }
 
   private calcTotalPrice(tickets: number, tripType: string, pricePerSeat: number) {
     return tripType === 'round'
@@ -111,30 +123,32 @@ export class PaymentService {
     const endpoint = this.configService.get<string>('MOMO_ENDPOINT');
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-    const backendUrl = this.configService.get<string>('BACKEND_URL');
+    const backendUrl = this.configService.get<string>('BACKEND_URL')
+      || this.configService.get<string>('BASE_URL')
+      || 'http://localhost:3001';
 
     const orderCode = Date.now().toString().slice(-12);
     const requestId = `REQ_${orderCode}`;
     const momoOrderId = `TRIP_${orderCode}`;
 
     const createdOrder = await this.prisma.$transaction(async (tx) => {
-      
       // --- 1. KIỂM TRA MÃ KHUYẾN MÃI (LOYALTY) ---
+      let userVoucherRecord: any = null;
       if (dto.appliedPromoCode) {
         if (!dto.userId) {
           throw new BadRequestException('Bạn cần đăng nhập để sử dụng mã ưu đãi!');
         }
 
-        // Tìm xem user có sở hữu mã này và mã chưa được dùng không
-        const userVoucher = await tx.userVoucher.findFirst({
+        userVoucherRecord = await tx.userVoucher.findFirst({
           where: {
             userId: dto.userId,
             isUsed: false,
             voucher: { code: dto.appliedPromoCode },
           },
+          include: { voucher: true },
         });
 
-        if (!userVoucher) {
+        if (!userVoucherRecord) {
           throw new BadRequestException('Mã ưu đãi không hợp lệ, đã hết hạn hoặc bạn không sở hữu mã này!');
         }
       }
@@ -202,9 +216,49 @@ export class PaymentService {
         throw new BadRequestException('Chỉ được đặt vé trước giờ khởi hành ít nhất 3 tiếng');
       }
 
+      // --- TÍNH TOÁN VÀ XÁC THỰC GIÁ VÉ BẢO MẬT (Pricing Security) ---
+      const outboundPrice = trip.price || 0;
+      const outboundBasePrice = outboundPrice * dto.outboundSeats.length;
+
+      let returnPrice = 0;
+      let returnBasePrice = 0;
+      if (dto.tripType === 'round' && returnTrip) {
+        returnPrice = returnTrip.price || 0;
+        returnBasePrice = returnPrice * (dto.returnSeats?.length || 0);
+      }
+
+      const totalBasePrice = outboundBasePrice + returnBasePrice;
+
+      let discount = 0;
+      if (userVoucherRecord && userVoucherRecord.voucher) {
+        const voucher = userVoucherRecord.voucher;
+        if (voucher.type === 'percent') {
+          discount = Math.floor(totalBasePrice * (voucher.value / 100));
+          if (voucher.maxAmount) {
+            discount = Math.min(discount, voucher.maxAmount);
+          }
+        } else {
+          discount = voucher.value || 0;
+        }
+      }
+
+      const calculatedAmount = Math.max(totalBasePrice - discount, 0);
+
+      // Cho phép sai lệch tối đa 1000đ do làm tròn tiền
+      if (Math.abs(amount - calculatedAmount) > 1000) {
+        throw new BadRequestException(
+          `Phát hiện sai lệch giá vé bảo mật! Số tiền thanh toán đúng phải là: ${calculatedAmount.toLocaleString()}đ`
+        );
+      }
+
       // --- TẠO ORDER CHÍNH THỨC ---
+      // 🟢 BẢO VỆ CHUẨN XÁC: Lấy max ID hiện tại để tránh lỗi desync auto-increment sequence khi có dữ liệu seed
+      const maxOrder = await tx.order.aggregate({ _max: { id: true } });
+      const nextOrderId = (maxOrder._max.id || 0) + 1;
+
       const order = await tx.order.create({
         data: {
+          id: nextOrderId,
           orderCode,
           requestId,
           momoOrderId,
@@ -248,9 +302,16 @@ export class PaymentService {
           returnDropoffPointSnapshot: returnTrip?.dropoffPoint,
           returnDistanceKmSnapshot: returnTrip?.distanceKm,
 
-          paymentMethod: dto.paymentMethod === 'VIETQR' ? PaymentMethod.VIETQR : PaymentMethod.MOMO,
+          paymentMethod: dto.paymentMethod === 'VIETQR' 
+            ? PaymentMethod.VIETQR 
+            : dto.paymentMethod === 'VNPAY' 
+              ? ('VNPAY' as any) 
+              : PaymentMethod.MOMO,
           paymentStatus: PaymentStatus.PENDING,
           bookingStatus: BookingStatus.HOLD,
+          // VNPAY cần 20 phút (user có thể mất thời gian điền thẻ trên trang VNPAY)
+          // MoMo/VietQR giữ 5 phút là đủ
+          qrExpiredAt: new Date(Date.now() + (dto.paymentMethod === 'VNPAY' ? 20 : 5) * 60 * 1000),
         },
       });
 
@@ -281,8 +342,12 @@ export class PaymentService {
       });
 
       // 3. Tiến hành tạo ghế mới (lúc này CSDL đã hoàn toàn sạch sẽ)
+      const maxOrderSeat = await tx.orderSeat.aggregate({ _max: { id: true } });
+      let nextOrderSeatId = (maxOrderSeat._max.id || 0) + 1;
+
       const seatsToCreate: Prisma.OrderSeatCreateManyInput[] = [
         ...uniqueOutboundSeats.map((seatNumber) => ({
+          id: nextOrderSeatId++,
           orderId: order.id,
           tripId: dto.outboundTripId,
           tripDirection: TripDirection.outbound,
@@ -291,6 +356,7 @@ export class PaymentService {
         })),
         ...(dto.tripType === 'round' && dto.returnTripId && uniqueReturnSeats.length > 0
           ? uniqueReturnSeats.map((seatNumber) => ({
+              id: nextOrderSeatId++,
               orderId: order.id,
               tripId: dto.returnTripId!,
               tripDirection: TripDirection.return,
@@ -305,23 +371,54 @@ export class PaymentService {
       return order;
     });
 
-    // NẾU LÀ VIETQR
-    if (dto.paymentMethod === 'VIETQR') {
-      const bankBin = this.configService.get<string>('VIETQR_BANK_BIN') || '970422';
-      const accountNo = this.configService.get<string>('VIETQR_ACCOUNT_NO') || '0123456789';
-      const accountName = this.configService.get<string>('VIETQR_ACCOUNT_NAME') || 'NGUYEN VAN A';
-      
-      const qrUrl = `https://img.vietqr.io/image/${bankBin}-${accountNo}-compact2.png?amount=${amount}&addInfo=${orderCode}&accountName=${encodeURIComponent(accountName)}`;
-      
-      // Đặt thời gian hết hạn QR = 5 phút kể từ bây giờ
-      const qrExpiredAt = new Date(Date.now() + 5 * 60 * 1000);
+
+
+    // NẾU LÀ VNPAY
+    if (dto.paymentMethod === 'VNPAY') {
+      const tmnCode = this.configService.get<string>('VNPAY_TMN_CODE')?.trim() || '';
+      const secretKey = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || '';
+      let vnpUrl = this.configService.get<string>('VNPAY_URL')?.trim() || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+      const returnUrl = `${backendUrl}/api/payment/vnpay-return`;
+      console.log('[VNPAY DEBUG] backendUrl:', backendUrl, '| returnUrl:', returnUrl);
+
+      const date = new Date();
+      const createDateStr = this.formatVnpDate(date);
+      date.setMinutes(date.getMinutes() + 15);
+      const expireDateStr = this.formatVnpDate(date);
+
+      let vnp_Params: any = {};
+      vnp_Params['vnp_Version'] = '2.1.0';
+      vnp_Params['vnp_Command'] = 'pay';
+      vnp_Params['vnp_TmnCode'] = tmnCode;
+      vnp_Params['vnp_Locale'] = 'vn';
+      vnp_Params['vnp_CurrCode'] = 'VND';
+      vnp_Params['vnp_TxnRef'] = orderCode;
+      vnp_Params['vnp_OrderInfo'] = `ThanhToanDonHang${orderCode}`;
+      vnp_Params['vnp_OrderType'] = 'other';
+      vnp_Params['vnp_Amount'] = amount * 100;
+      vnp_Params['vnp_ReturnUrl'] = returnUrl;
+      vnp_Params['vnp_IpAddr'] = '127.0.0.1';
+      vnp_Params['vnp_CreateDate'] = createDateStr;
+
+      vnp_Params = this.sortObject(vnp_Params);
+
+      const signData = qs.stringify(vnp_Params, { encode: false });
+      const hmac = crypto.createHmac('sha512', secretKey);
+      const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+      vnp_Params['vnp_SecureHash'] = signed;
+      vnpUrl += '?' + qs.stringify(vnp_Params, { encode: false });
+
+      console.log('[VNPAY DEBUG] signData:', signData);
+      console.log('[VNPAY DEBUG] signed:', signed);
+      console.log('[VNPAY DEBUG] vnpUrl:', vnpUrl);
 
       await this.prisma.order.update({
         where: { id: createdOrder.id },
-        data: { checkoutUrl: qrUrl, qrExpiredAt },
+        data: { checkoutUrl: vnpUrl },
       });
 
-      return { checkoutUrl: qrUrl, amount, orderCode, isVietQR: true, qrExpiredAt: qrExpiredAt.toISOString() };
+      return { checkoutUrl: vnpUrl, amount, orderCode, isVietQR: false, isVnpay: true };
     }
 
     // NẾU LÀ MOMO
@@ -398,16 +495,359 @@ export class PaymentService {
       return this.processOrderSuccess(order.id, body);
     }
 
-    await this.prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: PaymentStatus.FAILED,
-        bookingStatus: BookingStatus.CANCELLED,
-      },
-    });
+    await this.prisma.orderSeat.deleteMany({ where: { orderId: order.id } });
+    await this.prisma.order.delete({ where: { id: order.id } });
 
     return { ok: true };
   }
+  async sendTicketEmail(order: any) {
+    if (!order.customerEmail) return;
+    const emailRecipient = order.customerEmail;
+    try {
+      try {
+          const outboundSeatStrs = order.seats?.filter(s => s.tripDirection === TripDirection.outbound).map(s => s.seatNumber).join(', ') || '--';
+          const returnSeatStrs = order.seats?.filter(s => s.tripDirection === TripDirection.return).map(s => s.seatNumber).join(', ');
+          
+          let seatDisplay = outboundSeatStrs;
+          if (order.tripType === 'round' && returnSeatStrs) {
+            seatDisplay = `Đi: ${outboundSeatStrs} | Về: ${returnSeatStrs}`;
+          }
+
+          const departAt = order.outboundDepartDateSnapshot || order.outboundTrip?.departDate || order.date;
+          const arrivalAt = order.outboundArrivalTimeSnapshot || order.outboundTrip?.arrivalDate || order.outboundTrip?.arrivalTime || null;
+
+          const returnDepartAt = order.returnDepartDateSnapshot || order.returnTrip?.departDate || order.returnDate;
+          const returnArrivalAt = order.returnArrivalTimeSnapshot || order.returnTrip?.arrivalDate || order.returnTrip?.arrivalTime || null;
+
+          const formatDateTime = (dateVal: any) => {
+            if (!dateVal) return '--- | ---';
+            const d = new Date(dateVal);
+            const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            const date = d.toLocaleDateString('vi-VN');
+            return `${time} | ${date}`;
+          };
+
+          const departureFormatted = formatDateTime(departAt);
+          const arrivalFormatted = formatDateTime(arrivalAt);
+          const returnDepartureFormatted = formatDateTime(returnDepartAt);
+          const returnArrivalFormatted = formatDateTime(returnArrivalAt);
+
+          const totalPrice = Number(order.amount).toLocaleString('vi-VN');
+          const busType = order.outboundBusTypeSnapshot || order.outboundTrip?.busType || 'LIMOUSINE';
+
+          const ticketImageBuffer = (await nodeHtmlToImage({
+            puppeteerArgs: { args: ['--no-sandbox'] },
+            html: `
+              <html>
+                <head>
+                  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                  <style>
+                    * { box-sizing: border-box; }
+                    body { 
+                      font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+                      background: transparent;
+                      margin: 0; 
+                      padding: 20px;
+                      width: 900px;
+                    }
+                    .ticket-container {
+                      background: #ffffff;
+                      border-radius: 12px;
+                      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+                      overflow: hidden;
+                      width: 100%;
+                    }
+                    .top-line {
+                      height: 6px;
+                      background-color: #EF5222;
+                      width: 100%;
+                    }
+                    .content {
+                      padding: 40px;
+                    }
+                    .header {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: flex-start;
+                      margin-bottom: 40px;
+                    }
+                    .brand-name {
+                      font-size: 24px;
+                      font-weight: 700;
+                      color: #1e293b;
+                      margin: 0;
+                    }
+                    .brand-sub {
+                      font-size: 10px;
+                      font-weight: 600;
+                      color: #94a3b8;
+                      letter-spacing: 2px;
+                      margin-top: 4px;
+                      text-transform: uppercase;
+                    }
+                    .order-code-wrapper {
+                      text-align: right;
+                    }
+                    .order-code-label {
+                      font-size: 10px;
+                      font-weight: 600;
+                      color: #94a3b8;
+                      text-transform: uppercase;
+                    }
+                    .order-code-val {
+                      font-size: 18px;
+                      font-weight: 700;
+                      color: #EF5222;
+                      margin-top: 4px;
+                      letter-spacing: 1px;
+                    }
+                    
+                    .route-section {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 40px;
+                    }
+                    .route-point {
+                      flex: 1;
+                    }
+                    .route-point.right {
+                      text-align: right;
+                    }
+                    .route-label {
+                      font-size: 11px;
+                      color: #94a3b8;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                      margin-bottom: 8px;
+                    }
+                    .route-city {
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #1e293b;
+                      text-transform: uppercase;
+                    }
+                    .route-arrow {
+                      flex: 0 0 auto;
+                      padding: 0 20px;
+                      color: #fca5a5;
+                      margin-top: 15px;
+                    }
+                    
+                    .info-grid {
+                      display: grid;
+                      grid-template-columns: repeat(4, 1fr);
+                      gap: 30px 20px;
+                      border-top: 1px solid #f1f5f9;
+                      padding-top: 30px;
+                    }
+                    .info-col {
+                      display: flex;
+                      flex-direction: column;
+                    }
+                    .info-label {
+                      font-size: 10px;
+                      color: #94a3b8;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                      margin-bottom: 6px;
+                    }
+                    .info-val {
+                      font-size: 14px;
+                      color: #334155;
+                      font-weight: 600;
+                    }
+                    .info-sub {
+                      font-size: 12px;
+                      color: #64748b;
+                      font-weight: 400;
+                      margin-top: 4px;
+                    }
+                    .seat-badge {
+                      display: inline-block;
+                      padding: 2px 8px;
+                      border: 1px solid #fed7aa;
+                      color: #EF5222;
+                      background: #fff7ed;
+                      border-radius: 4px;
+                      font-weight: 600;
+                      font-size: 13px;
+                    }
+                    .price-val {
+                      font-size: 18px;
+                      font-weight: 700;
+                      color: #1e293b;
+                    }
+                    .price-val span {
+                      color: #EF5222;
+                      text-decoration: underline;
+                      font-size: 15px;
+                      margin-left: 2px;
+                    }
+                    .type-val {
+                      color: #EF5222;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                    }
+                    .status-val {
+                      color: #10b981;
+                      font-weight: 600;
+                      font-size: 13px;
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                    }
+                    .barcode-mock {
+                      height: 35px;
+                      width: 100px;
+                      background-image: repeating-linear-gradient(to right, #334155, #334155 2px, transparent 2px, transparent 4px, #334155 4px, #334155 5px, transparent 5px, transparent 8px);
+                      opacity: 0.8;
+                      margin-top: 2px;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="ticket-container">
+                    <div class="top-line"></div>
+                    <div class="content">
+                      
+                      <div class="header">
+                        <div>
+                          <div class="brand-name">NHÀ XE ABC</div>
+                          <div class="brand-sub">VIP BOARDING PASS${order.tripType === 'round' ? ' (ROUND TRIP)' : ''}</div>
+                        </div>
+                        <div class="order-code-wrapper">
+                          <div class="order-code-label">MÃ ĐẶT CHỖ</div>
+                          <div class="order-code-val">#${order.orderCode}</div>
+                        </div>
+                      </div>
+
+                      <div class="route-section">
+                        <div class="route-point">
+                          <div class="route-label">ĐIỂM ĐI</div>
+                          <div class="route-city">${order.from}</div>
+                        </div>
+                        <div class="route-arrow">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="${order.tripType === 'round' ? 'M4 12h16M20 12l-6-6M20 12l-6 6 M4 16h16M4 16l6-6M4 16l6 6' : 'M4 12H20M20 12L14 6M20 12L14 18'}" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                        <div class="route-point right">
+                          <div class="route-label">ĐIỂM ĐẾN</div>
+                          <div class="route-city">${order.to}</div>
+                        </div>
+                      </div>
+
+                      <div class="info-grid">
+                        <div class="info-col">
+                          <div class="info-label">XUẤT BẾN ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
+                          <div class="info-val">${departureFormatted}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">HÀNH KHÁCH</div>
+                          <div class="info-val">${order.customerName}</div>
+                          <div class="info-sub">${order.customerPhone || ''}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">SỐ GHẾ</div>
+                          <div><span class="seat-badge">${seatDisplay}</span></div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">TỔNG THANH TOÁN</div>
+                          <div class="price-val">${totalPrice}<span>đ</span></div>
+                        </div>
+
+                        <div class="info-col">
+                          <div class="info-label">ĐẾN NƠI (DỰ KIẾN) ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
+                          <div class="info-val">${arrivalFormatted}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">LOẠI XE</div>
+                          <div class="info-val type-val">${busType}</div>
+                        </div>
+                        <div class="info-col">
+                          <div class="info-label">TRẠNG THÁI</div>
+                          <div class="status-val">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Đã thanh toán
+                          </div>
+                        </div>
+                        <div class="info-col">
+                           <div class="barcode-mock"></div>
+                        </div>
+
+                        ${order.tripType === 'round' ? `
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
+                          <div class="info-label">XUẤT BẾN (VỀ)</div>
+                          <div class="info-val">${returnDepartureFormatted}</div>
+                        </div>
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
+                          <div class="info-label">ĐẾN NƠI (VỀ)</div>
+                          <div class="info-val">${returnArrivalFormatted}</div>
+                        </div>
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
+                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
+                        ` : ''}
+                      </div>
+
+                    </div>
+                  </div>
+                </body>
+              </html>
+            `,
+          })) as Buffer;
+
+          const qrDataText =
+            `Mã vé: ${order.orderCode}\n` +
+            `Khách: ${order.customerName}\n` +
+            `Ghế: ${seatDisplay}\n` +
+            `Lộ trình: ${order.from}->${order.to}`;
+
+          const qrCodeUrl = await QRCode.toDataURL(qrDataText, { width: 300 });
+
+          await this.mailerService.sendMail({
+            to: emailRecipient,
+            subject: `[VÉ ĐIỆN TỬ] XÁC NHẬN THÀNH CÔNG #${order.orderCode}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f8fafc; padding: 40px 20px;">
+                <h2 style="color: #EF5222; margin-bottom: 20px;">XÁC NHẬN ĐẶT VÉ THÀNH CÔNG</h2>
+                <p style="color: #475569; margin-bottom: 30px;">Cảm ơn bạn đã tin tưởng dịch vụ của Nhà xe ABC. Dưới đây là vé điện tử của bạn:</p>
+                
+                <img src="cid:ticket_image" style="width: 100%; max-width: 800px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" alt="Vé xe điện tử" />
+                
+                <div>
+                  <p style="font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase;">Mã QR Check-in</p>
+                  <img src="cid:qr_image" style="width: 150px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 5px; background: white;" alt="QR Code" />
+                </div>
+                
+                <div style="margin-top: 30px; padding: 15px; background: #fff7ed; color: #ea580c; border-radius: 8px; display: inline-block; font-size: 13px; border: 1px solid #ffedd5;">
+                  <strong>Lưu ý:</strong> Vui lòng có mặt tại bến trước 30 phút so với giờ khởi hành.
+                </div>
+              </div>
+            `,
+            attachments: [
+              {
+                filename: `ve-xe-${order.orderCode}.png`,
+                content: ticketImageBuffer,
+                cid: 'ticket_image',
+              },
+              {
+                filename: 'qr.png',
+                content: qrCodeUrl.split('base64,')[1],
+                encoding: 'base64',
+                cid: 'qr_image',
+              },
+            ],
+          });
+          console.log(`[Email Success] Đã gửi vé điện tử thành công cho đơn ${order.orderCode} ở chế độ nền.`);
+        } catch (err) {
+          console.error('Lỗi sinh ảnh vé hoặc gửi mail ở chế độ nền:', err);
+        }
+    } catch (err) {
+      console.error('Lỗi sinh ảnh vé hoặc gửi mail:', err);
+    }
+  }
+
 
   // --- XỬ LÝ WEBHOOK SEPAY (VIETQR) ---
   async handleSepayIpn(body: any) {
@@ -449,6 +889,174 @@ export class PaymentService {
     }
 
     return { ok: true };
+  }
+
+  // --- XỬ LÝ WEBHOOK PAYOS ---
+  verifyPayosWebhook(body: any) {
+    if (!this.payos) {
+      console.warn('[PayOS] Chưa cấu hình PayOS SDK, bỏ qua xác thực chữ ký webhook');
+      return body.data; // Dự phòng trả về raw data nếu chưa gắn key
+    }
+    try {
+      return this.payos.verifyPaymentWebhookData(body);
+    } catch (error) {
+      console.error('[PayOS] Lỗi xác thực chữ ký webhook:', error.message);
+      return null;
+    }
+  }
+
+  async handlePayosWebhook(data: any) {
+    if (!data) return;
+    const { orderCode, amount, reference } = data;
+
+    const order = await this.prisma.order.findUnique({
+      where: { orderCode: String(orderCode) },
+    });
+
+    if (!order) {
+      console.log(`[PayOS] Không tìm thấy đơn hàng phù hợp với mã: ${orderCode}`);
+      return;
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      console.log(`[PayOS] Đơn hàng ${orderCode} đã thanh toán trước đó.`);
+      return;
+    }
+
+    if (amount >= order.amount) {
+      console.log(`[PayOS] Xác nhận đơn hàng ${orderCode} thành công. Tiến hành xuất vé!`);
+      await this.processOrderSuccess(order.id, { transId: reference || 'PAYOS' });
+    } else {
+      console.log(`[PayOS] Chuyển khoản thiếu tiền cho đơn ${orderCode}: Yêu cầu ${order.amount}, nhận ${amount}`);
+    }
+  }
+
+  // --- XỬ LÝ REDIRECT TỪ VNPAY VỀ BACKEND (Return URL) ---
+  // Đây là nơi user được redirect sau khi thanh toán/huỷ trên trang VNPAY
+  async handleVnpayReturn(query: any): Promise<{ redirect: string }> {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || '';
+    const secureHash = query['vnp_SecureHash'];
+    const responseCode = query['vnp_ResponseCode'];
+    const orderCode = query['vnp_TxnRef'];
+
+    // Nếu không có chữ ký hoặc mã đơn → redirect về trang lỗi
+    if (!secureHash || !orderCode) {
+      console.warn('[VNPAY Return] Thiếu secureHash hoặc orderCode');
+      return { redirect: `${frontendUrl}/payment-cancel?reason=invalid` };
+    }
+
+    // Xác thực chữ ký
+    const vnp_Params = { ...query };
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+    const sortedParams = this.sortObject(vnp_Params);
+    const signData = qs.stringify(sortedParams, { encode: false });
+    const calculatedHash = crypto
+      .createHmac('sha512', hashSecret)
+      .update(Buffer.from(signData, 'utf-8'))
+      .digest('hex');
+
+    if (calculatedHash !== secureHash) {
+      console.error('[VNPAY Return] Chữ ký không hợp lệ');
+      return { redirect: `${frontendUrl}/payment-cancel?reason=invalid_signature` };
+    }
+
+    // Thanh toán THÀNH CÔNG (responseCode === '00')
+    if (responseCode === '00') {
+      console.log(`[VNPAY Return] Thanh toán thành công: ${orderCode}`);
+      try {
+        const order = await this.prisma.order.findUnique({ where: { orderCode } });
+        if (!order) {
+          // Đơn đã bị auto-expire xoá trước khi VNPAY trả về — CRITICAL!
+          // Tiền đã trừ nhưng đơn không còn → cần xử lý thủ công
+          console.error(`[VNPAY Return] ⚠️ CRITICAL: Đơn ${orderCode} đã bị auto-expire xoá trước khi VNPAY confirm! Cần hoàn tiền thủ công!`);
+          return { redirect: `${frontendUrl}/payment-success?orderCode=${orderCode}&vnp_ResponseCode=00&warn=expired` };
+        }
+        if (order.paymentStatus !== PaymentStatus.PAID) {
+          await this.processOrderSuccess(order.id, { transId: query['vnp_TransactionNo'] || 'VNPAY' });
+        }
+      } catch (err) {
+        console.error('[VNPAY Return] Lỗi khi processOrderSuccess:', err);
+      }
+      return { redirect: `${frontendUrl}/payment-success?orderCode=${orderCode}&vnp_ResponseCode=00` };
+    }
+
+    // Thanh toán THẤT BẠI / BỊ HUỶ → XOÁ ĐƠN HÀNG NGAY
+    console.log(`[VNPAY Return] Giao dịch thất bại/huỷ (code: ${responseCode}) - Xoá đơn ${orderCode}`);
+    try {
+      const order = await this.prisma.order.findUnique({ where: { orderCode } });
+      if (order && order.paymentStatus !== PaymentStatus.PAID) {
+        await this.prisma.orderSeat.deleteMany({ where: { orderId: order.id } });
+        await this.prisma.order.delete({ where: { id: order.id } });
+        console.log(`[VNPAY Return] Đã xoá đơn ${orderCode} và nhả ghế`);
+      }
+      // Nếu order === null → auto-expire đã xoá trước rồi, không cần làm gì thêm
+    } catch (err: any) {
+      if (err?.code !== 'P2025') {
+        console.error('[VNPAY Return] Lỗi khi xoá đơn:', err);
+      }
+    }
+
+    return { redirect: `${frontendUrl}/payment-cancel?orderCode=${orderCode}&vnp_ResponseCode=${responseCode}` };
+  }
+
+  async handleVnpayIpn(query: any) {
+    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET') || 'DJSKFJKSDJKFJSKDJFKSDKFJSDKFJ';
+    const secureHash = query['vnp_SecureHash'];
+
+    // Clone and remove hash parameters
+    const vnp_Params = { ...query };
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    // Sort parameters alphabetically and encode values (must match URL creation flow)
+    const sortedParams = this.sortObject(vnp_Params);
+
+    // Build signData using qs.stringify with encode:false (values already encoded by sortObject)
+    const signData = qs.stringify(sortedParams, { encode: false });
+
+    const calculatedHash = crypto
+      .createHmac('sha512', hashSecret)
+      .update(Buffer.from(signData, 'utf-8'))
+      .digest('hex');
+
+    if (calculatedHash !== secureHash) {
+      console.error('[VNPAY] Chu ky khong hop le');
+      return { RspCode: '97', Message: 'Invalid signature' };
+    }
+
+    const orderCode = vnp_Params['vnp_TxnRef'];
+    const amount = Number(vnp_Params['vnp_Amount']);
+    const responseCode = vnp_Params['vnp_ResponseCode'];
+    const transactionNo = vnp_Params['vnp_TransactionNo'];
+
+    const order = await this.prisma.order.findUnique({
+      where: { orderCode },
+    });
+
+    if (!order) {
+      return { RspCode: '01', Message: 'Order not found' };
+    }
+
+    if (order.amount * 100 !== amount) {
+      return { RspCode: '04', Message: 'Invalid amount' };
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      return { RspCode: '02', Message: 'Order already confirmed' };
+    }
+
+    if (responseCode === '00') {
+      console.log(`[VNPAY] Giao dich thanh cong cho ma don ${orderCode}`);
+      await this.processOrderSuccess(order.id, { transId: transactionNo || 'VNPAY' });
+      return { RspCode: '00', Message: 'Confirm success' };
+    } else {
+      console.log(`[VNPAY] Giao dich that bai voi ma code ${responseCode}`);
+      await this.prisma.orderSeat.deleteMany({ where: { orderId: order.id } });
+      await this.prisma.order.delete({ where: { id: order.id } });
+      return { RspCode: '00', Message: 'Confirm success' };
+    }
   }
 
   // --- XỬ LÝ SAU KHI THANH TOÁN THÀNH CÔNG (GỬI MAIL & TÍCH ĐIỂM) ---
@@ -508,347 +1116,12 @@ export class PaymentService {
       }
     }
     // ==========================================
-    // 2. LOGIC TẠO ẢNH VÀ GỬI MAIL (GIỮ NGUYÊN)
+    // 2. LOGIC TẠO ẢNH VÀ GỬI MAIL (ĐÃ ĐƯỢC TÁCH BIỆT)
     // ==========================================
     if (order.customerEmail) {
-      try {
-        const outboundSeatStrs = order.seats?.filter(s => s.tripDirection === TripDirection.outbound).map(s => s.seatNumber).join(', ') || '--';
-        const returnSeatStrs = order.seats?.filter(s => s.tripDirection === TripDirection.return).map(s => s.seatNumber).join(', ');
-        
-        let seatDisplay = outboundSeatStrs;
-        if (order.tripType === 'round' && returnSeatStrs) {
-          seatDisplay = `Đi: ${outboundSeatStrs} | Về: ${returnSeatStrs}`;
-        }
-
-        const departAt = order.outboundDepartDateSnapshot || order.outboundTrip?.departDate || order.date;
-        const arrivalAt = order.outboundArrivalTimeSnapshot || order.outboundTrip?.arrivalDate || order.outboundTrip?.arrivalTime || null;
-
-        const returnDepartAt = order.returnDepartDateSnapshot || order.returnTrip?.departDate || order.returnDate;
-        const returnArrivalAt = order.returnArrivalTimeSnapshot || order.returnTrip?.arrivalDate || order.returnTrip?.arrivalTime || null;
-
-        const formatDateTime = (dateVal: any) => {
-          if (!dateVal) return '--- | ---';
-          const d = new Date(dateVal);
-          const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-          const date = d.toLocaleDateString('vi-VN');
-          return `${time} | ${date}`;
-        };
-
-        const departureFormatted = formatDateTime(departAt);
-        const arrivalFormatted = formatDateTime(arrivalAt);
-        const returnDepartureFormatted = formatDateTime(returnDepartAt);
-        const returnArrivalFormatted = formatDateTime(returnArrivalAt);
-
-        const totalPrice = Number(order.amount).toLocaleString('vi-VN');
-        const busType = order.outboundBusTypeSnapshot || order.outboundTrip?.busType || 'LIMOUSINE';
-
-        const ticketImageBuffer = (await nodeHtmlToImage({
-          puppeteerArgs: { args: ['--no-sandbox'] },
-          html: `
-            <html>
-              <head>
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-                <style>
-                  * { box-sizing: border-box; }
-                  body { 
-                    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-                    background: transparent;
-                    margin: 0; 
-                    padding: 20px;
-                    width: 900px;
-                  }
-                  .ticket-container {
-                    background: #ffffff;
-                    border-radius: 12px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-                    overflow: hidden;
-                    width: 100%;
-                  }
-                  .top-line {
-                    height: 6px;
-                    background-color: #EF5222;
-                    width: 100%;
-                  }
-                  .content {
-                    padding: 40px;
-                  }
-                  .header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 40px;
-                  }
-                  .brand-name {
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #1e293b;
-                    margin: 0;
-                  }
-                  .brand-sub {
-                    font-size: 10px;
-                    font-weight: 600;
-                    color: #94a3b8;
-                    letter-spacing: 2px;
-                    margin-top: 4px;
-                    text-transform: uppercase;
-                  }
-                  .order-code-wrapper {
-                    text-align: right;
-                  }
-                  .order-code-label {
-                    font-size: 10px;
-                    font-weight: 600;
-                    color: #94a3b8;
-                    text-transform: uppercase;
-                  }
-                  .order-code-val {
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #EF5222;
-                    margin-top: 4px;
-                    letter-spacing: 1px;
-                  }
-                  
-                  .route-section {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 40px;
-                  }
-                  .route-point {
-                    flex: 1;
-                  }
-                  .route-point.right {
-                    text-align: right;
-                  }
-                  .route-label {
-                    font-size: 11px;
-                    color: #94a3b8;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    margin-bottom: 8px;
-                  }
-                  .route-city {
-                    font-size: 22px;
-                    font-weight: 700;
-                    color: #1e293b;
-                    text-transform: uppercase;
-                  }
-                  .route-arrow {
-                    flex: 0 0 auto;
-                    padding: 0 20px;
-                    color: #fca5a5;
-                    margin-top: 15px;
-                  }
-                  
-                  .info-grid {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 30px 20px;
-                    border-top: 1px solid #f1f5f9;
-                    padding-top: 30px;
-                  }
-                  .info-col {
-                    display: flex;
-                    flex-direction: column;
-                  }
-                  .info-label {
-                    font-size: 10px;
-                    color: #94a3b8;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    margin-bottom: 6px;
-                  }
-                  .info-val {
-                    font-size: 14px;
-                    color: #334155;
-                    font-weight: 600;
-                  }
-                  .info-sub {
-                    font-size: 12px;
-                    color: #64748b;
-                    font-weight: 400;
-                    margin-top: 4px;
-                  }
-                  .seat-badge {
-                    display: inline-block;
-                    padding: 2px 8px;
-                    border: 1px solid #fed7aa;
-                    color: #EF5222;
-                    background: #fff7ed;
-                    border-radius: 4px;
-                    font-weight: 600;
-                    font-size: 13px;
-                  }
-                  .price-val {
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #1e293b;
-                  }
-                  .price-val span {
-                    color: #EF5222;
-                    text-decoration: underline;
-                    font-size: 15px;
-                    margin-left: 2px;
-                  }
-                  .type-val {
-                    color: #EF5222;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                  }
-                  .status-val {
-                    color: #10b981;
-                    font-weight: 600;
-                    font-size: 13px;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                  }
-                  .barcode-mock {
-                    height: 35px;
-                    width: 100px;
-                    background-image: repeating-linear-gradient(to right, #334155, #334155 2px, transparent 2px, transparent 4px, #334155 4px, #334155 5px, transparent 5px, transparent 8px);
-                    opacity: 0.8;
-                    margin-top: 2px;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="ticket-container">
-                  <div class="top-line"></div>
-                  <div class="content">
-                    
-                    <div class="header">
-                      <div>
-                        <div class="brand-name">NHÀ XE ABC</div>
-                        <div class="brand-sub">VIP BOARDING PASS${order.tripType === 'round' ? ' (ROUND TRIP)' : ''}</div>
-                      </div>
-                      <div class="order-code-wrapper">
-                        <div class="order-code-label">MÃ ĐẶT CHỖ</div>
-                        <div class="order-code-val">#${order.orderCode}</div>
-                      </div>
-                    </div>
-
-                    <div class="route-section">
-                      <div class="route-point">
-                        <div class="route-label">ĐIỂM ĐI</div>
-                        <div class="route-city">${order.from}</div>
-                      </div>
-                      <div class="route-arrow">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="${order.tripType === 'round' ? 'M4 12h16M20 12l-6-6M20 12l-6 6 M4 16h16M4 16l6-6M4 16l6 6' : 'M4 12H20M20 12L14 6M20 12L14 18'}" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </div>
-                      <div class="route-point right">
-                        <div class="route-label">ĐIỂM ĐẾN</div>
-                        <div class="route-city">${order.to}</div>
-                      </div>
-                    </div>
-
-                    <div class="info-grid">
-                      <div class="info-col">
-                        <div class="info-label">XUẤT BẾN ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
-                        <div class="info-val">${departureFormatted}</div>
-                      </div>
-                      <div class="info-col">
-                        <div class="info-label">HÀNH KHÁCH</div>
-                        <div class="info-val">${order.customerName}</div>
-                        <div class="info-sub">${order.customerPhone || ''}</div>
-                      </div>
-                      <div class="info-col">
-                        <div class="info-label">SỐ GHẾ</div>
-                        <div><span class="seat-badge">${seatDisplay}</span></div>
-                      </div>
-                      <div class="info-col">
-                        <div class="info-label">TỔNG THANH TOÁN</div>
-                        <div class="price-val">${totalPrice}<span>đ</span></div>
-                      </div>
-
-                      <div class="info-col">
-                        <div class="info-label">ĐẾN NƠI (DỰ KIẾN) ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
-                        <div class="info-val">${arrivalFormatted}</div>
-                      </div>
-                      <div class="info-col">
-                        <div class="info-label">LOẠI XE</div>
-                        <div class="info-val type-val">${busType}</div>
-                      </div>
-                      <div class="info-col">
-                        <div class="info-label">TRẠNG THÁI</div>
-                        <div class="status-val">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                          Đã thanh toán
-                        </div>
-                      </div>
-                      <div class="info-col">
-                         <div class="barcode-mock"></div>
-                      </div>
-
-                      ${order.tripType === 'round' ? `
-                      <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
-                        <div class="info-label">XUẤT BẾN (VỀ)</div>
-                        <div class="info-val">${returnDepartureFormatted}</div>
-                      </div>
-                      <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
-                        <div class="info-label">ĐẾN NƠI (VỀ)</div>
-                        <div class="info-val">${returnArrivalFormatted}</div>
-                      </div>
-                      <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
-                      <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
-                      ` : ''}
-                    </div>
-
-                  </div>
-                </div>
-              </body>
-            </html>
-          `,
-        })) as Buffer;
-
-        const qrDataText =
-          `Mã vé: ${order.orderCode}\n` +
-          `Khách: ${order.customerName}\n` +
-          `Ghế: ${seatDisplay}\n` +
-          `Lộ trình: ${order.from}->${order.to}`;
-
-        const qrCodeUrl = await QRCode.toDataURL(qrDataText, { width: 300 });
-
-        await this.mailerService.sendMail({
-          to: order.customerEmail,
-          subject: `[VÉ ĐIỆN TỬ] XÁC NHẬN THÀNH CÔNG #${order.orderCode}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f8fafc; padding: 40px 20px;">
-              <h2 style="color: #EF5222; margin-bottom: 20px;">XÁC NHẬN ĐẶT VÉ THÀNH CÔNG</h2>
-              <p style="color: #475569; margin-bottom: 30px;">Cảm ơn bạn đã tin tưởng dịch vụ của Nhà xe ABC. Dưới đây là vé điện tử của bạn:</p>
-              
-              <img src="cid:ticket_image" style="width: 100%; max-width: 800px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" alt="Vé xe điện tử" />
-              
-              <div>
-                <p style="font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase;">Mã QR Check-in</p>
-                <img src="cid:qr_image" style="width: 150px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 5px; background: white;" alt="QR Code" />
-              </div>
-              
-              <div style="margin-top: 30px; padding: 15px; background: #fff7ed; color: #ea580c; border-radius: 8px; display: inline-block; font-size: 13px; border: 1px solid #ffedd5;">
-                <strong>Lưu ý:</strong> Vui lòng có mặt tại bến trước 30 phút so với giờ khởi hành.
-              </div>
-            </div>
-          `,
-          attachments: [
-            {
-              filename: `ve-xe-${order.orderCode}.png`,
-              content: ticketImageBuffer,
-              cid: 'ticket_image',
-            },
-            {
-              filename: 'qr.png',
-              content: qrCodeUrl.split('base64,')[1],
-              encoding: 'base64',
-              cid: 'qr_image',
-            },
-          ],
-        });
-      } catch (err) {
-        console.error('Lỗi gửi mail:', err);
-      }
+      this.sendTicketEmail(order).catch(err => {
+        console.error('Lỗi khi gửi email vé trong background:', err);
+      });
     }
 
     return { ok: true };
@@ -911,20 +1184,30 @@ export class PaymentService {
       return { success: false, message: 'Đơn hàng đã được thanh toán' };
     }
 
-    await this.prisma.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: PaymentStatus.FAILED,
-        bookingStatus: BookingStatus.CANCELLED,
-      },
-    });
+    await this.prisma.orderSeat.deleteMany({ where: { orderId: order.id } });
+    await this.prisma.order.delete({ where: { id: order.id } });
 
     return { success: true, message: 'Đã hủy giao dịch và giải phóng ghế!' };
   }
   async verifyAndSendMailLocal(orderCode: string) {
-    const order = await this.prisma.order.findUnique({ where: { orderCode } });
+    const order = await this.prisma.order.findUnique({ 
+      where: { orderCode },
+      include: {
+        seats: true,
+        outboundTrip: true,
+        returnTrip: true
+      }
+    });
 
     if (!order) return { success: false, message: 'Đơn hàng không tồn tại' };
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      if (order.customerEmail) {
+        await this.sendTicketEmail(order);
+        return { success: true, message: 'Đơn đã thanh toán trước đó. Đã gửi lại email vé thành công!' };
+      }
+      return { success: true, message: 'Đơn đã thanh toán trước đó nhưng không có email!' };
+    }
 
     await this.processOrderSuccess(order.id, { transId: 'LOCAL_TEST' });
     return { success: true, message: 'Đã xác nhận và gửi mail!' };
@@ -948,7 +1231,11 @@ export class PaymentService {
     return this.prisma.order.findMany({
       where: {
         userId,
-        paymentStatus: PaymentStatus.PAID,
+        OR: [
+          { paymentStatus: PaymentStatus.PAID },
+          { paymentStatus: PaymentStatus.REFUNDED },
+          { bookingStatus: BookingStatus.CANCELLED },
+        ],
       },
       include: { 
         seats: true,
@@ -978,4 +1265,30 @@ export class PaymentService {
       qrExpiredAt: order.qrExpiredAt?.toISOString() ?? null,
     };
   }
-}
+
+  // --- VNPAY HELPERS ---
+  private formatVnpDate(date: Date): string {
+    const pad = (n: number) => (n < 10 ? '0' + n : n.toString());
+    const utcMs = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const gmt7Date = new Date(utcMs + (7 * 3600000));
+    return (
+      gmt7Date.getFullYear().toString() +
+      pad(gmt7Date.getMonth() + 1) +
+      pad(gmt7Date.getDate()) +
+      pad(gmt7Date.getHours()) +
+      pad(gmt7Date.getMinutes()) +
+      pad(gmt7Date.getSeconds())
+    );
+  }
+
+  private sortObject(obj: any): any {
+    const sorted: any = {};
+    // Sort raw keys (alphabet A→Z), NOT encoded keys
+    const keys = Object.keys(obj).sort();
+    for (const key of keys) {
+      // Only encode VALUES, keep keys as-is
+      sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, '+');
+    }
+    return sorted;
+  }
+}

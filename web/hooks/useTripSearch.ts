@@ -11,6 +11,7 @@ import {
 } from '@/utils/search';
 import { todayISO } from '@/utils/date';
 import debounce from 'lodash/debounce';
+import { toast } from 'react-hot-toast';
 
 export function useTripSearch(initialParams?: Partial<TripSearchParams>) {
   const router = useRouter();
@@ -43,17 +44,17 @@ export function useTripSearch(initialParams?: Partial<TripSearchParams>) {
 
   const onSearch = useCallback(async () => {
     if (!from.trim() || !to.trim() || !departDate) {
-      alert('Vui lòng nhập điểm đi, điểm đến và ngày đi');
+      toast.error('Vui lòng nhập điểm đi, điểm đến và ngày đi');
       return { success: false };
     }
 
     if (from.trim().toLowerCase() === to.trim().toLowerCase()) {
-      alert('Điểm đi và điểm đến không được giống nhau');
+      toast.error('Điểm đi và điểm đến không được giống nhau');
       return { success: false };
     }
 
     if (tripType === 'round' && !returnDate) {
-      alert('Vui lòng chọn ngày về');
+      toast.error('Vui lòng chọn ngày về');
       return { success: false };
     }
 

@@ -94,8 +94,15 @@ export default function SearchTripPage() {
   const formatTabDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    const days = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    const dayName = days[d.getDay()];
+    const dayOfWeek = d.getDay();
+    let dayName = '';
+    if (locale === 'vi') {
+      const days = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+      dayName = days[dayOfWeek];
+    } else {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      dayName = days[dayOfWeek];
+    }
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     return `${dayName}, ${dd}/${mm}`;
@@ -180,24 +187,24 @@ export default function SearchTripPage() {
         if (userPreferences.preferredTime === '12-18' && tripHour >= 12 && tripHour < 18) score += 2;
         if (userPreferences.preferredTime === '18-24' && tripHour >= 18 && tripHour < 24) score += 2;
         if (trip.busType === userPreferences.preferredVehicle) score += 1;
-        if (score >= 2) { isRecommended = true; recommendTag = '✨ AI ĐỀ XUẤT THEO SỞ THÍCH'; }
+        if (score >= 2) { isRecommended = true; recommendTag = 'pref'; }
       } else {
         if (isLongHaul) {
-          if (isClearTraffic) { score += 5; recommendTag = '🍃 ĐƯỜNG THOÁNG - CHẠY NHANH ĐỠ MỆT'; } 
-          else if (arrivalHour >= 6 && arrivalHour <= 18) { score += 3; recommendTag = '🛡️ TỚI NƠI BAN NGÀY AN TOÀN'; } 
-          else if (tripHour >= 18 && tripHour <= 22) { score += 2; recommendTag = '🌙 NGỦ ĐÊM TRÊN XE TIẾT KIỆM THỜI GIAN'; }
+          if (isClearTraffic) { score += 5; recommendTag = 'clearFast'; } 
+          else if (arrivalHour >= 6 && arrivalHour <= 18) { score += 3; recommendTag = 'safeDay'; } 
+          else if (tripHour >= 18 && tripHour <= 22) { score += 2; recommendTag = 'overnightSave'; }
         } 
         else if (isTouristDest) {
-          if (isClearTraffic && arrivalHour >= 13 && arrivalHour <= 15) { score += 6; recommendTag = '🌟 ĐƯỜNG THOÁNG + ĐÚNG GIỜ NHẬN PHÒNG'; } 
-          else if (arrivalHour >= 13 && arrivalHour <= 15) { score += 4; recommendTag = '🏨 TỚI NƠI ĐÚNG GIỜ NHẬN PHÒNG'; } 
-          else if (durationHours >= 5 && arrivalHour >= 4 && arrivalHour <= 7) { score += 5; recommendTag = '⛅ NGỦ MỘT GIẤC - TỈNH DẬY ĐÓN BÌNH MINH'; } 
-          else if (isClearTraffic) { score += 3; recommendTag = '🍃 KHỞI HÀNH ĐƯỜNG THOÁNG - ĐỠ SAY XE'; }
-          else if (arrivalHour > 7 && arrivalHour <= 10) { score += 2; recommendTag = '☕ TỚI NƠI THONG THẢ ĂN SÁNG CAFE'; }
+          if (isClearTraffic && arrivalHour >= 13 && arrivalHour <= 15) { score += 6; recommendTag = 'clearCheckin'; } 
+          else if (arrivalHour >= 13 && arrivalHour <= 15) { score += 4; recommendTag = 'hotelCheckin'; } 
+          else if (durationHours >= 5 && arrivalHour >= 4 && arrivalHour <= 7) { score += 5; recommendTag = 'sunrise'; } 
+          else if (isClearTraffic) { score += 3; recommendTag = 'lessSick'; }
+          else if (arrivalHour > 7 && arrivalHour <= 10) { score += 2; recommendTag = 'leisureCafe'; }
         } 
         else {
-          if (isClearTraffic) { score += 5; recommendTag = '🍃 XUẤT BẾN ĐƯỜNG THOÁNG - ĐI NHANH NHẤT'; } 
-          else if (arrivalHour >= 7 && arrivalHour <= 9) { score += 3; recommendTag = '💼 KỊP GIỜ HÀNH CHÍNH / LÀM VIỆC'; } 
-          else if (tripHour >= 19 || tripHour <= 0) { score += 2; recommendTag = '🌙 CHUYẾN ĐÊM DỄ NGỦ'; }
+          if (isClearTraffic) { score += 5; recommendTag = 'clearFastest'; } 
+          else if (arrivalHour >= 7 && arrivalHour <= 9) { score += 3; recommendTag = 'workTime'; } 
+          else if (tripHour >= 19 || tripHour <= 0) { score += 2; recommendTag = 'easySleep'; }
         }
 
         if (isRushHourDepart) { score -= 4; }
@@ -274,24 +281,24 @@ export default function SearchTripPage() {
         if (userPreferences.preferredTime === '12-18' && tripHour >= 12 && tripHour < 18) score += 2;
         if (userPreferences.preferredTime === '18-24' && tripHour >= 18 && tripHour < 24) score += 2;
         if (trip.busType === userPreferences.preferredVehicle) score += 1;
-        if (score >= 2) { isRecommended = true; recommendTag = '✨ AI ĐỀ XUẤT THEO SỞ THÍCH'; }
+        if (score >= 2) { isRecommended = true; recommendTag = 'pref'; }
       } else {
         if (isLongHaul) {
-          if (isClearTraffic) { score += 5; recommendTag = '🍃 ĐƯỜNG THOÁNG - CHẠY NHANH ĐỠ MỆT'; } 
-          else if (arrivalHour >= 6 && arrivalHour <= 18) { score += 3; recommendTag = '🛡️ TỚI NƠI BAN NGÀY AN TOÀN'; } 
-          else if (tripHour >= 18 && tripHour <= 22) { score += 2; recommendTag = '🌙 NGỦ ĐÊM TRÊN XE TIẾT KIỆM THỜI GIAN'; }
+          if (isClearTraffic) { score += 5; recommendTag = 'clearFast'; } 
+          else if (arrivalHour >= 6 && arrivalHour <= 18) { score += 3; recommendTag = 'safeDay'; } 
+          else if (tripHour >= 18 && tripHour <= 22) { score += 2; recommendTag = 'overnightSave'; }
         } 
         else if (isTouristDest) {
-          if (isClearTraffic && arrivalHour >= 13 && arrivalHour <= 15) { score += 6; recommendTag = '🌟 ĐƯỜNG THOÁNG + ĐÚNG GIỜ NHẬN PHÒNG'; } 
-          else if (arrivalHour >= 13 && arrivalHour <= 15) { score += 4; recommendTag = '🏨 TỚI NƠI ĐÚNG GIỜ NHẬN PHÒNG'; } 
-          else if (durationHours >= 5 && arrivalHour >= 4 && arrivalHour <= 7) { score += 5; recommendTag = '⛅ NGỦ MỘT GIẤC - TỈNH DẬY ĐÓN BÌNH MINH'; } 
-          else if (isClearTraffic) { score += 3; recommendTag = '🍃 KHỞI HÀNH ĐƯỜNG THOÁNG - ĐỠ SAY XE'; }
-          else if (arrivalHour > 7 && arrivalHour <= 10) { score += 2; recommendTag = '☕ TỚI NƠI THONG THẢ ĂN SÁNG CAFE'; }
+          if (isClearTraffic && arrivalHour >= 13 && arrivalHour <= 15) { score += 6; recommendTag = 'clearCheckin'; } 
+          else if (arrivalHour >= 13 && arrivalHour <= 15) { score += 4; recommendTag = 'hotelCheckin'; } 
+          else if (durationHours >= 5 && arrivalHour >= 4 && arrivalHour <= 7) { score += 5; recommendTag = 'sunrise'; } 
+          else if (isClearTraffic) { score += 3; recommendTag = 'lessSick'; }
+          else if (arrivalHour > 7 && arrivalHour <= 10) { score += 2; recommendTag = 'leisureCafe'; }
         } 
         else {
-          if (isClearTraffic) { score += 5; recommendTag = '🍃 XUẤT BẾN ĐƯỜNG THOÁNG - VỀ NHÀ NHANH NHẤT'; } 
-          else if (arrivalHour >= 7 && arrivalHour <= 9) { score += 3; recommendTag = '💼 KỊP GIỜ LÀM VIỆC SÁNG HÔM SAU'; } 
-          else if (tripHour >= 19 || tripHour <= 0) { score += 2; recommendTag = '🌙 CHUYẾN ĐÊM DỄ NGỦ'; }
+          if (isClearTraffic) { score += 5; recommendTag = 'clearFastestReturn'; } 
+          else if (arrivalHour >= 7 && arrivalHour <= 9) { score += 3; recommendTag = 'workTimeNext'; } 
+          else if (tripHour >= 19 || tripHour <= 0) { score += 2; recommendTag = 'easySleep'; }
         }
 
         if (isRushHourDepart) { score -= 4; }
@@ -350,7 +357,7 @@ export default function SearchTripPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] font-sans antialiased text-[#333333]">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#020617] font-sans antialiased text-[#333333] dark:text-slate-200 transition-colors duration-500">
       <PageContainer>
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-5">
           
@@ -369,28 +376,28 @@ export default function SearchTripPage() {
           </button>
 
           {/* HEADER "KẾT QUẢ TÌM CHUYẾN" */}
-          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.04)] border border-gray-100 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-            <h1 className="text-sm font-bold tracking-widest text-gray-400 uppercase mb-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-slate-800 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+            <h1 className="text-sm font-bold tracking-widest text-gray-400 dark:text-slate-500 uppercase mb-3">
               {labelResults}
             </h1>
             
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex items-center flex-wrap gap-4 text-2xl sm:text-3xl font-extrabold text-gray-900">
-                <span className="text-gray-900">{from}</span>
+              <div className="flex items-center flex-wrap gap-4 text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+                <span className="text-gray-900 dark:text-white">{from}</span>
                 <ArrowRight className="w-6 h-6 sm:w-8 sm:h-8 text-[#ea580c]" strokeWidth={2.5} />
-                <span className="text-gray-900">{to}</span>
+                <span className="text-gray-900 dark:text-white">{to}</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm font-medium">
-                <div className="flex items-center gap-1.5 bg-gray-50 text-gray-700 px-4 py-2 rounded-full border border-gray-200">
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950/80 text-gray-700 dark:text-slate-350 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-800">
+                  <Calendar className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                   {formatDisplayDate(date)} {returnDate && ` - ${formatDisplayDate(returnDate)}`}
                 </div>
-                <div className="flex items-center gap-1.5 bg-gray-50 text-gray-700 px-4 py-2 rounded-full border border-gray-200">
-                  <Ticket className="w-4 h-4 text-gray-500" />
+                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950/80 text-gray-700 dark:text-slate-350 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-800">
+                  <Ticket className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                   {displayTickets}
                 </div>
-                <div className="flex items-center gap-1.5 bg-[#fff7ed] text-[#ea580c] px-4 py-2 rounded-full border border-[#ffedd5]">
+                <div className="flex items-center gap-1.5 bg-[#fff7ed] dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-4 py-2 rounded-full border border-[#ffedd5] dark:border-orange-900/30">
                   <ArrowLeftRight className="w-4 h-4" />
                   {displayTripType}
                 </div>
@@ -408,17 +415,17 @@ export default function SearchTripPage() {
             <main className="space-y-6">
               {/* TABS CHUYẾN ĐI / CHUYẾN VỀ */}
               {tripType === 'round' && (
-                <div className="flex border-b-2 border-gray-200">
+                <div className="flex border-b-2 border-gray-200 dark:border-slate-800">
                   <button
                     onClick={() => setActiveTab('outbound')}
                     className={`flex-1 py-4 text-center font-bold text-sm sm:text-base uppercase transition-all duration-300 relative ${
                       activeTab === 'outbound'
                         ? 'text-[#ea580c]'
-                        : 'text-gray-500 hover:text-[#ea580c]'
+                        : 'text-gray-500 dark:text-slate-400 hover:text-[#ea580c]'
                     }`}
                   >
                     <div className="flex items-center justify-center gap-2">
-                      CHUYẾN ĐI - {formatTabDate(date)}
+                      {t('outboundTrip').toUpperCase()} - {formatTabDate(date)}
                       {selectedOutboundTrip && <CheckCircle2 className="w-4 h-4 text-green-500" />}
                     </div>
                     {/* Đường gạch chân tab active */}
@@ -428,7 +435,7 @@ export default function SearchTripPage() {
                   <button
                     onClick={() => {
                       if (!selectedOutboundTrip) {
-                        toast.error(t('pleaseSelectOutbound') || 'Vui lòng chọn chuyến đi trước');
+                        toast.error(t('selectOutboundFirst') || 'Vui lòng chọn chuyến đi trước');
                         return;
                       }
                       setActiveTab('return');
@@ -436,10 +443,10 @@ export default function SearchTripPage() {
                     className={`flex-1 py-4 text-center font-bold text-sm sm:text-base uppercase transition-all duration-300 relative ${
                       activeTab === 'return'
                         ? 'text-[#ea580c]'
-                        : 'text-gray-500 hover:text-[#ea580c]'
+                        : 'text-gray-500 dark:text-slate-400 hover:text-[#ea580c]'
                     }`}
                   >
-                    CHUYẾN VỀ - {formatTabDate(returnDate)}
+                    {t('returnTrip').toUpperCase()} - {formatTabDate(returnDate)}
                     <div className={`absolute bottom-[-2px] left-0 w-full h-[3px] bg-[#ea580c] transition-all duration-300 ${activeTab === 'return' ? 'opacity-100' : 'opacity-0'}`} />
                   </button>
                 </div>
@@ -469,7 +476,7 @@ export default function SearchTripPage() {
               {activeTab === 'return' && tripType === 'round' && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                   {!selectedOutboundTrip ? (
-                    <EmptyState text={t('pleaseSelectOutbound') || 'Vui lòng chọn chuyến đi trước để hiển thị danh sách chuyến về hợp lệ'} />
+                    <EmptyState text={t('selectOutboundFirst') || 'Vui lòng chọn chuyến đi trước để hiển thị danh sách chuyến về hợp lệ'} />
                   ) : returnLoading ? (
                     <LoadingCard text={t('searchingReturn')} />
                   ) : (

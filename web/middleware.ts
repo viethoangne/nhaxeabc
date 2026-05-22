@@ -21,8 +21,14 @@ export default withAuth(
   },
   {
     callbacks: {
-      // Hàm này bắt buộc phải có để middleware chạy
-      authorized: ({ token }) => !!token, 
+      // Chỉ bắt buộc đăng nhập đối với các tuyến đường admin, trang chủ cho phép truy cập tự do
+      authorized: ({ token, req }) => {
+        const url = req.nextUrl.pathname;
+        if (url.startsWith('/admin')) {
+          return !!token;
+        }
+        return true; // Các tuyến đường khác (như trang chủ '/') cho phép khách vãng lai truy cập
+      }, 
     },
   }
 );

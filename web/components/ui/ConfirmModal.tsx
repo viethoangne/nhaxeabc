@@ -10,9 +10,20 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  cancelText?: string;
+  confirmText?: string;
 }
 
-export default function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, isLoading }: ConfirmModalProps) {
+export default function ConfirmModal({ 
+  isOpen, 
+  title, 
+  message, 
+  onConfirm, 
+  onCancel, 
+  isLoading,
+  cancelText = 'Hủy bỏ',
+  confirmText = 'Xóa vé'
+}: ConfirmModalProps) {
   // Ngăn cuộn trang khi mở modal
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
@@ -54,7 +65,7 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
                 onClick={onCancel}
                 className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-[14px]"
               >
-                Hủy bỏ
+                {cancelText}
               </button>
               <button
                 disabled={isLoading}
@@ -64,7 +75,7 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
                 {isLoading ? (
                   <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                 ) : (
-                  'Xóa vé'
+                  confirmText
                 )}
               </button>
             </div>

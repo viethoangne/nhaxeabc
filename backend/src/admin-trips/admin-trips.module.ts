@@ -7,5 +7,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [AdminTripsController],
   providers: [AdminTripsService], // 🟢 Đã thêm Service vào đây
+  exports: [AdminTripsService]
 })
 export class AdminTripsModule {}

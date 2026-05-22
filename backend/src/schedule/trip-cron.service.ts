@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { TripStatus } from '@prisma/client';
 
@@ -9,8 +8,8 @@ export class TripCronService {
 
   constructor(private prisma: PrismaService) {}
 
-  // Chạy mỗi 1 phút một lần
-  @Cron(CronExpression.EVERY_MINUTE)
+  // Chức năng đã được gộp hoàn chỉnh sang autoDispatchTrips trong trip-maintenance.ts
+  // Vô hiệu hóa @Cron để tránh xung đột dữ liệu
   async handleTripStatusUpdate() {
     const now = new Date();
 

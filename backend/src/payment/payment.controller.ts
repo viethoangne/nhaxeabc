@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, HttpStatus, Query } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 
 @Controller('payment') // Kết hợp với Global Prefix 'api' tạo thành /api/payment
@@ -32,6 +32,47 @@ export class PaymentController {
     } catch (error) {
       console.error("SePay IPN Error:", error);
       return res.status(HttpStatus.BAD_REQUEST).json({ ok: false });
+    }
+  }
+
+  // 3c. Nhận phản hồi Webhook từ PayOS (Khi có chuyển khoản VietQR cá nhân tự động)
+  @Post('payos-webhook')
+  async payosWebhook(@Body() body: any, @Res() res: any) {
+    try {
+      const verifiedData = this.paymentService.verifyPayosWebhook(body);
+      if (verifiedData) {
+        await this.paymentService.handlePayosWebhook(verifiedData);
+      }
+      return res.status(HttpStatus.OK).json({ ok: true });
+    } catch (error) {
+      console.error("PayOS Webhook Error:", error);
+      return res.status(HttpStatus.BAD_REQUEST).json({ ok: false });
+    }
+  }
+
+  // 3b. Nhận phản hồi IPN từ VNPAY (server-to-server)
+  @Get('vnpay-ipn')
+  async vnpayIpn(@Query() query: any, @Res() res: any) {
+    try {
+      const result = await this.paymentService.handleVnpayIpn(query);
+      return res.status(HttpStatus.OK).json(result);
+    } catch (error) {
+      console.error("VNPAY IPN Error:", error);
+      return res.status(HttpStatus.BAD_REQUEST).json({ RspCode: '99', Message: 'Unknown error' });
+    }
+  }
+
+  // 3c. Nhận redirect từ VNPAY về trình duyệt (Return URL)
+  // VNPAY redirect user về đây sau khi thanh toán xong hoặc huỷ
+  @Get('vnpay-return')
+  async vnpayReturn(@Query() query: any, @Res() res: any) {
+    try {
+      const result = await this.paymentService.handleVnpayReturn(query);
+      return res.redirect(302, result.redirect);
+    } catch (error) {
+      console.error('VNPAY Return Error:', error);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      return res.redirect(302, `${frontendUrl}/payment-cancel?reason=server_error`);
     }
   }
 

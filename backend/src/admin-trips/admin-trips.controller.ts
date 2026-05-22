@@ -45,7 +45,7 @@ export class AdminTripsController {
     return this.tripsService.seed1000DriversAndBuses(); 
   }
 
-  // 🟢 ĐÃ CẬP NHẬT: Nhận thêm Query 'status'
+  // 🟢 ĐÃ CẬP NHẬT: Nhận thêm Query 'status' và 'sortBy'
   @Get('drivers/paginated')
   @Roles('ADMIN', 'STAFF')
   async getDriversPaginated(
@@ -53,18 +53,20 @@ export class AdminTripsController {
     @Query('limit') limit?: string,
     @Query('search') search?: string,
     @Query('routeCode') routeCode?: string,
-    @Query('status') status?: string, // <-- THÊM DÒNG NÀY
-    @Query('baseLocation') baseLocation?: string, // 🟢 THÊM QUERY NÀY
-    @Query('busStatus') busStatus?: string // 🟢 1. BẠN BỔ SUNG DÒNG NÀY ĐỂ MỞ CỔNG NHẬN BIẾN
+    @Query('status') status?: string, 
+    @Query('baseLocation') baseLocation?: string, 
+    @Query('busStatus') busStatus?: string,
+    @Query('sortBy') sortBy?: string // 🟢 THÊM THAM SỐ SẮP XẾP ĐƯỢC CHỌN
   ) {
     return this.tripsService.getDriversPaginated({
       page: Number(page),
       limit: Number(limit),
       search,
       routeCode,
-      status, // <-- THÊM DÒNG NÀY
+      status, 
       baseLocation,
-      busStatus // 🟢 2. TRUYỀN NÓ VÀO TRONG SERVICE TẠI ĐÂY LÀ XONG!
+      busStatus,
+      sortBy // 🟢 TRUYỀN NÓ VÀO TRONG SERVICE TẠI ĐÂY LÀ XONG!
     });
   }
 

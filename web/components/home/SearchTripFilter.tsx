@@ -62,7 +62,7 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
 
   return (
     // 'sticky' được hỗ trợ bởi thẻ aside bọc ngoài ở page.tsx
-    <div className={`w-full rounded-[32px] border border-white/40 bg-white/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(234,88,12,0.08)] ${className}`}>
+    <div className={`w-full rounded-[32px] border border-white/40 dark:border-slate-800/40 bg-white/80 dark:bg-slate-900/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-orange-950/5 backdrop-blur-xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(234,88,12,0.08)] ${className}`}>
       
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
@@ -71,13 +71,13 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
             <Sparkles size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold tracking-tight text-slate-800">{t('filterTitle')}</h3>
+            <h3 className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">{t('filterTitle')}</h3>
             <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">{t('filterSubtitle')}</p>
           </div>
         </div>
         <button
           onClick={handleClear}
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[#ea580c] transition-all hover:bg-orange-50 active:scale-95"
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[#ea580c] transition-all hover:bg-orange-50 dark:hover:bg-orange-950/20 active:scale-95"
         >
           <FilterX size={14} />
           {t('clearFilter')}
@@ -87,7 +87,7 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
       <div className="space-y-8">
         {/* Section: Giờ khởi hành */}
         <section>
-          <div className="mb-4 flex items-center gap-2 text-slate-800">
+          <div className="mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200">
             <Clock size={18} className="text-[#ea580c]" />
             <h4 className="font-bold text-sm uppercase tracking-widest">{t('departureTime')}</h4>
           </div>
@@ -101,16 +101,16 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
                   onClick={() => toggleFilter('times', item.value)}
                   className={`group relative flex items-center justify-between overflow-hidden rounded-2xl border p-3.5 transition-all duration-300 ${
                     isActive 
-                    ? 'border-[#ea580c] bg-orange-50/50 ring-1 ring-[#ea580c]' 
-                    : 'border-slate-100 bg-slate-50/30 hover:border-orange-200 hover:bg-white'
+                    ? 'border-[#ea580c] bg-orange-50/50 dark:bg-orange-950/10 ring-1 ring-[#ea580c]' 
+                    : 'border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-950/30 hover:border-orange-200 dark:hover:border-orange-900/30 hover:bg-white dark:hover:bg-slate-900'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${isActive ? 'bg-[#ea580c] text-white' : 'bg-white text-slate-400 shadow-sm'}`}>
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${isActive ? 'bg-[#ea580c] text-white' : 'bg-white dark:bg-slate-950 text-slate-400 shadow-sm dark:shadow-none'}`}>
                       <Icon size={18} />
                     </div>
                     <div className="text-left">
-                      <p className={`text-sm font-bold ${isActive ? 'text-orange-900' : 'text-slate-700'}`}>{item.label}</p>
+                      <p className={`text-sm font-bold ${isActive ? 'text-orange-900 dark:text-orange-300' : 'text-slate-700 dark:text-slate-300'}`}>{item.label}</p>
                       <p className="text-[11px] text-slate-400 font-medium">{item.range}</p>
                     </div>
                   </div>
@@ -123,7 +123,7 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
 
         {/* Section: Loại xe */}
         <section>
-          <div className="mb-4 flex items-center gap-2 text-slate-800 border-t border-slate-100 pt-6">
+          <div className="mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200 border-t border-slate-100 dark:border-slate-800 pt-6">
             <Bus size={18} className="text-[#ea580c]" />
             <h4 className="font-bold text-sm uppercase tracking-widest">{t('busType')}</h4>
           </div>
@@ -137,16 +137,16 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
                   onClick={() => toggleFilter('busTypes', item.value)}
                   className={`group relative flex items-center justify-between overflow-hidden rounded-2xl border p-3.5 transition-all duration-300 ${
                     isActive 
-                    ? 'border-[#ea580c] bg-orange-50/50 ring-1 ring-[#ea580c]' 
-                    : 'border-slate-100 bg-slate-50/30 hover:border-orange-200 hover:bg-white'
+                    ? 'border-[#ea580c] bg-orange-50/50 dark:bg-orange-950/10 ring-1 ring-[#ea580c]' 
+                    : 'border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-950/30 hover:border-orange-200 dark:hover:border-orange-900/30 hover:bg-white dark:hover:bg-slate-900'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${isActive ? 'bg-[#ea580c] text-white' : 'bg-white text-slate-400 shadow-sm'}`}>
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${isActive ? 'bg-[#ea580c] text-white' : 'bg-white dark:bg-slate-950 text-slate-400 shadow-sm dark:shadow-none'}`}>
                       <Icon size={18} />
                     </div>
                     <div className="text-left">
-                      <p className={`text-sm font-bold ${isActive ? 'text-orange-900' : 'text-slate-700'}`}>{item.label}</p>
+                      <p className={`text-sm font-bold ${isActive ? 'text-orange-900 dark:text-orange-300' : 'text-slate-700 dark:text-slate-300'}`}>{item.label}</p>
                       <p className="text-[11px] text-slate-400 font-medium">{item.desc}</p>
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
         </section>
       </div>
 
-      <div className="mt-8 rounded-2xl bg-orange-50 p-3 text-center">
+      <div className="mt-8 rounded-2xl bg-orange-50 dark:bg-orange-950/20 p-3 text-center">
          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ea580c]">{t('smartSystem')}</p>
       </div>
     </div>

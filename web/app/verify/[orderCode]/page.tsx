@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
@@ -7,6 +8,7 @@ import html2canvas from 'html2canvas';
 import { motion } from 'framer-motion';
 
 export default function VerifyTicketPage() {
+  const t = useTranslations('verifyTicketPage');
   const { orderCode } = useParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [data, setData] = useState<any>(null);
@@ -49,7 +51,7 @@ export default function VerifyTicketPage() {
       link.click();
     } catch (error) {
       console.error("Lỗi khi chụp ảnh vé:", error);
-      alert("Có lỗi khi tạo ảnh vé, vui lòng thử lại!");
+      alert(t('downloadError'));
     }
   };
 
@@ -82,12 +84,12 @@ export default function VerifyTicketPage() {
   const returnArrivalTime = data?.returnArrivalTimeSnapshot || data?.returnTrip?.arrivalDate || data?.returnTrip?.arrivalTime;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] p-4 md:p-8 font-sans overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] dark:bg-[#020617] p-4 md:p-8 font-sans overflow-hidden transition-colors duration-500">
       
       {status === 'loading' ? (
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-[#EF5222] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-[0.2em]">Đang tải vé VIP...</p>
+          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t('loading')}</p>
         </div>
       ) : (
         <motion.div 
@@ -98,7 +100,7 @@ export default function VerifyTicketPage() {
         >
           {/* Gợi ý vuốt ngang cho Mobile */}
           <div className="md:hidden flex items-center gap-2 mb-6 text-slate-400 text-[10px] font-bold uppercase tracking-widest animate-pulse">
-            Vuốt ngang để xem toàn bộ vé
+            {t('mobileHint')}
           </div>
 
           {/* VÙNG CHỤP ẢNH VÉ */}
@@ -112,17 +114,17 @@ export default function VerifyTicketPage() {
                 {/* 1. HEADER */}
                 <div className="flex justify-between items-end mb-10 border-b border-slate-100 pb-5">
                   <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-wide uppercase">NHÀ XE ABC</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-wide uppercase">{t('brand')}</h1>
                     <div className="flex items-center gap-3 mt-1.5">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-[0.25em] font-semibold">VIP Boarding Pass</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-[0.25em] font-semibold">{t('vipPass')}</p>
                       {isRoundTrip && (
-                        <span className="bg-indigo-100 text-indigo-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Khứ Hồi</span>
+                        <span className="bg-indigo-100 text-indigo-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest">{t('roundTrip')}</span>
                       )}
                     </div>
                   </div>
                   
                   <div className="text-right flex flex-col items-end">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-semibold">Mã đặt chỗ</p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-semibold">{t('bookingCode')}</p>
                     <div className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-md">
                     <p className="text-lg font-mono font-bold tracking-widest text-[#EF5222] leading-none">#{orderCode}</p>
                     </div>
@@ -132,7 +134,7 @@ export default function VerifyTicketPage() {
                 {/* 2. TUYẾN ĐƯỜNG CHÍNH */}
                 <div className="flex items-center justify-center gap-12 mb-10 w-full px-4">
                   <div className="flex-1 flex flex-col items-end text-right">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Điểm đi</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">{t('departure')}</p>
                     <p className="text-2xl font-bold text-[#EF5222] uppercase leading-tight">{data?.from || '---'}</p>
                   </div>
                   <div className="flex flex-col items-center justify-center text-slate-300 mt-4 px-6">
@@ -141,7 +143,7 @@ export default function VerifyTicketPage() {
                     </svg>
                   </div>
                   <div className="flex-1 flex flex-col items-start text-left">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Điểm đến</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">{t('destination')}</p>
                     <p className="text-2xl font-bold text-[#EF5222] uppercase leading-tight">{data?.to || '---'}</p>
                   </div>
                 </div>
@@ -152,11 +154,11 @@ export default function VerifyTicketPage() {
                   {/* Cột 1 */}
                   <div className="col-span-1 flex flex-col justify-between gap-5">
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Xuất bến {isRoundTrip ? '(Đi)' : ''}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('departAt')} {isRoundTrip ? `(${t('outbound')})` : ''}</p>
                       <p className="text-[13px] font-semibold text-slate-700">{renderDateTime(departTime)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Đến nơi {isRoundTrip ? '(Đi)' : ''}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('arriveAt')} {isRoundTrip ? `(${t('outbound')})` : ''}</p>
                       <p className="text-[13px] font-semibold text-slate-700">{renderDateTime(arrivalTime)}</p>
                     </div>
                   </div>
@@ -164,12 +166,12 @@ export default function VerifyTicketPage() {
                   {/* Cột 2 */}
                   <div className="col-span-1 flex flex-col justify-between gap-5 border-l border-slate-200 pl-6">
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Hành khách</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('passenger')}</p>
                       <p className="text-[13px] font-bold text-slate-800 uppercase">{customerName}</p>
                       <p className="text-[12px] text-slate-500 font-medium mt-0.5">{formatPhone(customerPhone)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Loại xe</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('busType')}</p>
                       <p className="text-[13px] font-bold text-[#EF5222] uppercase tracking-wide">{busType}</p>
                     </div>
                   </div>
@@ -177,7 +179,7 @@ export default function VerifyTicketPage() {
                   {/* Cột 3 */}
                   <div className="col-span-1 flex flex-col justify-between gap-5 border-l border-slate-200 pl-6">
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Số ghế</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">{t('seats')}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {outboundSeats.length > 0 ? (
                           outboundSeats.map((s: any) => (
@@ -191,22 +193,22 @@ export default function VerifyTicketPage() {
                         {/* Hiện ghế khứ hồi nếu có */}
                         {isRoundTrip && returnSeats.length > 0 && returnSeats.map((s: any) => (
                           <span key={s.id} className="border border-indigo-600 text-indigo-600 px-2 py-0.5 rounded text-xs font-bold">
-                            {s.seatNumber} (Về)
+                            {s.seatNumber} ({t('return')})
                           </span>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Trạng thái</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('status')}</p>
                       {status === 'success' ? (
                         <p className="text-[13px] font-bold text-emerald-600 flex items-center gap-1.5">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
-                          Đã thanh toán
+                          {t('paid')}
                         </p>
                       ) : (
                         <p className="text-[13px] font-bold text-rose-500 flex items-center gap-1.5">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                          Chưa thanh toán
+                          {t('unpaid')}
                         </p>
                       )}
                     </div>
@@ -215,7 +217,7 @@ export default function VerifyTicketPage() {
                   {/* Cột 4 */}
                   <div className="col-span-1 flex flex-col justify-between items-end border-l border-slate-200 pl-6 text-right">
                     <div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Tổng thanh toán</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('totalPayment')}</p>
                       <p className="text-2xl font-bold text-slate-800 leading-none">
                         {Number(data?.amount || 0).toLocaleString('vi-VN')}<span className="text-[15px] text-[#EF5222] ml-0.5 underline decoration-2 underline-offset-2">đ</span>
                       </p>
@@ -232,13 +234,13 @@ export default function VerifyTicketPage() {
                     <>
                       <div className="col-span-1 flex flex-col gap-5 pt-4 mt-2 border-t border-slate-200">
                         <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Xuất bến (Về)</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('departAt')} ({t('return')})</p>
                           <p className="text-[13px] font-semibold text-slate-700">{renderDateTime(returnDepartTime)}</p>
                         </div>
                       </div>
                       <div className="col-span-1 flex flex-col gap-5 pt-4 mt-2 border-t border-slate-200 border-l pl-6">
                         <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Đến nơi (Về)</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">{t('arriveAt')} ({t('return')})</p>
                           <p className="text-[13px] font-semibold text-slate-700">{renderDateTime(returnArrivalTime)}</p>
                         </div>
                       </div>
@@ -257,7 +259,7 @@ export default function VerifyTicketPage() {
             className="mt-6 border border-slate-300 bg-white text-slate-700 px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            Tải vé điện tử (.PNG)
+            {t('downloadBtn')}
           </button>
 
         </motion.div>

@@ -20,6 +20,7 @@ export class AdminLoyaltyService {
         email: true,
         points: true,
         totalTrips: true,
+        picture: true,
       },
     });
   }
@@ -80,50 +81,107 @@ export class AdminLoyaltyService {
     });
   }
 
-  // --- TÍCH HỢP AI ---
+  // --- TÍCH HỢP AI (NATIVE TS EXPERT RULE ENGINE - CHUẨN ĐỒ ÁN) ---
   async suggestVoucherByAI(topic: string, discountLevel: string) {
     try {
-      const { OpenAI } = require('openai');
-      const groqKey = process.env.GROQ_API_KEY;
-      const groq = new OpenAI({
-        apiKey: groqKey?.trim(),
-        baseURL: "https://api.groq.com/openai/v1",
-      });
+      // 1. Phân tích ngữ nghĩa topic (Semantic parsing)
+      const cleanTopic = topic.trim().toUpperCase();
+      let prefix = "VIP";
+      let titleSuffix = "Ưu đãi đặc quyền";
+      let basePoints = 300;
 
-      const prompt = `Bạn là chuyên gia Marketing cho nhà xe ABC. 
-Yêu cầu: Tạo ra MỘT mã giảm giá (voucher) hấp dẫn dựa trên chủ đề "${topic}" và mức giảm giá "${discountLevel}".
-Trả về duy nhất dữ liệu dạng JSON hợp lệ, KHÔNG KÈM TEXT NÀO KHÁC (không được có markdown code block).
-Cấu trúc JSON:
-{
-  "code": "Mã viết liền không dấu, in hoa, tối đa 10 ký tự, ví dụ: TET2024",
-  "title": "Tiêu đề hấp dẫn ngắn gọn, ví dụ: Đón Tết Xa - Về Nhà Gần",
-  "type": "fixed hoặc percent",
-  "value": "Số tiền giảm (nếu type là fixed, ví dụ 50000) hoặc phần trăm giảm (ví dụ 20)",
-  "maxAmount": "Số tiền giảm tối đa (nếu type là percent, ví dụ: 50000), nếu fixed thì bằng với value",
-  "costInPoints": "Số điểm cần thiết để đổi voucher (từ 100 đến 1000 điểm)"
-}`;
-
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [{ role: "system", content: prompt }],
-        model: "llama-3.1-8b-instant",
-        temperature: 0.7,
-      });
-
-      const responseContent = chatCompletion.choices[0]?.message?.content || "";
-      const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+      if (cleanTopic.includes('TẾT') || cleanTopic.includes('YEAR')) {
+        prefix = "TET";
+        titleSuffix = "Đón Tết Xa - Về Nhà Gần";
+        basePoints = 500;
+      } else if (cleanTopic.includes('LỄ') || cleanTopic.includes('QUỐC KHÁNH') || cleanTopic.includes('2/9') || cleanTopic.includes('30/4')) {
+        prefix = "HOLIDAY";
+        titleSuffix = "Mừng Lễ Lớn - Vi Vu Thả Ga";
+        basePoints = 400;
+      } else if (cleanTopic.includes('SINH NHẬT') || cleanTopic.includes('BIRTHDAY') || cleanTopic.includes('TUỔI')) {
+        prefix = "BDAY";
+        titleSuffix = "Mừng Sinh Nhật - Tri Ân Hành Khách";
+        basePoints = 200;
+      } else if (cleanTopic.includes('HÈ') || cleanTopic.includes('SUMMER')) {
+        prefix = "SUMMER";
+        titleSuffix = "Chào Hè Rực Rỡ - Giảm Khủng";
+        basePoints = 250;
+      } else if (cleanTopic.includes('CUỐI TUẦN') || cleanTopic.includes('WEEKEND')) {
+        prefix = "WKND";
+        titleSuffix = "Cuối Tuần Thảnh Thơi - Trọn Vẹn Niềm Vui";
+        basePoints = 150;
+      } else {
+        // Tạo chuỗi ký tự ngẫu nhiên hoặc rút gọn từ topic
+        const slug = cleanTopic.replace(/[^A-Z0-9]/g, '').substring(0, 4);
+        prefix = slug ? slug : "PROMO";
+        titleSuffix = topic;
       }
-      throw new Error("AI không trả về JSON hợp lệ.");
-    } catch (error: any) {
-      console.error("Lỗi AI suggestVoucher:", error);
+
+      // Tạo mã code ngẫu nhiên duy nhất
+      const randomId = Math.floor(10 + Math.random() * 89); // 2 số
+      const code = `${prefix}${randomId}`;
+
+      // 2. Phân tích discountLevel
+      let type = "percent";
+      let val = 20;
+      let maxAmt = 50000;
+
+      const cleanDisc = discountLevel.trim().toUpperCase();
+      if (cleanDisc.includes('%')) {
+        type = "percent";
+        val = parseInt(cleanDisc.replace(/[^0-9]/g, '')) || 20;
+        // Tính toán maxAmount tương ứng (nếu giảm % càng lớn, maxAmount càng cao để hấp dẫn)
+        maxAmt = val >= 30 ? 100000 : 50000;
+      } else if (cleanDisc.includes('K') || cleanDisc.includes('Đ') || cleanDisc.includes('000')) {
+        type = "fixed";
+        let parsedVal = parseInt(cleanDisc.replace(/[^0-9]/g, ''));
+        if (cleanDisc.includes('K') && parsedVal < 1000) {
+          parsedVal *= 1000;
+        }
+        val = parsedVal || 30000;
+        maxAmt = val; // fixed thì maxAmount bằng chính nó
+      } else {
+        // Mặc định nếu nhập số không
+        const numericVal = parseInt(cleanDisc) || 20;
+        if (numericVal <= 100) {
+          type = "percent";
+          val = numericVal;
+          maxAmt = val >= 30 ? 100000 : 50000;
+        } else {
+          type = "fixed";
+          val = numericVal;
+          maxAmt = val;
+        }
+      }
+
+      // Tự động tinh chỉnh costInPoints dựa trên giá trị ưu đãi
+      let calculatedPoints = basePoints;
+      if (type === 'percent') {
+        calculatedPoints += val * 10;
+      } else {
+        calculatedPoints += Math.floor(val / 100);
+      }
+      // Đảm bảo điểm quy đổi nằm trong khoảng hợp lý 100 - 1000
+      calculatedPoints = Math.min(Math.max(calculatedPoints, 100), 1000);
+
+      // Trả về kết quả hoàn hảo
       return {
-        code: "SALE" + Math.floor(Math.random() * 1000),
+        code,
+        title: `Ưu đãi ${topic}: ${titleSuffix}`,
+        type,
+        value: val,
+        maxAmount: maxAmt,
+        costInPoints: calculatedPoints
+      };
+    } catch (error: any) {
+      console.error("Lỗi AI Expert Engine suggestVoucher:", error);
+      return {
+        code: "SALE" + Math.floor(10 + Math.random() * 89),
         title: "Khuyến mãi " + topic,
         type: "percent",
-        value: parseInt(discountLevel) || 10,
+        value: parseInt(discountLevel) || 20,
         maxAmount: 50000,
-        costInPoints: 200
+        costInPoints: 300
       };
     }
   }

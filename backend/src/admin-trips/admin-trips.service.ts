@@ -81,15 +81,19 @@ export class AdminTripsService implements OnModuleInit {
   }
 
   async getAllTrips(dateStr?: string) {
-    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    const targetDate = dateStr ? new Date(`${dateStr}T00:00:00`) : new Date();
+    const start = new Date(targetDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(targetDate);
+    end.setHours(23, 59, 59, 999);
+
     return this.prisma.trip.findMany({
       where: {
-        departDate: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) },
+        departDate: { gte: start, lte: end },
       },
       include: {
         tickets: true, 
         _count: { select: { orderSeats: true } },
-        // 🟢 BẮT BUỘC THÊM 2 DÒNG NÀY ĐỂ API TRẢ VỀ TÊN TÀI VÀ BIỂN SỐ
         driver: { select: { name: true } },
         bus: { select: { plateNumber: true } }
       },
@@ -205,37 +209,14 @@ export class AdminTripsService implements OnModuleInit {
     const forwardRoute = `${trip.from} ➔ ${trip.to}`;
     const backwardRoute = `${trip.to} ➔ ${trip.from}`;
     
-
-    // 2. QUERY TÌM TÀI XẾ ĐỦ ĐIỀU KIỆN
-    return this.prisma.driver.findMany({
+    // 2. LẤY TOÀN BỘ TÀI XẾ THUỘC TUYẾN/KHU VỰC
+    const allDrivers = await this.prisma.driver.findMany({
       where: {
-        status: 'AVAILABLE',
-        
-        // 🟢 ĐIỀU KIỆN 1: Tài xế phải thuộc biên chế của cặp tuyến này
         OR: [
           { routeCode: forwardRoute },
           { routeCode: backwardRoute },
           { routeCode: 'ALL' }
-        ],
-
-        // 🟢 ĐIỀU KIỆN 2: Xe của tài xế đó HIỆN TẠI đang đậu ở bến xuất phát của chuyến đi
-        defaultBus: {
-          currentLocation: trip.from
-        },
-
-        // ĐIỀU KIỆN 3: Chống đụng lịch (GIỮ NGUYÊN CODE CŨ CỦA BẠN TỪ ĐOẠN NÀY...)
-        assignments: {
-          none: {
-            status: { not: 'CANCELLED' }, 
-            tripId: { not: tripId },
-            AND: [
-              // Logic check đụng giờ: Chuyến cũ bắt đầu trước khi chuyến mới kết thúc, 
-              // VÀ Chuyến cũ kết thúc sau khi chuyến mới bắt đầu
-              { startTime: { lt: requiredEndTime } },
-              { endTime: { gt: requiredStartTime } }
-            ]
-          }
-        }
+        ]
       },
       select: {
         id: true,
@@ -244,54 +225,131 @@ export class AdminTripsService implements OnModuleInit {
         phone: true,
         baseLocation: true,
         routeCode: true,
-        defaultBusId: true // 🟢 BẠN THÊM DÒNG NÀY VÀO LÀ XONG!
-      },
-      orderBy: {
-        createdAt: 'asc' // Ưu tiên những tài xế cũ/hoạt động lâu
+        defaultBusId: true,
+        status: true,
+        _count: { select: { assignments: true } },
+        assignments: {
+          where: {
+            status: { not: 'CANCELLED' },
+            tripId: { not: tripId },
+            AND: [
+              { startTime: { lt: requiredEndTime } },
+              { endTime: { gt: requiredStartTime } }
+            ]
+          },
+          include: { trip: true }
+        }
       }
     });
-    
+
+    // 3. PHÂN LOẠI XUNG ĐỘT (CONFLICT HUD) & CÂN BẰNG TẢI (WORKLOAD BALANCING)
+    const result = allDrivers.map(d => {
+      const isConflicting = d.assignments.length > 0;
+      let conflictReason = '';
+      if (isConflicting) {
+        const conflictTrip = d.assignments[0].trip;
+        conflictReason = `Đang chạy chuyến #${conflictTrip.id} (${conflictTrip.from} ➔ ${conflictTrip.to}) lúc ${new Date(conflictTrip.departDate).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'})}`;
+      } else if (d.status !== 'AVAILABLE') {
+        conflictReason = `Tài xế đang ở trạng thái nghỉ/bận: ${d.status}`;
+      }
+
+      return {
+        id: d.id,
+        driverCode: d.driverCode,
+        name: d.name,
+        phone: d.phone,
+        baseLocation: d.baseLocation,
+        routeCode: d.routeCode,
+        defaultBusId: d.defaultBusId,
+        status: d.status,
+        workloadCount: d._count.assignments,
+        isConflicting: isConflicting || d.status !== 'AVAILABLE',
+        conflictReason
+      };
+    });
+
+    // 🟢 SẮP XẾP CHUẨN ĐỒ ÁN: Ưu tiên người KHÔNG xung đột lên đầu, sau đó sắp xếp theo workloadCount tăng dần (Cân bằng tải - ai chạy ít chuyến được ưu tiên nhận chuyến trước)
+    result.sort((a, b) => {
+      if (a.isConflicting && !b.isConflicting) return 1;
+      if (!a.isConflicting && b.isConflicting) return -1;
+      return a.workloadCount - b.workloadCount;
+    });
+
+    return result;
   }
+
   async getSuggestedBuses(tripId: number) {
     const trip = await this.prisma.trip.findUnique({ where: { id: tripId } });
     if (!trip) throw new NotFoundException('Không tìm thấy chuyến xe');
 
-    // 🟢 TẠO CẶP TUYẾN 2 CHIỀU BẰNG TÊN ĐẦY ĐỦ (Bỏ hẳn logic getCode viết tắt cũ)
     const forwardRoute = `${trip.from} ➔ ${trip.to}`;
     const backwardRoute = `${trip.to} ➔ ${trip.from}`;
 
-    // Tính toán thời gian chuẩn bị và thời gian đến
     const PREP_TIME_MS = 30 * 60 * 1000; 
     const startTime = new Date(trip.departDate.getTime() - PREP_TIME_MS);
     const arrivalTime = trip.arrivalDate || new Date(trip.departDate.getTime() + (trip.durationMinutes * 60000));
 
-    return this.prisma.bus.findMany({
+    const allBuses = await this.prisma.bus.findMany({
       where: {
-        status: 'READY',
-        
-        // 🟢 ĐIỀU KIỆN 1: Xe hiện tại bắt buộc phải đang đậu ở Bến xuất phát
-        currentLocation: trip.from,
-
-        // 🟢 ĐIỀU KIỆN 2: Xe thuộc biên chế của tuyến này (Chạy được cả chiều đi và về)
         OR: [
           { routeCode: forwardRoute },
           { routeCode: backwardRoute },
-          { routeCode: 'ALL' } // Hoặc là xe tăng cường chạy mọi tuyến
-        ],
-
-        // 🟢 ĐIỀU KIỆN 3: Thuật toán chống đụng giờ (Không xếp xe đang có lịch chạy chuyến khác)
+          { routeCode: 'ALL' }
+        ]
+      },
+      select: {
+        id: true,
+        busCode: true,
+        plateNumber: true,
+        busType: true,
+        capacity: true,
+        status: true,
+        currentLocation: true,
         trips: {
-          none: {
-            id: { not: tripId }, // Bỏ qua chính chuyến xe đang mở để tránh tự đụng chính mình
+          where: {
+            id: { not: tripId },
+            status: { not: 'CANCELLED' },
             AND: [
               { departDate: { lt: arrivalTime } },
               { OR: [{ arrivalDate: { gt: startTime } }, { departDate: { gt: startTime } }] }
             ]
           }
         }
-      },
-      select: { id: true, busCode: true, plateNumber: true, busType: true, capacity: true }
+      }
     });
+
+    const result = allBuses.map(b => {
+      const isConflicting = b.trips.length > 0;
+      let conflictReason = '';
+      if (isConflicting) {
+        const conflictTrip = b.trips[0];
+        conflictReason = `Đang chạy chuyến #${conflictTrip.id} (${conflictTrip.from} ➔ ${conflictTrip.to})`;
+      } else if (b.status !== 'READY') {
+        conflictReason = `Xe đang bảo trì/bận: ${b.status}`;
+      } else if (b.currentLocation !== trip.from) {
+        conflictReason = `Xe đang đậu tại bến ${b.currentLocation}`;
+      }
+
+      return {
+        id: b.id,
+        busCode: b.busCode,
+        plateNumber: b.plateNumber,
+        busType: b.busType,
+        capacity: b.capacity,
+        status: b.status,
+        currentLocation: b.currentLocation,
+        isConflicting: isConflicting || b.status !== 'READY' || b.currentLocation !== trip.from,
+        conflictReason
+      };
+    });
+
+    result.sort((a, b) => {
+      if (a.isConflicting && !b.isConflicting) return 1;
+      if (!a.isConflicting && b.isConflicting) return -1;
+      return 0;
+    });
+
+    return result;
   }
   // 🔴 Đã sửa lỗi cú pháp: Xóa chữ "function" ở đây
   async assignTripResources(tripId: number, data: { driverId?: number, busId?: number, price?: number, status?: string }, adminId: string) {
@@ -435,6 +493,7 @@ export class AdminTripsService implements OnModuleInit {
       timeout: 100000
     });
 
+    await this.fixDriverRoutes();
     return { message: `Đã nạp ${createdCount} cặp (Tài xế + Xe Limousine 22 phòng) thành công!` };
   }
   // --- QUẢN LÝ TÀI XẾ (CRUD) ---
@@ -443,12 +502,12 @@ export class AdminTripsService implements OnModuleInit {
   // 🟢 ĐÃ CẬP NHẬT: Thêm query status
   // 🟢 HÀM 1 ĐÃ SỬA: Thêm include defaultBus để lấy thông tin Xe
   // 🟢 Bổ sung busStatus vào khai báo tham số của hàm
-  async getDriversPaginated(query: { page?: number; limit?: number; search?: string; routeCode?: string; status?: string; baseLocation?: string; busStatus?: string }) {
+  async getDriversPaginated(query: { page?: number; limit?: number; search?: string; routeCode?: string; status?: string; baseLocation?: string; busStatus?: string; sortBy?: string }) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
   
-    const whereCondition: any = {};
+    const whereCondition: any = { AND: [] };
     
     // 1. Lọc theo Tuyến xe (Thông minh: Lấy CẢ 2 CHIỀU ĐI VÀ VỀ)
     if (query.routeCode && query.routeCode !== 'TẤT CẢ') {
@@ -458,68 +517,140 @@ export class AdminTripsService implements OnModuleInit {
         const [from, to] = parts;
         const reverseRoute = `${to} ➔ ${from}`; // Đảo ngược thành "Đà Nẵng ➔ Hà Nội"
         
-        // Lọc tài xế có tuyến là A->B HOẶC B->A
-        whereCondition.routeCode = {
-          in: [query.routeCode, reverseRoute] 
-        };
+        whereCondition.AND.push({
+          routeCode: { in: [query.routeCode, reverseRoute] }
+        });
       } else {
-        whereCondition.routeCode = query.routeCode;
+        whereCondition.AND.push({ routeCode: query.routeCode });
       }
     }
 
     // 2. Lọc theo Trạng thái (Sẵn sàng/Đang chạy)
     if (query.status && query.status !== 'ALL') {
-      whereCondition.status = query.status;
+      whereCondition.AND.push({ status: query.status });
     }
   
     // 3. Lọc theo Khu vực
     if (query.baseLocation && query.baseLocation !== 'ALL') {
-      whereCondition.baseLocation = query.baseLocation;
+      whereCondition.AND.push({ baseLocation: query.baseLocation });
     }
 
-    // 4. 🟢 BỔ SUNG LOGIC LỌC TÌNH TRẠNG GẮN XE (HAS_BUS / NO_BUS)
+    // 4. 🟢 BỔ SUNG LOGIC LỌC TÌNH TRẠNG GẮN CHUYẾN (Đã có chuyến / Chưa gắn chuyến)
     if (query.busStatus === 'HAS_BUS') {
-      whereCondition.defaultBusId = { not: null }; // Chỉ lấy người ĐÃ CÓ ID xe
+      // Đã có chuyến: Đang chạy xe trên đường (ON_TRIP) HOẶC đã được phân công chuyến sắp chạy
+      whereCondition.AND.push({
+        OR: [
+          { status: 'ON_TRIP' },
+          { assignments: { some: { status: 'ASSIGNED', endTime: { gte: new Date() } } } }
+        ]
+      });
     } else if (query.busStatus === 'NO_BUS') {
-      whereCondition.defaultBusId = null; // Chỉ lấy người CHƯA CÓ ID xe
+      // Chưa gắn chuyến: KHÔNG chạy xe (not ON_TRIP) VÀ KHÔNG có phân công chuyến sắp chạy
+      whereCondition.AND.push({
+        status: { not: 'ON_TRIP' },
+        assignments: { none: { status: 'ASSIGNED', endTime: { gte: new Date() } } }
+      });
     }
   
     // 5. Tìm kiếm Text
     if (query.search) {
-      whereCondition.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { driverCode: { contains: query.search, mode: 'insensitive' } },
-        { phone: { contains: query.search } }
-      ];
+      whereCondition.AND.push({
+        OR: [
+          { name: { contains: query.search, mode: 'insensitive' } },
+          { driverCode: { contains: query.search, mode: 'insensitive' } },
+          { phone: { contains: query.search } }
+        ]
+      });
     }
     
-   // Tìm đến hàm getDriversPaginated trong admin-trips.service.ts
-const [total, data] = await this.prisma.$transaction([
-  this.prisma.driver.count({ where: whereCondition }),
-  this.prisma.driver.findMany({
-    where: whereCondition,
-    skip,
-    take: limit,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      _count: { select: { assignments: true } },
-      defaultBus: true,
-      // 🟢 THÊM ĐOẠN NÀY ĐỂ LẤY CHUYẾN ĐI HIỆN TẠI
-      assignments: {
-        where: { 
-          status: 'ASSIGNED',
-          endTime: { gte: new Date() } // Chỉ lấy các chuyến chưa kết thúc
+    // Lấy toàn bộ ID tài xế khớp với bộ lọc để tự sắp xếp & phân trang chính xác
+    const allMatchingDrivers = await this.prisma.driver.findMany({
+      where: whereCondition,
+      orderBy: { createdAt: 'desc' }, // mặc định xếp theo mới nhất
+      select: { id: true }
+    });
+    const matchingDriverIds = allMatchingDrivers.map(d => d.id);
+    const total = matchingDriverIds.length;
+
+    // Sắp xếp nâng cao nếu chọn "Chạy nhiều chuyến nhất" theo đúng số chuyến thực tế đã chạy (endTime <= now)
+    if (query.sortBy === 'ASSIGNMENTS_DESC') {
+      const now = new Date();
+      const pastAssignmentsGroup = await this.prisma.driverAssignment.groupBy({
+        by: ['driverId'],
+        where: {
+          driverId: { in: matchingDriverIds },
+          status: { in: ['ASSIGNED', 'CONFIRMED', 'COMPLETED'] },
+          endTime: { lte: now }
         },
-        include: { trip: true }, // Lấy chi tiết điểm đi/đến
-        orderBy: { startTime: 'asc' },
-        take: 1
-      }
+        _count: {
+          tripId: true
+        }
+      });
+
+      const assignmentCountMap: Record<number, number> = {};
+      pastAssignmentsGroup.forEach(g => {
+        assignmentCountMap[g.driverId] = g._count.tripId || 0;
+      });
+
+      // Sắp xếp danh sách ID theo số chuyến giảm dần
+      matchingDriverIds.sort((a, b) => {
+        const countA = assignmentCountMap[a] || 0;
+        const countB = assignmentCountMap[b] || 0;
+        return countB - countA;
+      });
     }
-  })
-]);
+
+    const paginatedIds = matchingDriverIds.slice(skip, skip + limit);
+
+    // Lấy chi tiết thông tin các tài xế trong trang hiện tại
+    const driversData = await this.prisma.driver.findMany({
+      where: {
+        id: { in: paginatedIds }
+      },
+      include: {
+        _count: { select: { assignments: true } },
+        defaultBus: true,
+        assignments: {
+          where: { 
+            status: { in: ['ASSIGNED', 'CONFIRMED'] }
+          },
+          include: { trip: true },
+          orderBy: { startTime: 'asc' },
+          take: 1
+        }
+      }
+    });
+
+    // Tái cấu trúc mảng để bảo toàn thứ tự sắp xếp hoàn hảo của paginatedIds
+    const data = paginatedIds.map(id => driversData.find(d => d.id === id)).filter(Boolean);
+
+    // 🟢 ĐỒNG BỘ: Tính toán số chuyến ĐÃ CHẠY THỰC TẾ (endTime <= now) để hiển thị đồng nhất
+    const driverIds = data.map((d: any) => d.id);
+    const pastCounts = await this.prisma.driverAssignment.groupBy({
+      by: ['driverId'],
+      where: {
+        driverId: { in: driverIds },
+        status: { in: ['ASSIGNED', 'CONFIRMED', 'COMPLETED'] },
+        endTime: { lte: new Date() }
+      },
+      _count: true
+    });
+
+    const countMap: Record<number, number> = {};
+    pastCounts.forEach((pc: any) => {
+      countMap[pc.driverId] = pc._count;
+    });
+
+    const processedData = data.map((d: any) => ({
+      ...d,
+      _count: {
+        ...d._count,
+        assignments: countMap[d.id] || 0
+      }
+    }));
   
     return {
-      data,
+      data: processedData,
       meta: {
         total,
         page,
@@ -528,6 +659,7 @@ const [total, data] = await this.prisma.$transaction([
       }
     };
   }
+
   // 🟢 HÀM FIX DỮ LIỆU: Phân bổ lại tuyến cho 1000 tài xế cũ
   // 🟢 HÀM FIX DỮ LIỆU ĐÃ SỬA: Phân bổ tuyến theo ĐÚNG Khu vực gốc (baseLocation)
   async fixDriverRoutes() {
@@ -535,10 +667,15 @@ const [total, data] = await this.prisma.$transaction([
     let count = 0;
     
     for (const driver of drivers) {
-      // 1. Lọc ra danh sách CHỈ CÁC TUYẾN có đi qua Khu vực gốc của tài xế
-      const validRoutes = ROUTES.filter(r => 
-        r.a === driver.baseLocation || r.b === driver.baseLocation
-      );
+      const baseLoc = driver.baseLocation;
+      const isHCM = baseLoc.includes('Hồ Chí Minh') || baseLoc.includes('Sài Gòn') || baseLoc.includes('Miền Đông') || baseLoc.includes('Miền Tây') || baseLoc.includes('An Sương');
+      
+      // 1. Lọc ra danh sách CHỈ CÁC TUYẾN có đi qua Khu vực gốc của tài xế (So khớp chuỗi thông minh)
+      const validRoutes = ROUTES.filter(r => {
+        const matchA = baseLoc.includes(r.a) || (r.a === 'TP. Hồ Chí Minh' && isHCM);
+        const matchB = baseLoc.includes(r.b) || (r.b === 'TP. Hồ Chí Minh' && isHCM);
+        return matchA || matchB;
+      });
       
       // Nếu tìm thấy tuyến hợp lệ
       if (validRoutes.length > 0) {
@@ -546,7 +683,8 @@ const [total, data] = await this.prisma.$transaction([
         const randomRoute = validRoutes[Math.floor(Math.random() * validRoutes.length)];
         
         // 3. Xếp chiều đi: Chiều mặc định luôn xuất phát từ Bến gốc của tài xế
-        const routeName = randomRoute.a === driver.baseLocation 
+        const matchA = baseLoc.includes(randomRoute.a) || (randomRoute.a === 'TP. Hồ Chí Minh' && isHCM);
+        const routeName = matchA 
           ? `${randomRoute.a} ➔ ${randomRoute.b}` 
           : `${randomRoute.b} ➔ ${randomRoute.a}`;
         
@@ -606,7 +744,7 @@ const [total, data] = await this.prisma.$transaction([
     });
   }
 
-  // 🟢 HÀM 3 ĐÃ SỬA: Sửa tài xế thì sửa luôn cả biển số xe
+  // 🟢 HÀM 3 ĐÃ SỬA: Sửa tài xế thì sửa luôn cả biển số xe (Hỗ trợ cả trường hợp tài xế cũ chưa có xe)
   async updateDriver(id: number, data: any) {
     const driver = await this.prisma.driver.findUnique({ where: { id } });
     
@@ -619,6 +757,23 @@ const [total, data] = await this.prisma.$transaction([
           routeCode: data.routeCode,
           currentLocation: data.baseLocation
         }
+      });
+    } else if (!driver?.defaultBusId && data.plateNumber) {
+      // Nếu tài xế cũ chưa có xe, tự động tạo xe mới và gán
+      const newBus = await this.prisma.bus.create({
+        data: {
+          busCode: `XE-${Date.now().toString().slice(-4)}`,
+          plateNumber: data.plateNumber,
+          busType: 'Limousine 22 phòng',
+          capacity: 22,
+          routeCode: data.routeCode || 'ALL',
+          currentLocation: data.baseLocation || 'Chưa xác định',
+          status: 'READY'
+        }
+      });
+      await this.prisma.driver.update({
+        where: { id },
+        data: { defaultBusId: newBus.id }
       });
     }
 
@@ -647,16 +802,45 @@ const [total, data] = await this.prisma.$transaction([
 
     if (!trip) throw new NotFoundException('Chuyến xe không tồn tại');
     
-    // Chặn xóa nếu đã có khách đặt vé
+    // 🟢 SIẾT CHẶN BẢO MẬT 1: CẤM XÓA CHUYẾN ĐÃ CÓ KHÁCH ĐẶT VÉ
     if (trip._count.orderSeats > 0) {
       throw new ConflictException('Không thể xóa chuyến xe đã có khách đặt vé. Vui lòng hủy vé trước.');
     }
 
+    const now = new Date();
+
+    // 🟢 SIẾT CHẶN BẢO MẬT 2: CẤM XÓA CHUYẾN ĐÃ QUA GIỜ KHỞI HÀNH (BẤT KỂ CÓ VÉ HAY KHÔNG)
+    if (trip.departDate < now) {
+      throw new ConflictException('Không thể xóa chuyến xe đã qua mốc giờ khởi hành nhằm bảo toàn tính minh bạch của lịch sử điều phối.');
+    }
+
+    // 🟢 SIẾT CHẶN BẢO MẬT 3 (THEO LỆNH ADMIN): CHUYẾN ĐÃ CÓ TÀI + SẮP CHẠY TRONG 42H -> CẤM XÓA TUYỆT ĐỐI (BẤT KỂ CÓ KHÁCH HAY CHƯA)
+    const fortyTwoHoursLater = new Date(now.getTime() + 42 * 60 * 60 * 1000);
+    if (trip.driverId && trip.departDate >= now && trip.departDate <= fortyTwoHoursLater) {
+      throw new ConflictException('Không thể xóa chuyến xe đã được xếp tài xế và sắp khởi hành trong 42 giờ tới nhằm bảo đảm cam kết vận tải với Bác tài và duy trì tính ổn định của lộ trình.');
+    }
+
     return this.prisma.$transaction(async (tx) => {
-      // Xóa các phân công tài xế liên quan trước
+      // 1. Xóa các phân công tài xế liên quan trước
       await tx.driverAssignment.deleteMany({ where: { tripId: id } });
+
+      // 2. Nhả tài xế (Cập nhật trạng thái thành AVAILABLE)
+      if (trip.driverId) {
+        await tx.driver.update({
+          where: { id: trip.driverId },
+          data: { status: 'AVAILABLE' }
+        });
+      }
+
+      // 3. Nhả xe/biển số xe (Cập nhật trạng thái thành READY)
+      if (trip.busId) {
+        await tx.bus.update({
+          where: { id: trip.busId },
+          data: { status: 'READY' }
+        });
+      }
       
-      // Xóa chuyến xe
+      // 4. Xóa chuyến xe
       const deleted = await tx.trip.delete({ where: { id } });
 
       // 🟢 GHI NHẬT KÝ HỆ THỐNG
@@ -679,14 +863,14 @@ const [total, data] = await this.prisma.$transaction([
   async autoAssignUpcomingTrips() {
     this.logger.log('🔄 Đang quét các chuyến sắp chạy chưa có tài xế...');
     const now = new Date();
-    // Tìm các chuyến trong vòng 24 tiếng TRƯỚC và 12 tiếng TỚI chưa được gán tài hoặc xe
-    const twelveHoursLater = new Date(now.getTime() + 12 * 60 * 60 * 1000);
+    // 🟢 MỞ RỘNG TẦM NHÌN ĐIỀU PHỐI TỰ ĐỘNG TRONG 168 TIẾNG TỚI (7 NGÀY TỚI) ĐỂ GẮN SỐ LƯỢNG LỚN
+    const oneHundredSixtyEightHoursLater = new Date(now.getTime() + 168 * 60 * 60 * 1000);
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const upcomingOrphanTrips = await this.prisma.trip.findMany({
       where: {
         status: 'PUBLISHED',
-        departDate: { gte: twentyFourHoursAgo, lte: twelveHoursLater },
+        departDate: { gte: twentyFourHoursAgo, lte: oneHundredSixtyEightHoursLater },
         OR: [ { driverId: null }, { busId: null } ]
       }
     });
@@ -699,16 +883,18 @@ const [total, data] = await this.prisma.$transaction([
         // Nếu thiếu tài xế, tự động tìm tài xế tốt nhất
         if (!selectedDriverId) {
           const suggestedDrivers = await this.getSuggestedDrivers(trip.id);
-          if (suggestedDrivers.length > 0) {
-            selectedDriverId = suggestedDrivers[0].id; // Lấy người đầu tiên
+          const freeDrivers = suggestedDrivers.filter(d => !d.isConflicting);
+          if (freeDrivers.length > 0) {
+            selectedDriverId = freeDrivers[0].id; // Lấy người đầu tiên
           }
         }
 
         // Nếu thiếu xe, tự động tìm xe tốt nhất
         if (!selectedBusId) {
           const suggestedBuses = await this.getSuggestedBuses(trip.id);
-          if (suggestedBuses.length > 0) {
-            selectedBusId = suggestedBuses[0].id;
+          const freeBuses = suggestedBuses.filter(b => !b.isConflicting);
+          if (freeBuses.length > 0) {
+            selectedBusId = freeBuses[0].id;
           }
         }
 
@@ -730,7 +916,7 @@ const [total, data] = await this.prisma.$transaction([
   // =========================================================================
   // 🤖 BOT ĐIỀU PHỐI 2: TỰ ĐỘNG CHUYỂN TRẠNG THÁI THEO ĐỒNG HỒ (CHẠY MỖI 5 PHÚT)
   // =========================================================================
-  @Cron('0 */5 * * * *') // Cứ 5 phút quét 1 lần
+
   async autoUpdateRealtimeStatuses() {
     const now = new Date();
 
@@ -741,8 +927,8 @@ const [total, data] = await this.prisma.$transaction([
       where: { 
         status: 'PUBLISHED', 
         departDate: { lte: now },
-        driverId: { not: null }, // 🟢 BẮT BUỘC CÓ TÀI XẾ
-        busId: { not: null }     // 🟢 BẮT BUỘC CÓ XE
+        driverId: { not: null }, 
+        busId: { not: null }     
       }
     });
 
@@ -763,12 +949,48 @@ const [total, data] = await this.prisma.$transaction([
     });
 
     for (const trip of tripsToComplete) {
-      await this.prisma.$transaction([
-        this.prisma.trip.update({ where: { id: trip.id }, data: { status: 'COMPLETED' } }),
-        // Cập nhật vị trí hiện tại của xe về bến mới đến, và cho tài xế đi ngủ
-        ...(trip.driverId ? [this.prisma.driver.update({ where: { id: trip.driverId }, data: { status: 'RESTING', baseLocation: trip.dropoffPoint } })] : []),
-        ...(trip.busId ? [this.prisma.bus.update({ where: { id: trip.busId }, data: { status: 'READY', currentLocation: trip.dropoffPoint } })] : [])
-      ]);
+      const dropoff = trip.dropoffPoint || 'Chưa xác định';
+      
+      await this.prisma.$transaction(async (tx) => {
+        await tx.trip.update({ where: { id: trip.id }, data: { status: 'COMPLETED' } });
+        
+        if (trip.driverId) {
+          await tx.driver.update({ 
+            where: { id: trip.driverId }, 
+            data: { status: 'RESTING', baseLocation: dropoff } 
+          });
+
+          // 🟢 ĐỒNG BỘ BẢNG PHÂN CÔNG: Đảm bảo tài xế có bản ghi hoàn thành chuyến để tính chính xác số ca đã chạy
+          const assignStartTime = new Date(trip.departDate.getTime() - 30 * 60 * 1000);
+          const assignEndTime = trip.arrivalDate || new Date(trip.departDate.getTime() + trip.durationMinutes * 60000);
+          
+          const existingAssign = await tx.driverAssignment.findUnique({ where: { tripId: trip.id } });
+          if (existingAssign) {
+            await tx.driverAssignment.update({
+              where: { tripId: trip.id },
+              data: { status: 'COMPLETED' }
+            });
+          } else {
+            await tx.driverAssignment.create({
+              data: {
+                driverId: trip.driverId,
+                tripId: trip.id,
+                startTime: assignStartTime,
+                endTime: assignEndTime,
+                status: 'COMPLETED'
+              }
+            });
+          }
+        }
+
+        if (trip.busId) {
+          await tx.bus.update({ 
+            where: { id: trip.busId }, 
+            data: { status: 'READY', currentLocation: dropoff } 
+          });
+        }
+      });
+
       this.logger.log(`🏁 Chuyến #${trip.id} đã CẬP BẾN an toàn.`);
     }
 
@@ -777,23 +999,28 @@ const [total, data] = await this.prisma.$transaction([
     // -----------------------------------------------------
     const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
     
-    // Tìm các phân công đã kết thúc quá 2 tiếng mà tài xế vẫn đang RESTING
-    const assignmentsToRelease = await this.prisma.driverAssignment.findMany({
-      where: { 
-        endTime: { lte: twoHoursAgo }, 
-        driver: { status: 'RESTING' } 
-      },
-      include: { driver: true, trip: true }
+    // 🟢 SỬA LỖI ĐỘNG: Tìm cả những tài xế đang RESTING mà không có chuyến nào đang chạy hoặc chuyến đã xong từ lâu
+    const restingDrivers = await this.prisma.driver.findMany({
+      where: { status: 'RESTING' },
+      include: {
+        assignments: {
+          where: { endTime: { gt: twoHoursAgo } } // Kiểm tra xem có chuyến nào vừa kết thúc trong vòng 2 tiếng không
+        }
+      }
     });
 
-    for (const assign of assignmentsToRelease) {
-      await this.prisma.$transaction([
-        this.prisma.driver.update({ where: { id: assign.driverId }, data: { status: 'AVAILABLE' } }),
-        ...(assign.trip.busId ? [this.prisma.bus.update({ where: { id: assign.trip.busId }, data: { status: 'READY' } })] : [])
-      ]);
-      this.logger.log(`☕ Tài xế ${assign.driver.name} đã nghỉ ngơi xong. SẴN SÀNG nhận chuyến mới.`);
+    for (const d of restingDrivers) {
+      // Nếu không có chuyến nào kết thúc gần đây (tức là đã nghỉ quá 2 tiếng hoặc kẹt dữ liệu cũ) -> Wake up!
+      if (d.assignments.length === 0) {
+        await this.prisma.driver.update({
+          where: { id: d.id },
+          data: { status: 'AVAILABLE' }
+        });
+        this.logger.log(`☕ Tài xế ${d.name} đã hoàn tất nghỉ ngơi. Đã chuyển sang trạng thái SẴN SÀNG.`);
+      }
     }
   }
+
   // =======================================================
   // HÀM CẤP CỨU: DỌN DẸP DỮ LIỆU & ĐỒNG BỘ LẠI HỆ THỐNG
   // =======================================================
@@ -802,10 +1029,38 @@ const [total, data] = await this.prisma.$transaction([
     const now = new Date();
 
     // 1. Chốt hạ tất cả chuyến đi trong quá khứ thành COMPLETED
-    await this.prisma.trip.updateMany({
-      where: { arrivalDate: { lte: now }, status: { notIn: ['COMPLETED', 'CANCELLED'] } },
-      data: { status: 'COMPLETED' }
+    const pastTrips = await this.prisma.trip.findMany({
+      where: { arrivalDate: { lte: now }, status: { notIn: ['COMPLETED', 'CANCELLED'] } }
     });
+
+    for (const trip of pastTrips) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.trip.update({ where: { id: trip.id }, data: { status: 'COMPLETED' } });
+        
+        // Tạo bảng ghi DriverAssignment nếu có tài xế để đếm chính xác số chuyến
+        if (trip.driverId) {
+          const assignStartTime = new Date(trip.departDate.getTime() - 30 * 60 * 1000);
+          const assignEndTime = trip.arrivalDate || new Date(trip.departDate.getTime() + trip.durationMinutes * 60000);
+          const exist = await tx.driverAssignment.findUnique({ where: { tripId: trip.id } });
+          if (!exist) {
+            await tx.driverAssignment.create({
+              data: {
+                driverId: trip.driverId,
+                tripId: trip.id,
+                startTime: assignStartTime,
+                endTime: assignEndTime,
+                status: 'COMPLETED'
+              }
+            });
+          } else {
+            await tx.driverAssignment.update({
+              where: { tripId: trip.id },
+              data: { status: 'COMPLETED' }
+            });
+          }
+        }
+      });
+    }
 
     // 2. Chuyển tất cả chuyến đang tới giờ chạy thành RUNNING (Nếu đã có tài xế)
     await this.prisma.trip.updateMany({
@@ -819,7 +1074,7 @@ const [total, data] = await this.prisma.$transaction([
       data: { status: 'RUNNING' }
     });
 
-    // 3. Đánh thức TẤT CẢ tài xế và xe bị kẹt (reset hết về AVAILABLE / READY)
+    // 3. 🟢 ĐÁNH THỨC TẤT CẢ TÀI XẾ VÀ XE (Reset hết về AVAILABLE / READY)
     await this.prisma.driver.updateMany({ data: { status: 'AVAILABLE' } });
     await this.prisma.bus.updateMany({ data: { status: 'READY' } });
 
@@ -830,12 +1085,62 @@ const [total, data] = await this.prisma.$transaction([
       if (trip.busId) await this.prisma.bus.update({ where: { id: trip.busId }, data: { status: 'ON_TRIP' } });
     }
 
-    // 5. Chạy Bot 1 ngay lập tức để lấp đầy các chuyến sắp chạy bị trống
+    // 5. Tái phân bổ và chuẩn hóa tuyến đường cho tất cả Bác tài
+    await this.fixDriverRoutes();
+
+    // 5.5. 🟢 XÓA PHÂN CÔNG CŨ CỦA CÁC CHUYẾN ĐANG CHẠY (RUNNING) VÀ SẮP CHẠY (PUBLISHED) ĐỂ PHÂN CÔNG LẠI TỪ ĐẦU THEO CHUẨN TUYẾN MỚI
+    const activeTrips = await this.prisma.trip.findMany({
+      where: { status: { in: ['RUNNING', 'PUBLISHED'] }, departDate: { gt: new Date(now.getTime() - 24 * 3600 * 1000) } }
+    });
+    for (const t of activeTrips) {
+      await this.prisma.driverAssignment.deleteMany({ where: { tripId: t.id } });
+      await this.prisma.trip.update({
+        where: { id: t.id },
+        data: { driverId: null, busId: null, busPlate: null, driverName: null }
+      });
+    }
+
+    // 5.6 GÁN LẠI CHUẨN XÁC TÀI XẾ THUỘC ĐÚNG TUYẾN CHO CÁC CHUYẾN ĐANG CHẠY
+    const runningTripsToAssign = await this.prisma.trip.findMany({ where: { status: 'RUNNING' } });
+    for (const t of runningTripsToAssign) {
+      const forwardRoute = `${t.from} ➔ ${t.to}`;
+      const matchingDrivers = await this.prisma.driver.findMany({
+        where: { routeCode: forwardRoute, status: 'AVAILABLE' },
+        include: { defaultBus: true },
+        take: 1
+      });
+      if (matchingDrivers.length > 0) {
+        const d = matchingDrivers[0];
+        if (d.defaultBusId) {
+          await this.prisma.trip.update({
+            where: { id: t.id },
+            data: { driverId: d.id, busId: d.defaultBusId, driverName: d.name, busPlate: d.defaultBus?.plateNumber }
+          });
+          await this.prisma.driver.update({ where: { id: d.id }, data: { status: 'ON_TRIP' } });
+          await this.prisma.bus.update({ where: { id: d.defaultBusId }, data: { status: 'ON_TRIP' } });
+          
+          const assignStartTime = new Date(t.departDate.getTime() - 30 * 60 * 1000);
+          const assignEndTime = t.arrivalDate || new Date(t.departDate.getTime() + t.durationMinutes * 60000);
+          await this.prisma.driverAssignment.create({
+            data: {
+              driverId: d.id,
+              tripId: t.id,
+              startTime: assignStartTime,
+              endTime: assignEndTime,
+              status: 'CONFIRMED'
+            }
+          });
+        }
+      }
+    }
+
+    // 6. Chạy Bot 1 ngay lập tức để lấp đầy các chuyến sắp chạy bị trống bằng đúng tài xế thuộc tuyến
     await this.autoAssignUpcomingTrips();
 
     this.logger.log('✅ HOÀN TẤT CHIẾN DỊCH! HỆ THỐNG ĐÃ SẠCH SẼ VÀ SẴN SÀNG.');
-    return { message: 'Đã dọn dẹp dữ liệu, giải phóng tài xế kẹt và tự động gán xe mới thành công!' };
+    return { message: 'Đã chuẩn hóa tuyến đường cho 1.000 Bác tài và tự động tái phân bổ các chuyến sắp chạy thành công!' };
   }
+
   // =======================================================
   // 💣 HÀM HỦY DIỆT: RESET TRẮNG TOÀN BỘ DỮ LIỆU
   // =======================================================

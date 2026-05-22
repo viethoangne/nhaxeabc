@@ -56,7 +56,8 @@ export class LoyaltyService {
         });
 
         if (updateResult.count > 0) {
-          pointsToAdd += (order.tickets * 100); // 100 điểm x số vé
+          // Tính điểm: 100 điểm cho mỗi 10.000đ giá trị vé
+          pointsToAdd += Math.floor(order.amount / 10000) * 100;
           tripsToAdd += 1;
         }
       }
@@ -99,32 +100,59 @@ export class LoyaltyService {
     // 1. Chạy hàm xử lý vé mới như bình thường
     await this.processPendingPoints(userId);
 
-    // --- 🟢 BẮT ĐẦU: THÊM CƠ CHẾ TỰ ĐỘNG PHỤC HỒI ĐIỂM CHO VÉ CŨ ---
-    // --- 🟢 BẮT ĐẦU: THÊM CƠ CHẾ TỰ ĐỘNG PHỤC HỒI ĐIỂM CHO VÉ CŨ ---
-    const actualCompletedOrdersCount = await this.prisma.order.count({
+    // --- 🟢 BẮT ĐẦU: CƠ CHẾ TỰ ĐỘNG PHỤC HỒI & ĐỒNG BỘ ĐIỂM TOÀN DIỆN ---
+    const actualCompletedOrders = await this.prisma.order.findMany({
       where: { 
         userId, 
+        paymentStatus: PaymentStatus.PAID,
         // 🟢 Cho phép lấy cả vé COMPLETED và ARCHIVED
         bookingStatus: { in: [BookingStatus.COMPLETED, BookingStatus.ARCHIVED as any] } 
       }
     });
 
-    const currentUser = await this.prisma.user.findUnique({ where: { id: userId } });
+    const expectedPointsFromCompletedOrders = actualCompletedOrders.reduce((sum, o) => {
+      return sum + (Math.floor(o.amount / 10000) * 100);
+    }, 0);
 
-    // Nếu số chuyến THỰC TẾ lớn hơn số chuyến ĐÃ GHI NHẬN (tức là có vé cũ bị sót)
-    if (currentUser && actualCompletedOrdersCount > currentUser.totalTrips) {
-      const missingTrips = actualCompletedOrdersCount - currentUser.totalTrips;
-      const pointsToRecover = missingTrips * 100;
-
-      // Cộng bù điểm và đồng bộ lại tổng số chuyến
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          points: { increment: pointsToRecover },
-          totalTrips: actualCompletedOrdersCount 
+    const currentUser = await this.prisma.user.findUnique({ 
+      where: { id: userId },
+      include: {
+        vouchers: {
+          include: { voucher: true }
         }
+      }
+    });
+
+    if (currentUser) {
+      // Tính số điểm đã dùng để đổi voucher
+      const pointsSpent = currentUser.vouchers
+        .filter(uv => uv.voucher.costInPoints)
+        .reduce((sum, uv) => sum + (uv.voucher.costInPoints || 0), 0);
+
+      // Tính số điểm điều chỉnh thủ công từ admin log
+      const adminAdjustments = await this.prisma.adminLog.findMany({
+        where: { entityType: 'User', entityId: userId, action: 'ADJUST_POINTS' }
       });
-      this.logger.log(`🔧 Đã tự động phục hồi ${pointsToRecover} điểm cho user từ các vé cũ.`);
+      const manualPoints = adminAdjustments.reduce((sum, log) => {
+        const details = log.details as any;
+        const amount = typeof details?.amount === 'number' ? details.amount : 0;
+        return sum + amount;
+      }, 0);
+
+      // Điểm số chính xác lý thuyết phải có
+      const correctPoints = Math.max(0, expectedPointsFromCompletedOrders - pointsSpent + manualPoints);
+
+      // Đồng bộ lại điểm số và số chuyến đi nếu có lệch
+      if (currentUser.points !== correctPoints || currentUser.totalTrips !== actualCompletedOrders.length) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: {
+            points: correctPoints,
+            totalTrips: actualCompletedOrders.length 
+          }
+        });
+        this.logger.log(`🔧 Đã tự động đồng bộ điểm số (${correctPoints}) và số chuyến (${actualCompletedOrders.length}) chính xác cho user ${userId}.`);
+      }
     }
 
     // Logic tặng mã tân thủ
@@ -135,9 +163,9 @@ export class LoyaltyService {
       });
     }
     const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
-if (!userExists) {
-  return null; // Bỏ qua nếu user không tồn tại (do db reset hoặc lỗi session)
-}
+    if (!userExists) {
+      return null; // Bỏ qua nếu user không tồn tại (do db reset hoặc lỗi session)
+    }
     const hasWelcome = await this.prisma.userVoucher.findFirst({ where: { userId, voucherId: welcomeVoucher.id } });
     if (!hasWelcome) {
       await this.prisma.userVoucher.create({ data: { userId, voucherId: welcomeVoucher.id, isUsed: false } });
@@ -173,6 +201,7 @@ if (!userExists) {
     const completedOrders = await this.prisma.order.findMany({
       where: { 
         userId, 
+        paymentStatus: PaymentStatus.PAID,
         // 🟢 Hiển thị lịch sử cho cả vé COMPLETED và ARCHIVED
         bookingStatus: { in: [BookingStatus.COMPLETED, BookingStatus.ARCHIVED as any] } 
       },
@@ -181,7 +210,7 @@ if (!userExists) {
     
     const earnHistory = completedOrders.map(order => ({
       type: 'earn',
-      amount: 100,
+      amount: Math.floor(order.amount / 10000) * 100,
       description: `Hoàn thành chuyến đi #${order.orderCode}`,
       date: order.updatedAt,
     }));
@@ -308,7 +337,7 @@ if (!userExists) {
           });
 
           if (updateResult.count > 0) {
-            const earnedPoints = order.tickets * 100; // 100 điểm x số vé
+            const earnedPoints = Math.floor(order.amount / 10000) * 100;
             const updatedUser = await this.prisma.user.update({
               where: { id: order.userId! },
               data: {

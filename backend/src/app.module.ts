@@ -20,6 +20,10 @@ import { AuditLogModule } from './audit-log/audit-log.module';
 import { AdminOrdersModule } from './admin-orders/admin-orders.module';
 import { AdminCustomersModule } from './admin-customers/admin-customers.module';
 import { AdminLoyaltyModule } from './admin-loyalty/admin-loyalty.module';
+import { AdminChatModule } from './admin-chat/admin-chat.module';
+import { AdminPayrollModule } from './admin-payroll/admin-payroll.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -42,9 +46,11 @@ import { AdminLoyaltyModule } from './admin-loyalty/admin-loyalty.module';
     AuditLogModule,
     AdminOrdersModule,
     AdminCustomersModule,
-    AdminLoyaltyModule
+    AdminLoyaltyModule,
+    AdminChatModule,
+    AdminPayrollModule
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {}

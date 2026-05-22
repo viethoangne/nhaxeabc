@@ -1,29 +1,33 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Home, 
+  Filter, 
+  Ticket, 
+  User, 
+  Phone, 
+  MapPin, 
+  Bus, 
+  Trash2, 
+  Compass, 
+  ShieldCheck, 
+  AlertCircle, 
+  Sparkles,
+  CircleDot,
+  CheckCircle2,
+  Activity,
+  Clock
+} from 'lucide-react';
 
-const Icons = {
-  ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
-  ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
-  Home: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-  Filter: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
-  RefreshCcw: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>,
-  Ticket: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>,
-  User: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-  Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
-  Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  MapPin: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
-  Bus: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>,
-  Seat: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12"/><path d="M3 16h18"/><path d="M7 16v4a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-4"/></svg>,
-  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-};
-
-// Đã bổ sung thêm các trường time dự phòng vào interface
 interface BookingRecord {
   id: string;
   orderCode: string;
@@ -49,23 +53,35 @@ interface BookingRecord {
   outboundTrip?: any;
   returnTrip?: any;
   seats?: { seatNumber: string; tripDirection: string }[];
-  bookingStatus: 'PENDING' | 'SUCCESS' | 'CANCELLED' | 'string'; // Thêm dòng này vào
+  bookingStatus: 'PENDING' | 'SUCCESS' | 'CANCELLED' | 'string';
 }
 
 export default function HistoryPage() {
+  const t = useTranslations('historyPage');
   const router = useRouter();
   const { data: session, status } = useSession();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | 'PAID' | 'CANCELLED'>('ALL');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'completed' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'oneway' | 'round'>('all');
+
+  // 🟢 TOAST NOTIFICATION STATE
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all';
 
   const formatPhone = (p?: string) => {
-    if (!p) return 'Chưa cập nhật';
+    if (!p) return t('notUpdated');
     return p.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+  };
+
+  const formatPrice = (p: number) => {
+    return p.toLocaleString('vi-VN') + 'đ';
   };
 
   useEffect(() => {
@@ -86,442 +102,553 @@ export default function HistoryPage() {
         setBookings(sortedData);
       })
       .catch(err => {
-        console.error("Lỗi:", err);
+        console.error("Lỗi tải lịch sử:", err);
         setBookings([]);
       })
       .finally(() => setLoading(false));
     } else if (status === 'unauthenticated') {
       setLoading(false);
     }
-    
   }, [session, status]);
 
-  // HÀM XÓA VÉ - ĐÃ FIX THEO CẤU TRÚC payment.controller.ts
-  // HÀM XÓA VÉ
   const handleDeleteBooking = async (bookingId: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa vé này khỏi lịch sử? Hành động này không thể hoàn tác.")) {
+    if (!window.confirm(t('deleteConfirm'))) {
       return;
     }
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      
-      // LOGIC FIX: Đổi từ /payment/${bookingId} thành /history/${bookingId} cho khớp với Controller
       await axios.delete(`${baseUrl}/history/${bookingId}`, {
         headers: { 'ngrok-skip-browser-warning': 'true' }
       });
       
       setBookings(prevBookings => prevBookings.filter(b => b.id !== bookingId));
-      alert("Đã xóa vé thành công!");
+      showToast(t('deleteSuccess'), "success");
     } catch (error) {
       console.error("Lỗi khi xóa vé:", error);
-      alert("Không thể xóa vé lúc này. Vui lòng thử lại sau.");
+      showToast(t('deleteError'), "error");
     }
   };
 
   const filtered = bookings.filter((b) => {
+    // 1. Kiểm tra bộ lọc Loại vé (typeFilter)
+    if (typeFilter !== 'all') {
+      const isRound = b.tripType === 'round';
+      if (typeFilter === 'oneway' && isRound) return false;
+      if (typeFilter === 'round' && !isRound) return false;
+    }
+
+    // 2. Kiểm tra bộ lọc Trạng thái (statusFilter)
     const currentStatus = b.bookingStatus?.toUpperCase();
-  
-    // 1. Lọc theo trạng thái
+    if (statusFilter === 'all') return true;
+
     if (statusFilter === 'cancelled') {
       return currentStatus === 'CANCELLED';
     }
-  
-    // 2. Lọc tất cả (phải xét thêm loại vé nếu có)
-    if (statusFilter === 'all') {
-      if (typeFilter !== 'all') {
-        const isRound = b.tripType === 'round';
-        if (typeFilter === 'oneway' && isRound) return false;
-        if (typeFilter === 'round' && !isRound) return false;
-      }
-      return true; 
-    }
-    // 3. Logic cho upcoming / completed
+
+    if (currentStatus === 'CANCELLED') return false;
+
     const departAt = b.outboundDepartDateSnapshot || b.outboundTrip?.departDate || b.date;
-    if (!departAt || currentStatus === 'CANCELLED') return false;
-  
-    const isUpcoming = new Date(departAt).getTime() > Date.now();
-    if (statusFilter === 'upcoming') return isUpcoming;
-    if (statusFilter === 'completed') return !isUpcoming;
-    // Nếu chọn 'all' (Tất cả), hiện mọi thứ bao gồm cả vé đã hủy
-    if (statusFilter === 'all') {
-      // Lọc theo loại vé nếu có
-      if (typeFilter !== 'all') {
-        const isRound = b.tripType === 'round';
-        if (typeFilter === 'oneway' && isRound) return false;
-        if (typeFilter === 'round' && !isRound) return false;
-      }
-      return true; 
+    const durationMin = b.outboundDurationMinutesSnapshot || b.outboundTrip?.durationMinutes || 240;
+    
+    let arrivalAt = b.outboundArrivalTimeSnapshot || b.outboundTrip?.arrivalDate;
+    if (!arrivalAt && departAt) {
+      const arr = new Date(departAt);
+      arr.setMinutes(arr.getMinutes() + durationMin);
+      arrivalAt = arr;
     }
+
+    if (!departAt) return false;
+  
+    const now = Date.now();
+    const isUpcoming = new Date(departAt).getTime() > now;
+    const isOngoing = !isUpcoming && arrivalAt && new Date(arrivalAt).getTime() > now;
+    const isCompleted = !isUpcoming && !isOngoing;
+
+    if (statusFilter === 'upcoming') return isUpcoming;
+    if (statusFilter === 'ongoing') return isOngoing;
+    if (statusFilter === 'completed') return isCompleted;
+
     return true;
   });
-  // Sau đó ở phần hiển thị, anh dùng filteredOrders.map thay vì orders.map
 
   if (status === 'unauthenticated') {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center max-w-sm w-full">
-          <div className="w-16 h-16 bg-[#FFF0EB] text-[#EF5222] rounded-full flex items-center justify-center mx-auto mb-4">
-            <Icons.User />
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden text-[#333333] transition-colors duration-500">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', damping: 20 }}
+          className="bg-white dark:bg-slate-900 p-10 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 text-center max-w-md w-full relative z-10"
+        >
+          <div className="w-16 h-16 bg-orange-50 dark:bg-orange-950/20 text-orange-500 dark:text-orange-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <User size={32} />
           </div>
-          <h2 className="text-[20px] font-bold text-slate-800 mb-2">Chưa đăng nhập</h2>
-          <p className="text-[14px] text-slate-500 mb-6">Vui lòng đăng nhập để xem lịch sử vé của bạn.</p>
-        </div>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{t('notLoggedInTitle')}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">{t('notLoggedInDesc')}</p>
+          <Link 
+            href="/login" 
+            className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-semibold text-sm transition block shadow-md"
+          >
+            {t('loginBtn')}
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
-  const FilterRadio = ({ name, label, value, checked, onChange }: { name: string, label: string, value: string, checked: boolean, onChange: () => void }) => (
-    <label className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 group ${checked ? 'bg-[#FFF0EB] shadow-sm' : 'hover:bg-slate-50'}`}>
-      <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="absolute opacity-0 w-0 h-0" />
-      <div className={`w-[20px] h-[20px] rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-        checked ? 'border-[#EF5222] bg-white' : 'border-slate-300 group-hover:border-[#EF5222]'
-      }`}>
-        <div className={`w-[10px] h-[10px] bg-[#EF5222] rounded-full transition-transform duration-300 ease-out ${checked ? 'scale-100' : 'scale-0'}`}></div>
+  // --- PREMIUM SIDEBAR TAB BUTTON (MATCHING SEARCH PAGE STYLING) ---
+  const FilterTab = ({ label, desc, checked, onChange, icon: Icon }: { label: string, desc: string, checked: boolean, onChange: () => void, icon?: any }) => (
+    <button
+      onClick={onChange}
+      className={`w-full group relative flex items-center justify-between overflow-hidden rounded-2xl border p-3.5 transition-all duration-300 ${
+        checked 
+        ? 'border-[#ea580c] bg-orange-50/50 dark:bg-[#ea580c]/10 ring-1 ring-[#ea580c]' 
+        : 'border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-950/20 hover:border-orange-200 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-900'
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors shrink-0 ${checked ? 'bg-[#ea580c] text-white' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 shadow-sm border border-slate-100 dark:border-slate-800'}`}>
+          {Icon && <Icon size={18} />}
+        </div>
+        <div className="text-left">
+          <p className={`text-sm font-bold ${checked ? 'text-orange-900 dark:text-orange-200' : 'text-slate-700 dark:text-slate-300'}`}>{label}</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{desc}</p>
+        </div>
       </div>
-      <span className={`text-[14px] transition-all duration-300 ${checked ? 'text-[#EF5222] font-black' : 'text-slate-600 group-hover:text-slate-800 font-medium'}`}>{label}</span>
-    </label>
+      <div className={`h-2 w-2 rounded-full transition-all duration-500 ${checked ? 'bg-[#ea580c] scale-125' : 'bg-slate-200 dark:bg-slate-700 opacity-0'}`} />
+    </button>
   );
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] font-sans pb-24 antialiased">
-      <div className="max-w-[1120px] mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#020617] font-sans pb-28 antialiased relative overflow-hidden text-[#333333] dark:text-slate-300 transition-colors duration-500">
+      
+      {/* 🟢 FLOATING TOAST BANNER */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl backdrop-blur-md border ${
+              toast.type === 'success' ? 'bg-emerald-500/95 border-emerald-400 text-white' :
+              toast.type === 'error' ? 'bg-rose-500/95 border-rose-400 text-white' :
+              'bg-amber-500/95 border-amber-400 text-white'
+            }`}
+          >
+            <div className="p-1 rounded-lg bg-white/20">
+              {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <Activity className="w-6 h-6 animate-pulse" />}
+            </div>
+            <div>
+              <p className="text-xs font-semibold tracking-wider uppercase text-white/80">
+                {toast.type === 'success' ? t('toastSuccess') : toast.type === 'error' ? t('toastWarning') : t('toastInfo')}
+              </p>
+              <p className="text-sm font-bold text-white">{toast.message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Decorative Background Mesh Blowouts */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-orange-400/5 to-rose-400/5 blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-10 left-10 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-blue-400/5 to-indigo-400/5 blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-6xl mx-auto px-4 pt-10 relative z-10">
         
         {/* BREADCRUMB */}
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-8">
           <button 
             onClick={() => router.back()} 
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-white hover:bg-slate-50 hover:shadow-md text-slate-600 transition-all duration-200 mr-4 shadow-sm border border-slate-200"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md text-slate-600 dark:text-slate-400 transition-all duration-200 mr-4 shadow-sm border border-slate-200/80 dark:border-slate-800"
           >
-            <Icons.ChevronLeft />
+            <ChevronLeft size={20} className="stroke-[2.5px]" />
           </button>
-          <div className="flex items-center gap-2.5 text-[14px] text-slate-500 font-medium">
-            <Link href="/" className="hover:text-[#EF5222] transition-colors flex items-center gap-1.5">
-              <Icons.Home /> Trang chủ
+          <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+            <Link href="/" className="hover:text-orange-500 transition-colors flex items-center gap-1.5">
+              <Home size={14} /> {t('home')}
             </Link>
-            <Icons.ChevronRight />
-            <span className="text-slate-800 font-bold">Lịch sử mua vé</span>
+            <ChevronRight size={12} className="text-slate-300 dark:text-slate-700 stroke-[3px]" />
+            <span className="text-orange-600 font-bold">{t('title')}</span>
           </div>
         </div>
 
-        <div className="mb-8">
-          <h1 className="text-[28px] font-bold text-slate-800 tracking-tight">Lịch sử chuyến đi của bạn</h1>
-          <p className="text-[14px] text-slate-500 mt-1">Quản lý, theo dõi trạng thái và tra cứu lại thông tin các vé xe đã đặt.</p>
+        {/* HEADER */}
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 text-orange-600 dark:text-orange-400 px-4 py-1.5 rounded-full w-fit shadow-sm">
+            <Sparkles size={15} />
+            <span className="text-[11px] font-bold tracking-wide uppercase">{t('honorMember')}</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{t('title')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-medium leading-relaxed max-w-xl">{t('subtitle')}</p>
         </div>
 
+        {/* THE 2-COLUMN MODEL */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* CỘT TRÁI: BỘ LỌC */}
-          <div className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-24 z-10">
-            <div className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 overflow-hidden">
+          {/* LEFT STICKY SIDEBAR COLUMN: BỘ LỌC */}
+          <div className="w-full lg:w-[300px] shrink-0 lg:sticky lg:top-24 z-10">
+            <div className="w-full rounded-[32px] border border-white/40 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(234,88,12,0.08)]">
               
-              <div className="px-6 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-[#EF5222]">
-                    <Icons.Filter />
+              {/* Header */}
+              <div className="mb-8 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#ea580c] text-white shadow-lg shadow-orange-200 dark:shadow-none shrink-0">
+                    <Sparkles size={20} />
                   </div>
-                  <h2 className="text-[15px] font-black text-slate-800 uppercase tracking-widest">Bộ lọc</h2>
+                  <div>
+                    <h3 className="text-lg font-bold tracking-tight text-slate-800 dark:text-white">{t('searchFilter')}</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t('historyOptions')}</p>
+                  </div>
                 </div>
 
                 <AnimatePresence>
                   {hasActiveFilters && (
                     <motion.button
-                      initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
-                      whileHover={{ rotate: 180 }}
-                      whileTap={{ scale: 0.9 }}
-                      transition={{ duration: 0.3 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
                       onClick={() => { setStatusFilter('all'); setTypeFilter('all'); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF0EB] text-[#EF5222] hover:bg-[#EF5222] hover:text-white hover:shadow-md transition-colors"
-                      title="Xóa bộ lọc"
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-[#ea580c] transition-all hover:bg-orange-50 dark:hover:bg-orange-950/20 active:scale-95"
                     >
-                      <Icons.RefreshCcw />
+                      {t('clearFilter')}
                     </motion.button>
                   )}
                 </AnimatePresence>
               </div>
 
-              <div className="p-4 border-b border-slate-100">
-                <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">Trạng thái</h3>
-                <div className="space-y-1">
-                  <FilterRadio name="status" value="all" label="Tất cả trạng thái" checked={statusFilter === 'all'} onChange={() => setStatusFilter('all')} />
-                  <FilterRadio name="status" value="upcoming" label="Vé sắp đi" checked={statusFilter === 'upcoming'} onChange={() => setStatusFilter('upcoming')} />
-                  <FilterRadio name="status" value="completed" label="Vé đã hoàn thành" checked={statusFilter === 'completed'} onChange={() => setStatusFilter('completed')} />
-                  <FilterRadio name="status" label="Vé đã hủy" value="cancelled" checked={statusFilter === 'cancelled'} onChange={() => setStatusFilter('cancelled')} />
-                </div>
+              <div className="space-y-8">
+                {/* Section: Trạng thái vé */}
+                <section>
+                  <div className="mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                    <Clock size={18} className="text-[#ea580c]" />
+                    <h4 className="font-bold text-sm uppercase tracking-widest">{t('ticketStatus')}</h4>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <FilterTab desc={t('statusAllDesc')} label={t('statusAll')} checked={statusFilter === 'all'} onChange={() => setStatusFilter('all')} icon={CircleDot} />
+                    <FilterTab desc={t('statusUpcomingDesc')} label={t('statusUpcoming')} checked={statusFilter === 'upcoming'} onChange={() => setStatusFilter('upcoming')} icon={Compass} />
+                    <FilterTab desc={t('statusOngoingDesc')} label={t('statusOngoing')} checked={statusFilter === 'ongoing'} onChange={() => setStatusFilter('ongoing')} icon={Bus} />
+                    <FilterTab desc={t('statusCompletedDesc')} label={t('statusCompleted')} checked={statusFilter === 'completed'} onChange={() => setStatusFilter('completed')} icon={ShieldCheck} />
+                    <FilterTab desc={t('statusCancelledDesc')} label={t('statusCancelled')} checked={statusFilter === 'cancelled'} onChange={() => setStatusFilter('cancelled')} icon={AlertCircle} />
+                  </div>
+                </section>
+
+                {/* Section: Loại vé */}
+                <section>
+                  <div className="mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200 border-t border-slate-100 dark:border-slate-800 pt-6">
+                    <Bus size={18} className="text-[#ea580c]" />
+                    <h4 className="font-bold text-sm uppercase tracking-widest">{t('ticketType')}</h4>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <FilterTab desc={t('typeAllDesc')} label={t('typeAll')} checked={typeFilter === 'all'} onChange={() => setTypeFilter('all')} icon={CircleDot} />
+                    <FilterTab desc={t('typeOnewayDesc')} label={t('typeOneway')} checked={typeFilter === 'oneway'} onChange={() => setTypeFilter('oneway')} icon={Bus} />
+                    <FilterTab desc={t('typeRoundDesc')} label={t('typeRound')} checked={typeFilter === 'round'} onChange={() => setTypeFilter('round')} icon={Ticket} />
+                  </div>
+                </section>
               </div>
 
-              <div className="p-4 bg-slate-50/30">
-                <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">Loại vé</h3>
-                <div className="space-y-1">
-                  <FilterRadio name="type" value="all" label="Tất cả loại vé" checked={typeFilter === 'all'} onChange={() => setTypeFilter('all')} />
-                  <FilterRadio name="type" value="oneway" label="Vé 1 chiều" checked={typeFilter === 'oneway'} onChange={() => setTypeFilter('oneway')} />
-                  <FilterRadio name="type" value="round" label="Vé Khứ hồi" checked={typeFilter === 'round'} onChange={() => setTypeFilter('round')} />
-                </div>
+              <div className="mt-8 rounded-2xl bg-orange-50 dark:bg-orange-950/20 p-3 text-center">
+                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ea580c] dark:text-orange-400">{t('smartSystem')}</p>
               </div>
+
             </div>
           </div>
 
-          {/* CỘT PHẢI: DANH SÁCH VÉ */}
+          {/* RIGHT COLUMN: DANH SÁCH VÉ SANG TRỌNG */}
           <div className="flex-1 w-full space-y-6">
             {loading ? (
               <div className="space-y-6">
                 {[1, 2].map(i => (
-                  <div key={i} className="bg-white rounded-[16px] h-[280px] animate-pulse border border-slate-100 shadow-sm"></div>
+                  <div key={i} className="bg-white dark:bg-slate-900 rounded-[28px] h-56 animate-pulse border border-slate-200/80 dark:border-slate-850 shadow-sm"></div>
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="bg-white rounded-[16px] border border-slate-100 shadow-sm p-16 text-center flex flex-col items-center transition-all hover:shadow-md">
-                <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mb-5">
-                  <Icons.Ticket />
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-sm p-12 text-center flex flex-col items-center max-w-xl mx-auto"
+              >
+                <div className="w-16 h-16 bg-orange-50 dark:bg-orange-950/20 text-orange-500 dark:text-orange-400 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <Ticket size={32} />
                 </div>
-                <h3 className="text-[18px] font-bold text-slate-800 mb-2">Không tìm thấy vé nào</h3>
-                <p className="text-[14px] text-slate-500">Thử thay đổi bộ lọc để xem các vé khác.</p>
+                <h3 className="text-base font-bold text-slate-800 dark:text-white mb-1">{t('noTrips')}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-normal">{t('noTripsDesc')}</p>
                 <button 
                   onClick={() => { setStatusFilter('all'); setTypeFilter('all'); }}
-                  className="mt-6 px-6 py-2.5 bg-[#FFF0EB] text-[#EF5222] font-semibold rounded-xl hover:bg-[#FFE5DB] transition-all duration-200 active:scale-95 text-[14px]"
+                  className="mt-6 px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full text-xs uppercase tracking-wider transition shadow-sm"
                 >
-                  Xóa bộ lọc ngay
+                  {t('viewAllHistory')}
                 </button>
-              </div>
+              </motion.div>
             ) : (
-              <AnimatePresence mode='popLayout'>
-                {filtered.map((item, index) => {
-                  const isRoundTrip = item.tripType === 'round';
-                  
-                  const outboundSeats = item.seats?.filter(s => s.tripDirection === 'outbound') || [];
-                  const returnSeats = item.seats?.filter(s => s.tripDirection === 'return') || [];
+              <div className="space-y-6">
+                <AnimatePresence mode="popLayout">
+                  {filtered.map((item, index) => {
+                    const isRoundTrip = item.tripType === 'round';
+                    const outboundSeats = item.seats?.filter(s => s.tripDirection === 'outbound') || [];
+                    const returnSeats = item.seats?.filter(s => s.tripDirection === 'return') || [];
 
-                  // LOGIC FIX: Hàm quét format thời gian chống mù
-                  const safeFormatTime = (timeStr?: string) => {
-                    if (!timeStr) return '--:--';
-                    // Nếu backend vốn trả về dạng chuỗi HH:mm (ví dụ "18:00")
-                    if (/^\d{1,2}:\d{2}/.test(timeStr)) {
-                      return timeStr.substring(0, 5); 
+                    // Helpers for Date / Time Formatting
+                    const safeFormatTime = (timeStr?: string) => {
+                      if (!timeStr) return '--:--';
+                      if (/^\d{1,2}:\d{2}/.test(timeStr)) {
+                        return timeStr.substring(0, 5); 
+                      }
+                      try {
+                        const dateObj = new Date(timeStr);
+                        if (isNaN(dateObj.getTime())) return timeStr; 
+                        return dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                      } catch {
+                        return '--:--';
+                      }
+                    };
+
+                    const safeFormatDate = (dateStr?: string) => {
+                      if (!dateStr) return '--/--';
+                      try {
+                        const dateObj = new Date(dateStr);
+                        if (isNaN(dateObj.getTime())) return dateStr;
+                        return dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                      } catch {
+                        return '--/--';
+                      }
+                    };
+
+                    // Outbound data
+                    const departAt = item.outboundDepartDateSnapshot || item.outboundTrip?.departDate || item.date;
+                    const exactDepartTime = item.outboundTrip?.departTime || item.outboundTrip?.time || item.time;
+                    const displayOutboundTime = exactDepartTime ? safeFormatTime(exactDepartTime) : safeFormatTime(departAt);
+
+                    const arrivalAt = item.outboundArrivalTimeSnapshot || item.outboundTrip?.arrivalDate;
+                    const exactArrivalTime = item.outboundTrip?.arrivalTime;
+                    const displayOutArrival = exactArrivalTime ? safeFormatTime(exactArrivalTime) : safeFormatTime(arrivalAt);
+
+                    const durationOut = item.outboundDurationMinutesSnapshot || item.outboundTrip?.durationMinutes || item.outboundTrip?.duration;
+                    const busTypeOut = item.outboundBusTypeSnapshot || item.outboundTrip?.busType || 'Limousine';
+
+                    // Return data
+                    const returnDepartAt = item.returnDepartDateSnapshot || item.returnTrip?.departDate || item.returnDate;
+                    const exactReturnTime = item.returnTrip?.departTime || item.returnTrip?.time || item.returnTime;
+                    const displayReturnTime = exactReturnTime ? safeFormatTime(exactReturnTime) : safeFormatTime(returnDepartAt);
+
+                    const returnArrivalAt = item.returnArrivalTimeSnapshot || item.returnTrip?.arrivalDate;
+                    const exactReturnArrivalTime = item.returnTrip?.arrivalTime || item.returnTrip?.expectedArrivalTime;
+                    const displayReturnArrival = exactReturnArrivalTime ? safeFormatTime(exactReturnArrivalTime) : safeFormatTime(returnArrivalAt);
+
+                    const durationReturn = item.returnDurationMinutesSnapshot || item.returnTrip?.durationMinutes || item.returnTrip?.duration;
+                    const busTypeReturn = item.returnBusTypeSnapshot || item.returnTrip?.busType || 'Limousine';
+
+                    const isCancelled = item.bookingStatus === 'CANCELLED';
+                    
+                    const durationMinOut = item.outboundDurationMinutesSnapshot || item.outboundTrip?.durationMinutes || 240;
+                    let arrivalOut = arrivalAt;
+                    if (!arrivalOut && departAt) {
+                      const arr = new Date(departAt);
+                      arr.setMinutes(arr.getMinutes() + durationMinOut);
+                      arrivalOut = arr;
                     }
-                    try {
-                      const dateObj = new Date(timeStr);
-                      if (isNaN(dateObj.getTime())) return timeStr; 
-                      return dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-                    } catch {
-                      return '--:--';
-                    }
-                  };
+                    
+                    const now = Date.now();
+                    const isUpcoming = departAt ? (new Date(departAt).getTime() > now && !isCancelled) : false;
+                    const isOngoing = !isCancelled && !isUpcoming && arrivalOut && (new Date(arrivalOut).getTime() > now);
 
-                  const safeFormatDate = (dateStr?: string) => {
-                    if (!dateStr) return '--/--';
-                    try {
-                      const dateObj = new Date(dateStr);
-                      if (isNaN(dateObj.getTime())) return dateStr;
-                      return dateObj.toLocaleDateString('vi-VN');
-                    } catch {
-                      return '--/--';
-                    }
-                  };
-
-                  // --- XỬ LÝ DỮ LIỆU LƯỢT ĐI ---
-                  const departAt = item.outboundDepartDateSnapshot || item.outboundTrip?.departDate || item.date;
-                  const exactDepartTime = item.outboundTrip?.departTime || item.outboundTrip?.time || item.time;
-                  const displayOutboundTime = exactDepartTime ? safeFormatTime(exactDepartTime) : safeFormatTime(departAt);
-
-                  const arrivalAt = item.outboundArrivalTimeSnapshot || item.outboundTrip?.arrivalDate;
-                  const exactArrivalTime = item.outboundTrip?.arrivalTime;
-                  const displayOutArrival = exactArrivalTime ? safeFormatTime(exactArrivalTime) : safeFormatTime(arrivalAt);
-
-                  const durationOut = item.outboundDurationMinutesSnapshot || item.outboundTrip?.durationMinutes || item.outboundTrip?.duration;
-                  const busTypeOut = item.outboundBusTypeSnapshot || item.outboundTrip?.busType || 'Limousine';
-
-                  // --- XỬ LÝ DỮ LIỆU LƯỢT VỀ ---
-                  const returnDepartAt = item.returnDepartDateSnapshot || item.returnTrip?.departDate || item.returnDate;
-                  const exactReturnTime = item.returnTrip?.departTime || item.returnTrip?.time || item.returnTime;
-                  const displayReturnTime = exactReturnTime ? safeFormatTime(exactReturnTime) : safeFormatTime(returnDepartAt);
-
-                  const returnArrivalAt = item.returnArrivalTimeSnapshot || item.returnTrip?.arrivalDate;
-                  const exactReturnArrivalTime = item.returnTrip?.arrivalTime || item.returnTrip?.expectedArrivalTime;
-                  const displayReturnArrival = exactReturnArrivalTime ? safeFormatTime(exactReturnArrivalTime) : safeFormatTime(returnArrivalAt);
-
-                  const durationReturn = item.returnDurationMinutesSnapshot || item.returnTrip?.durationMinutes || item.returnTrip?.duration;
-                  const busTypeReturn = item.returnBusTypeSnapshot || item.returnTrip?.busType || 'Limousine';
-
-                  const isUpcoming = departAt ? new Date(departAt).getTime() > Date.now() : false;
-
-                  const TimelineRoute = ({ 
-                    title, from, to, deptTimeDisplay, arrTimeDisplay, deptDate, arrDate, duration, busType 
-                  }: { 
-                    title: string; from: string; to: string; deptTimeDisplay: string; arrTimeDisplay: string; deptDate?: string; arrDate?: string; duration?: number; busType: string; isReturn?: boolean 
-                  }) => (
-                    <div className="mb-6 last:mb-0 group/timeline">
-                      <div className="flex items-center gap-3 mb-5">
-                        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#EF5222] bg-[#FFF0EB] px-2.5 py-1 rounded-md">
-                           <Icons.Bus /> {title}
-                        </span>
-                        <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                        <span className="text-[13px] text-slate-500 capitalize font-medium">
-                          {busType}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-stretch gap-5">
-                        <div className="flex flex-col items-end justify-between w-[54px] py-0.5">
-                          <div className="text-[18px] font-black text-slate-800 leading-none tracking-tight">
-                            {deptTimeDisplay}
-                          </div>
-                          <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium py-3 bg-white">
-                            <Icons.Clock />
-                            {duration ? `${Math.floor(duration / 60)}h${duration % 60}p` : '---'}
-                          </div>
-                          <div className="text-[18px] font-black text-slate-500 leading-none tracking-tight">
-                            {arrTimeDisplay}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-center pt-1.5 pb-1.5 relative">
-                          <div className="w-[12px] h-[12px] rounded-full border-[3px] bg-white z-10 border-[#EF5222] shadow-[0_0_0_3px_#FFF0EB]"></div>
-                          <div className="w-[2px] h-full bg-[linear-gradient(to_bottom,#EF5222_50%,transparent_50%)] bg-[length:2px_8px] my-1 opacity-40"></div>
-                          <div className="w-[12px] h-[12px] rounded-full border-[3px] bg-white z-10 border-slate-300"></div>
-                        </div>
-
-                        <div className="flex flex-col justify-between pb-0.5">
-                          <div className="group-hover/timeline:translate-x-1 transition-transform duration-300">
-                            <div className="flex items-center gap-1.5 text-[15px] font-bold text-slate-800">
-                              {from}
-                            </div>
-                            <div className="text-[12px] text-slate-500 mt-1">{safeFormatDate(deptDate)}</div>
-                          </div>
-                          <div className="mt-8 group-hover/timeline:translate-x-1 transition-transform duration-300">
-                            <div className="flex items-center gap-1.5 text-[15px] font-bold text-slate-600">
-                              <span className="text-slate-400"><Icons.MapPin /></span>
-                              {to}
-                            </div>
-                            <div className="text-[12px] text-slate-500 mt-1">{safeFormatDate(arrDate)}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-
-                  return (
-                    <motion.div 
-                      key={item.id || index}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      className="relative group bg-white rounded-[16px] shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 hover:border-orange-100 transition-all duration-300 ease-out hover:-translate-y-1 overflow-hidden p-6"
-                    >
-                      <div className="flex flex-wrap justify-between items-start mb-6 gap-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          
-                          <div className={`flex items-center gap-2 text-[11px] font-bold px-3 py-1.5 rounded-[6px] uppercase tracking-wide transition-colors ${
-                            isUpcoming ? 'bg-[#FFF0EB] text-[#EF5222]' : 'bg-[#F4F4F4] text-slate-500'
-                          }`}>
-                            {isUpcoming && (
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF5222] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#EF5222]"></span>
-                              </span>
-                            )}
-                            {isUpcoming ? 'Vé sắp đi' : 'Vé đã đi'}
-                          </div>
-
-                          <span className="text-[11px] font-bold px-3 py-1.5 rounded-[6px] border border-slate-200 text-slate-600 uppercase tracking-wide">
-                            {isRoundTrip ? 'Khứ hồi' : '1 Chiều'} 
+                    const TimelineRoute = ({ 
+                      title, from, to, deptTimeDisplay, arrTimeDisplay, deptDate, arrDate, duration, busType 
+                    }: { 
+                      title: string; from: string; to: string; deptTimeDisplay: string; arrTimeDisplay: string; deptDate?: string; arrDate?: string; duration?: number; busType: string 
+                    }) => (
+                      <div className="mb-4 last:mb-0 group/timeline">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 px-2.5 py-0.5 rounded-lg shadow-sm">
+                             <Bus size={12} className="stroke-[2.5px]" /> {title}
                           </span>
-                          
-                          <span className="text-[13px] text-slate-500 ml-2 bg-slate-50 px-3 py-1.5 rounded-[8px] border border-slate-100 flex items-center gap-1.5">
-                            <Icons.Ticket /> Mã vé: <strong className="text-slate-800 tracking-wide">{item.orderCode}</strong>
+                          <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                          <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-850">
+                            {busType}
                           </span>
-                        </div>                   
-{/* Thêm vào trong bookings.map */}
-<div className="flex justify-between items-start">
-  {item.bookingStatus === 'CANCELLED' && (
-    <span className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-bold rounded-full border border-red-200">
-      ĐÃ HỦY
-    </span>
-  )}
-</div>
-
-                        <div className="text-right flex items-start gap-4">
-                          <div>
-                            <p className="text-[12px] text-slate-500 mb-0.5">Tổng tiền</p>
-                            <p className="text-[22px] font-black text-[#EF5222] tracking-tight">
-                              {Number(item.amount || 0).toLocaleString('vi-VN')}đ
-                            </p>
+                        </div>
+                        
+                        <div className="flex gap-4 sm:gap-5 items-center">
+                          <div className="flex flex-col items-end justify-between w-[90px] sm:w-[100px] shrink-0 py-0.5">
+                            <span className="text-2xl sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{deptTimeDisplay}</span>
+                            <span className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 bg-orange-50/50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/30 px-2 py-0.5 rounded-lg my-2 shadow-sm leading-none">
+                              {duration ? `${Math.floor(duration / 60)}${t('h')}${duration % 60}${t('m')}` : '---'}
+                            </span>
+                            <span className="text-2xl sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{arrTimeDisplay}</span>
                           </div>
-                          
-                          <button
-                            onClick={() => handleDeleteBooking(item.id)}
-                            className="p-2 -mr-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-200"
-                            title="Xóa vé"
-                          >
-                            <Icons.Trash />
-                          </button>
+
+                          {/* LINE ART INDICATOR */}
+                          <div className="flex flex-col items-center py-1.5 self-stretch relative">
+                            <div className="w-3.5 h-3.5 rounded-full border-[3px] bg-white dark:bg-slate-900 z-10 border-orange-500 shadow-sm"></div>
+                            <div className="w-[2px] flex-grow bg-slate-300 dark:bg-slate-800 my-1 opacity-80 border-dashed border-l-2 border-spacing-2"></div>
+                            <div className="w-3.5 h-3.5 rounded-full border-[3px] bg-white dark:bg-slate-900 z-10 border-slate-400 shadow-sm"></div>
+                          </div>
+
+                          {/* DESTINATIONS DETAILS */}
+                          <div className="flex flex-col justify-between py-0.5 flex-grow space-y-4 overflow-hidden">
+                            <div className="group-hover/timeline:translate-x-1 transition-transform duration-300">
+                              <span className="text-xs font-medium text-slate-400 block mb-0.5 truncate">{t('departure')}</span>
+                              <h5 className="font-semibold text-slate-800 dark:text-white text-lg sm:text-[20px] leading-tight truncate">{from}</h5>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">{safeFormatDate(deptDate)}</p>
+                            </div>
+                            
+                            <div className="group-hover/timeline:translate-x-1 transition-transform duration-300">
+                              <span className="text-xs font-medium text-slate-400 block mb-0.5 truncate">{t('destination')}</span>
+                              <h5 className="font-semibold text-slate-800 dark:text-white text-lg sm:text-[20px] leading-tight flex items-center gap-1.5 truncate">
+                                <MapPin size={16} className="text-orange-500 shrink-0" />
+                                <span className="truncate">{to}</span>
+                              </h5>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">{safeFormatDate(arrDate)}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    );
 
-                      <div className="flex flex-col md:flex-row md:items-stretch gap-8 pt-2">
-                        <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-100 md:pr-8 pb-6 md:pb-0">
-                          <TimelineRoute 
-                            title="Lượt Đi" from={item.from} to={item.to} 
-                            deptTimeDisplay={displayOutboundTime} arrTimeDisplay={displayOutArrival}
-                            deptDate={departAt} arrDate={arrivalAt}
-                            duration={durationOut} busType={busTypeOut} isReturn={false}
-                          />
-                          {isRoundTrip && (
-                            <div className="mt-6 pt-6 border-t border-slate-100 border-dashed">
-                              <TimelineRoute 
-                                title="Lượt Về" from={item.to} to={item.from} 
-                                deptTimeDisplay={displayReturnTime} arrTimeDisplay={displayReturnArrival}
-                                deptDate={returnDepartAt} arrDate={returnArrivalAt}
-                                duration={durationReturn} busType={busTypeReturn} isReturn={true}
-                              />
-                            </div>
-                          )}
+                    return (
+                      <motion.div 
+                        key={item.id || index}
+                        initial={{ opacity: 0, y: 25 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                        className="relative bg-white dark:bg-slate-900 rounded-[28px] shadow-[0_10px_35px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(239,82,34,0.06)] border border-slate-200 dark:border-slate-800 hover:border-orange-200 dark:hover:border-orange-900/40 transition-all duration-300 group overflow-hidden"
+                      >
+                        {/* Ticket cut-out aesthetic line overlay */}
+                        <div className="absolute right-0 md:right-[260px] top-0 bottom-0 pointer-events-none hidden md:flex flex-col justify-between py-6 z-10">
+                          <div className="w-6 h-6 rounded-full bg-[#F8FAFC] dark:bg-[#020617] border border-slate-200/80 dark:border-slate-800 -mr-3 shadow-inner"></div>
+                          <div className="h-full border-l-2 border-dashed border-slate-200 dark:border-slate-800 my-3 opacity-70"></div>
+                          <div className="w-6 h-6 rounded-full bg-[#F8FAFC] dark:bg-[#020617] border border-slate-200/80 dark:border-slate-800 -mr-3 shadow-inner"></div>
                         </div>
 
-                        <div className="w-full md:w-[260px] flex flex-col justify-end">
-                          <div className="space-y-4 mb-5">
-                            <div className="bg-slate-50/50 border border-slate-200/60 rounded-[12px] p-4 group-hover:bg-white transition-colors duration-300">
-                              <div className="flex justify-between items-center text-[14px]">
-                                <span className="text-slate-500 flex items-center gap-1.5"><Icons.Seat /> {isRoundTrip ? 'Ghế đi:' : 'Số ghế:'}</span>
-                                <span className="text-[#EF5222] font-bold text-[15px]">{outboundSeats.length > 0 ? outboundSeats.map(s => s.seatNumber).join(', ') : '--'}</span>
-                              </div>
-                              {isRoundTrip && (
-                                <div className="flex justify-between items-center text-[14px] mt-3 pt-3 border-t border-slate-200/60">
-                                  <span className="text-slate-500 flex items-center gap-1.5"><Icons.Seat /> Ghế về:</span>
-                                  <span className="text-[#EF5222] font-bold text-[15px]">{returnSeats.length > 0 ? returnSeats.map(s => s.seatNumber).join(', ') : '--'}</span>
-                                </div>
+                        {/* Header Segment */}
+                        <div className="p-4 md:px-6 md:py-4 flex flex-wrap justify-between items-center gap-4 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-white dark:to-slate-900">
+                          <div className="flex flex-wrap items-center gap-2.5">
+                            {/* Animated Status Tag */}
+                            <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl uppercase tracking-wide transition-colors shadow-sm ${
+                              isCancelled 
+                                ? 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30'
+                                : isUpcoming 
+                                  ? 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-900/30' 
+                                  : isOngoing
+                                    ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/30'
+                                    : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30'
+                            }`}>
+                              {(isUpcoming || isOngoing) && (
+                                <span className="relative flex h-2 w-2">
+                                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOngoing ? 'bg-blue-500' : 'bg-orange-500'}`}></span>
+                                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isOngoing ? 'bg-blue-500' : 'bg-orange-500'}`}></span>
+                                </span>
                               )}
+                              {isCancelled ? t('cancelled') : isUpcoming ? t('upcoming') : isOngoing ? t('ongoing') : t('completed')}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] px-1 bg-white rounded-lg">
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <span className="text-slate-400 bg-slate-50 p-1.5 rounded-full"><Icons.User /></span>
-                                <span className="font-semibold text-slate-800">{item.customerName || 'Chưa cập nhật'}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <span className="text-slate-400 bg-slate-50 p-1.5 rounded-full"><Icons.Phone /></span>
-                                <span className="font-semibold text-slate-800">{formatPhone(item.customerPhone)}</span>
-                              </div>
+                            <span className="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-950 shadow-sm">
+                              {isRoundTrip ? t('roundTrip') : t('oneWay')} 
+                            </span>
+                            
+                            <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-850 flex items-center gap-1.5 font-medium shadow-sm">
+                              <Ticket size={14} className="text-orange-500 shrink-0" />
+                              <span>{t('orderCode')}</span>
+                              <strong className="text-slate-900 dark:text-white font-bold">{item.orderCode}</strong>
+                            </span>
+                          </div>                   
+
+                          {/* Top Right Pricing & Actions */}
+                          <div className="text-right flex items-center gap-3">
+                            <div>
+                              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 leading-none">{t('totalPayment')}</p>
+                              <p className="text-xl font-bold text-orange-600 mt-1 leading-none">
+                                {formatPrice(Number(item.amount || 0))}
+                              </p>
                             </div>
+                            
+                            <button
+                              onClick={() => handleDeleteBooking(item.id)}
+                              className="p-2.5 text-slate-400 dark:text-slate-500 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-xl transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-rose-500 dark:hover:border-rose-600 shadow-sm"
+                              title={t('deleteTitle')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Content Segment */}
+                        <div className="p-5 md:px-6 md:py-5 flex flex-col md:flex-row gap-6 items-stretch">
+                          
+                          {/* Outbound & Return Timelines */}
+                          <div className="flex-1 pb-5 md:pb-0 md:pr-6">
+                            <TimelineRoute 
+                              title={t('outboundTrip')} from={item.from} to={item.to} 
+                              deptTimeDisplay={displayOutboundTime} arrTimeDisplay={displayOutArrival}
+                              deptDate={departAt} arrDate={arrivalAt}
+                              duration={durationOut} busType={busTypeOut}
+                            />
+                            {isRoundTrip && (
+                              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800 border-dashed">
+                                <TimelineRoute 
+                                  title={t('returnTrip')} from={item.to} to={item.from} 
+                                  deptTimeDisplay={displayReturnTime} arrTimeDisplay={displayReturnArrival}
+                                  deptDate={returnDepartAt} arrDate={returnArrivalAt}
+                                  duration={durationReturn} busType={busTypeReturn}
+                                />
+                              </div>
+                            )}
                           </div>
 
-                          <Link 
-                            href={`/verify/${item.orderCode}`} 
-                            className="w-full bg-[#FFF0EB] text-[#EF5222] border border-transparent hover:border-[#EF5222]/20 hover:bg-[#FFE5DB] transition-all duration-200 active:scale-[0.98] text-center py-3 rounded-[12px] text-[14px] font-bold block shadow-sm"
-                          >
-                            Xem chi tiết vé
-                          </Link>
-                        </div>
-                      </div>
+                          {/* Seats Details & Passenger Side Panel (Right Part) */}
+                          <div className="w-full md:w-[240px] flex flex-col justify-between shrink-0 border-t md:border-t-0 md:border-l border-slate-200/80 dark:border-slate-800 pt-5 md:pt-0 md:pl-6">
+                            
+                            <div className="space-y-3">
+                              {/* Inner card with seats */}
+                              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-850 rounded-2xl p-4 group-hover:bg-orange-50/40 dark:group-hover:bg-orange-950/10 transition-all duration-300 shadow-sm">
+                                <div className="flex justify-between items-center text-xs">
+                                  <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2"><Compass size={14} className="text-orange-500" /> {isRoundTrip ? t('seatsOutbound') : t('seatsNumber')}</span>
+                                  <span className="text-orange-600 dark:text-orange-400 font-bold text-base">{outboundSeats.length > 0 ? outboundSeats.map(s => s.seatNumber).join(', ') : '--'}</span>
+                                </div>
+                                {isRoundTrip && (
+                                  <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2"><Compass size={14} className="text-orange-500" /> {t('seatsReturn')}</span>
+                                    <span className="text-orange-600 dark:text-orange-400 font-bold text-base">{returnSeats.length > 0 ? returnSeats.map(s => s.seatNumber).join(', ') : '--'}</span>
+                                  </div>
+                                )}
+                              </div>
 
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                              {/* Customer metadata summary */}
+                              <div className="space-y-2.5 bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-850 shadow-sm">
+                                <div className="flex items-center gap-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                                  <div className="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 shrink-0">
+                                    <User size={13} />
+                                  </div>
+                                  <span className="truncate">{item.customerName || t('notUpdated')}</span>
+                                </div>
+                                <div className="flex items-center gap-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                                  <div className="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-orange-500 shrink-0">
+                                    <Phone size={13} />
+                                  </div>
+                                  <span>{formatPhone(item.customerPhone)}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Details Invoice Action button */}
+                            <Link 
+                              href={`/verify/${item.orderCode}`} 
+                              className="w-full mt-4 py-3 bg-orange-500 hover:bg-orange-600 text-white transition-all duration-300 font-semibold text-xs uppercase tracking-wider text-center rounded-xl block shadow-sm hover:shadow-md"
+                            >
+                              {t('viewTicket')}
+                            </Link>
+                          </div>
+                        </div>
+
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

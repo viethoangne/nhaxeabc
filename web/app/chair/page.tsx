@@ -1,13 +1,15 @@
 'use client';
 import { API_BASE } from '@/lib/api';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { formatPrice, formatDate, formatTime } from '@/utils/date';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 function normalizeVietnamPhone(phone: string) {
   let value = phone.trim().replace(/[\s.-]/g, '');
@@ -40,6 +42,7 @@ interface RedeemablePromo extends PromoCode {
 }
 
 export default function ChairPage() {
+  const t = useTranslations('chairPage');
   const { data: session, status: sessionStatus } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -63,6 +66,8 @@ export default function ChairPage() {
   const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', email: '' });
   const [phoneError, setPhoneError] = useState(''); 
   const [loading, setLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
+
   const [nameError, setNameError] = useState(''); 
   const [outboundBookedSeats, setOutboundBookedSeats] = useState<string[]>([]);
   const [returnBookedSeats, setReturnBookedSeats] = useState<string[]>([]);
@@ -80,7 +85,7 @@ export default function ChairPage() {
   // ======================================================
   // --- THÊM STATE QUẢN LÝ PHƯƠNG THỨC THANH TOÁN ---
   // ======================================================
-  const [paymentMethod, setPaymentMethod] = useState<'MOMO' | 'BANK'>('MOMO');
+  const [paymentMethod, setPaymentMethod] = useState<'MOMO' | 'BANK' | 'VNPAY'>('MOMO');
   
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [promoTab, setPromoTab] = useState<'my_vouchers' | 'redeem'>('my_vouchers');
@@ -100,6 +105,52 @@ export default function ChairPage() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isOtpVerified, setIsOtpVerified] = useState(false); 
+
+  const [otpArray, setOtpArray] = useState<string[]>(['', '', '', '', '', '']);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    setOtp(otpArray.join(''));
+  }, [otpArray]);
+
+  const handleOtpChange = (value: string, index: number) => {
+    const cleanVal = value.replace(/\D/g, '').slice(-1);
+    const newOtpArray = [...otpArray];
+    newOtpArray[index] = cleanVal;
+    setOtpArray(newOtpArray);
+
+    if (cleanVal && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace') {
+      if (!otpArray[index] && index > 0) {
+        const newOtpArray = [...otpArray];
+        newOtpArray[index - 1] = '';
+        setOtpArray(newOtpArray);
+        otpInputRefs.current[index - 1]?.focus();
+      } else {
+        const newOtpArray = [...otpArray];
+        newOtpArray[index] = '';
+        setOtpArray(newOtpArray);
+      }
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newOtpArray = [...otpArray];
+    for (let i = 0; i < 6; i++) {
+      newOtpArray[i] = pastedData[i] || '';
+    }
+    setOtpArray(newOtpArray);
+    
+    const focusIndex = Math.min(pastedData.length, 5);
+    otpInputRefs.current[focusIndex]?.focus();
+  };
 
   useEffect(() => {
     if (countdown > 0) {
@@ -166,7 +217,7 @@ export default function ChairPage() {
   const handleRedeem = async (promo: RedeemablePromo) => {
     const userId = (session?.user as any)?.id;
     if (!userId) {
-      alert("Vui lòng đăng nhập để đổi quà!");
+      toast.error(t('loginToRedeem'));
       return;
     }
 
@@ -179,11 +230,11 @@ export default function ChairPage() {
       if (response.data) {
         setUserPoints(response.data.newPoints);
         setMyVouchers((prev) => [response.data.newVoucher, ...prev]);
-        alert(`Chúc mừng! Bạn đã đổi thành công mã: ${promo.title}`);
+        toast.success(t('redeemSuccess', { title: promo.title }));
       }
     } catch (error: any) {
       console.error("Lỗi đổi điểm:", error);
-      alert(error.response?.data?.message || "Có lỗi xảy ra khi đổi điểm. Vui lòng thử lại!");
+      toast.error(error.response?.data?.message || t('redeemError'));
     }
   };
 
@@ -209,7 +260,7 @@ export default function ChairPage() {
 
     if (currentSeats.includes(id)) setSeats(currentSeats.filter(s => s !== id));
     else {
-      if (currentSeats.length >= tickets) return alert(`Bạn chỉ được chọn tối đa ${tickets} ghế mỗi chiều.`);
+      if (currentSeats.length >= tickets) return toast.error(t('maxSeatsError', { count: tickets }));
       setSeats([...currentSeats, id]);
     }
   };
@@ -272,14 +323,15 @@ export default function ChairPage() {
     const found = myVouchers.find(v => v.code === code);
     if (found) {
       if (found.isUsed) {
-        alert('Mã ưu đãi này đã được sử dụng!');
+        toast.error(t('usedPromoError'));
         return;
       }
       setAppliedPromo(found);
       setIsPromoModalOpen(false);
       setPromoInput('');
+      toast.success(t('promoSuccess'));
     } else {
-      alert('Mã không hợp lệ hoặc bạn không sở hữu mã này!');
+      toast.error(t('promoError'));
     }
   };
 
@@ -305,38 +357,39 @@ export default function ChairPage() {
   const handleSendOtp = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!customerInfo.email || !emailRegex.test(customerInfo.email.trim())) {
-      return alert("Vui lòng nhập đúng định dạng Email để nhận mã!");
+      return toast.error(t('emailFormatError'));
     }
     
     setLoading(true);
     try {
-      await axios.post('${API_BASE}/otp/send-otp', { email: customerInfo.email.trim() });
+      await axios.post(`${API_BASE}/otp/send-otp`, { email: customerInfo.email.trim() });
+      setOtpArray(['', '', '', '', '', '']);
       setIsOtpSent(true);
       setCountdown(60);
-      alert("Mã OTP đã được gửi vào email của bạn!");
+      toast.success(t('otpSent'));
     } catch (error) {
-      alert("Không thể gửi OTP. Vui lòng kiểm tra lại kết nối!");
+      toast.error(t('otpSendError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length !== 6) return alert("Vui lòng nhập đủ 6 số OTP!");
+    if (otp.length !== 6) return toast.error(t('otpLengthError'));
     
     setLoading(true);
     try {
-      await axios.post('${API_BASE}/otp/verify', { 
+      await axios.post(`${API_BASE}/otp/verify`, { 
         email: customerInfo.email.trim(),
         otp: otp 
       });
       
       setIsOtpVerified(true); 
       setIsOtpSent(false);    
-      alert("Xác thực Email thành công! Bạn có thể tiếp tục thanh toán.");
+      toast.success(t('otpSuccess'));
       
     } catch (error: any) {
-      alert(error.response?.data?.message || "Mã OTP không chính xác hoặc đã hết hạn!");
+      toast.error(error.response?.data?.message || t('otpExpired'));
     } finally {
       setLoading(false);
     }
@@ -344,30 +397,32 @@ export default function ChairPage() {
 
   const handleAction = async () => {
     if (tripType === 'round' && bookingStep === 'outbound') {
-      if (outboundSeats.length < tickets) return alert(`Vui lòng chọn đủ ${tickets} ghế chuyến đi!`);
-      if (!returnTripId) return alert('Lỗi dữ liệu: Không tìm thấy chuyến về.');
+      if (outboundSeats.length < tickets) return toast.error(t('outboundSeatsError', { count: tickets }));
+      if (!returnTripId) return toast.error(t('returnTripError'));
       setBookingStep('return');
       return;
     }
 
     const currentSeats = bookingStep === 'outbound' ? outboundSeats : returnSeats;
-    if (currentSeats.length < tickets) return alert(`Vui lòng chọn đủ ${tickets} ghế.`);
-    if (!isWithinBookingWindow) return alert('Chỉ được đặt vé trước giờ khởi hành ít nhất 3 tiếng.');
+    if (currentSeats.length < tickets) return toast.error(t('seatsError', { count: tickets }));
+    if (!isWithinBookingWindow) return toast.error(t('bookingWindowError'));
 
     const finalName = session?.user?.name ? session.user.name : customerInfo.name.trim();
     const finalEmail = session?.user?.email ? session.user.email : customerInfo.email.trim();
     
-    if (!finalName || !finalEmail) return alert('Vui lòng điền đủ thông tin liên hệ!');
-    if (phoneError || !customerInfo.phone) return alert('Số điện thoại không hợp lệ!');
+    if (!finalName || !finalEmail) return toast.error(t('contactInfoError'));
+    if (phoneError || !customerInfo.phone) return toast.error(t('phoneFormatError'));
   
     if (!session?.user && !isOtpVerified) {
-      return alert("Vui lòng hoàn thành xác thực Email (nhập mã OTP và bấm Xác nhận) trước khi thanh toán!");
+      return toast.error(t('emailOtpError'));
     }
 
     // ======================================================
     // --- KHÔNG CÒN CHẶN NỮA VÌ ĐÃ CÓ VIETQR ---
     // ======================================================
 
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setLoading(true);
     try {
       const payload = {
@@ -381,10 +436,10 @@ export default function ChairPage() {
         price: finalAmount, 
         appliedPromoCode: appliedPromo?.code || null, 
         userId: (session?.user as any)?.id || null,
-        paymentMethod: paymentMethod === 'BANK' ? 'VIETQR' : 'MOMO'
+        paymentMethod: paymentMethod
       };
 
-      const response = await axios.post('${API_BASE}/payment/create-link', payload);
+      const response = await axios.post(`${API_BASE}/payment/create-link`, payload);
       
       if (response.data?.isVietQR) {
         const query = new URLSearchParams({
@@ -393,7 +448,7 @@ export default function ChairPage() {
           seats: outboundSeats.join(','),
           name: finalName, phone: normalizedPhone, email: finalEmail,
           totalPrice: finalAmount.toString(),
-          paymentMethod: 'VIETQR',
+          paymentMethod: response.data?.isVnpay ? 'VNPAY' : 'VIETQR',
           paymentUrl: response.data.checkoutUrl,
           orderCode: response.data.orderCode
         });
@@ -409,46 +464,74 @@ export default function ChairPage() {
         window.location.href = response.data.payUrl;
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra khi tạo giao dịch!');
+      toast.error(error.response?.data?.message || t('createTxError'));
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
+
   };
 
   if (!isMounted) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans antialiased text-slate-700">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] font-sans antialiased text-slate-700 dark:text-slate-300 transition-colors duration-500">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Breadcrumb items={[{ label: 'Kết quả tìm chuyến', href: `/search-trip${searchParams.toString() ? `?${searchParams.toString()}` : ''}` }, { label: 'Chọn ghế & Thanh toán' }]} />
+        <Breadcrumb items={[{ label: t('breadcrumbLookup'), href: `/search-trip${searchParams.toString() ? `?${searchParams.toString()}` : ''}` }, { label: t('breadcrumbSelect') }]} />
 
         <div className="mb-8 mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <button onClick={() => bookingStep === 'return' ? setBookingStep('outbound') : router.back()} className="group flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-wider text-orange-600 transition-colors hover:text-orange-700">
             <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-orange-600 transition-transform group-hover:-translate-x-1">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
             </div>
-            {bookingStep === 'return' ? 'Lùi lại chuyến đi' : 'Trở về tìm kiếm'}
+            {bookingStep === 'return' ? t('backToOutbound') : t('backToSearch')}
           </button>
           {tripType === 'round' && (
             <div className="flex items-center gap-2 text-sm font-medium">
-              <span className={`px-3 py-1 rounded-full ${bookingStep === 'outbound' ? 'bg-orange-100 text-orange-700 font-bold' : 'bg-green-100 text-green-700'}`}>1. Chuyến đi</span>
-              <div className={`h-0.5 w-8 ${bookingStep === 'return' ? 'bg-orange-500' : 'bg-slate-300'}`} />
-              <span className={`px-3 py-1 rounded-full ${bookingStep === 'return' ? 'bg-orange-100 text-orange-700 font-bold' : 'bg-slate-200 text-slate-500'}`}>2. Chuyến về</span>
+              <span className={`px-3 py-1 rounded-full ${bookingStep === 'outbound' ? 'bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 font-bold' : 'bg-green-100 dark:bg-green-950/20 text-green-700 dark:text-green-400'}`}>{t('stepOutbound')}</span>
+              <div className={`h-0.5 w-8 ${bookingStep === 'return' ? 'bg-orange-500' : 'bg-slate-300 dark:bg-slate-800'}`} />
+              <span className={`px-3 py-1 rounded-full ${bookingStep === 'return' ? 'bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>{t('stepReturn')}</span>
             </div>
           )}
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
           <div className="space-y-6 overflow-hidden">
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+            <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+              <div className="mb-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <svg className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <h2 className="text-lg font-bold uppercase text-slate-800 tracking-tight">Thông tin liên hệ</h2>
+                <h2 className="text-lg font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('contactHeader')}</h2>
               </div>
+
+              {!session?.user && (
+                <div className="mb-6 rounded-xl border border-amber-200 dark:border-amber-900/30 bg-gradient-to-r from-amber-50 to-orange-50/70 dark:from-amber-950/20 dark:to-orange-950/10 p-4 shadow-sm flex items-start gap-3">
+                  <div className="rounded-lg bg-amber-500 p-1.5 text-white flex-shrink-0 mt-0.5 animate-bounce">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300">{t('loyaltyPrompt')}</h4>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
+                      {t('loyaltyDesc')}
+                    </p>
+                    <button 
+                      type="button"
+                      onClick={() => signIn('google')}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:from-[#d84315] hover:to-[#e65100] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all active:scale-95 cursor-pointer"
+                    >
+                      {t('googleLogin')}
+                      <svg className="h-3 w-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500">Họ và tên <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400">{t('fullName')} <span className="text-red-500">*</span></label>
                   <input 
                     type="text" 
                     value={customerInfo.name} 
@@ -460,9 +543,9 @@ export default function ChairPage() {
                       if (val.trim().length > 0) {
                         const words = val.trim().split(/\s+/);
                         if (words.length < 2) {
-                          setNameError('Vui lòng nhập đầy đủ Họ và Tên (ít nhất 2 từ)');
+                           setNameError(t('nameFormatError'));
                         } else {
-                          setNameError('');
+                           setNameError('');
                         }
                       } else {
                         setNameError('');
@@ -470,12 +553,12 @@ export default function ChairPage() {
                     }} 
                     className={`w-full rounded-xl border p-3.5 text-sm outline-none transition-all ${
                       session?.user 
-                        ? 'bg-orange-50 border-orange-100 text-orange-800 cursor-not-allowed' 
+                        ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/30 text-orange-850 dark:text-orange-350 cursor-not-allowed' 
                         : nameError 
-                          ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-                          : 'border-slate-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
+                          ? 'border-red-500 bg-red-50 dark:bg-red-950/10 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                          : 'border-slate-300 dark:border-slate-850 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
                     }`} 
-                    placeholder="Ví dụ: Trần H***" 
+                    placeholder={t('namePlaceholder')} 
                   />
                   {nameError && !session?.user && (
                     <p className="text-xs text-red-500 font-semibold animate-pulse">
@@ -485,8 +568,8 @@ export default function ChairPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500">
-                    Số điện thoại <span className="text-red-500">*</span>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    {t('phone')} <span className="text-red-500">*</span>
                   </label>
                   <input 
                     type="tel" 
@@ -497,17 +580,17 @@ export default function ChairPage() {
                       setCustomerInfo({...customerInfo, phone: val});
                       
                       if (val.length > 0 && !isValidVietnamMobile(val)) {
-                        setPhoneError('Số điện thoại không hợp lệ (cần 10 số)');
+                        setPhoneError(t('phoneFormatError'));
                       } else {
                         setPhoneError('');
                       }
                     }} 
                     className={`w-full rounded-xl border p-3.5 text-sm outline-none transition-all ${
                       phoneError 
-                        ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
-                        : 'border-slate-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
+                        ? 'border-red-500 bg-red-50 dark:bg-red-950/10 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
+                        : 'border-slate-300 dark:border-slate-850 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
                     }`} 
-                    placeholder="09xx xxx xxx" 
+                    placeholder={t('phonePlaceholder')} 
                   />
                   {phoneError && (
                     <p className="text-xs text-red-500 font-semibold animate-pulse">
@@ -517,10 +600,10 @@ export default function ChairPage() {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-500">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
                     Email <span className="text-red-500">*</span> 
-                    {session?.user && <span className="text-orange-600 ml-2 font-normal">(Đang sử dụng email tài khoản)</span>}
-                    {isOtpVerified && <span className="text-green-600 ml-2 font-bold">✓ Đã xác thực</span>}
+                    {session?.user && <span className="text-orange-600 dark:text-orange-400 ml-2 font-normal">{t('usingAccountEmail')}</span>}
+                    {isOtpVerified && <span className="text-green-600 dark:text-green-400 ml-2 font-bold">{t('verifiedStatus')}</span>}
                   </label>
                   
                   <div className="flex gap-2">
@@ -533,57 +616,123 @@ export default function ChairPage() {
                         setIsOtpVerified(false); 
                       }} 
                       className={`flex-1 rounded-xl border p-3.5 text-sm outline-none transition-all ${
-                        (session?.user || isOtpVerified) ? 'bg-green-50 border-green-200 text-green-800 cursor-not-allowed' : 'border-slate-300 focus:border-orange-500'
+                        (session?.user || isOtpVerified) 
+                          ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-950/35 text-green-800 dark:text-green-300 cursor-not-allowed' 
+                          : 'border-slate-300 dark:border-slate-850 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:border-orange-500'
                       }`} 
                       placeholder="email@example.com" 
                     />
 
                     {!session?.user && !isOtpVerified && (
-                      <button 
+                      <motion.button 
+                        whileHover={loading || countdown > 0 ? {} : { scale: 1.03 }}
+                        whileTap={loading || countdown > 0 ? {} : { scale: 0.97 }}
                         type="button" 
                         onClick={handleSendOtp} 
-                        disabled={countdown > 0} 
-                        className="px-4 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 disabled:bg-slate-300 transition-all"
+                        disabled={loading || countdown > 0} 
+                        className="px-6 bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:brightness-110 text-white rounded-xl text-xs font-black uppercase tracking-widest disabled:from-slate-350 disabled:to-slate-400 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 shadow-md shadow-orange-500/10 active:scale-95 transition-all duration-300 flex items-center justify-center min-w-[120px] cursor-pointer"
                       >
-                        {countdown > 0 ? `${countdown}s` : 'Xác Minh'}
-                      </button>
+                        {loading ? (
+                          <span className="flex items-center gap-2 justify-center">
+                            <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {t('sending')}
+                          </span>
+                        ) : countdown > 0 ? (
+                          `${countdown}s`
+                        ) : (
+                          t('verifyEmailBtn')
+                        )}
+                      </motion.button>
                     )}
                   </div>
                 </div>
 
                 {!session?.user && isOtpSent && !isOtpVerified && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 md:col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-200">
-                    <label className="text-xs font-bold text-orange-700">Nhập mã xác thực 6 số gửi về email:</label>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" maxLength={6} value={otp} 
-                        onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                        className="flex-1 rounded-xl border-2 border-orange-300 bg-white p-3 text-center text-xl font-black tracking-[0.5em] text-orange-600 outline-none focus:border-orange-500"
-                      />
-                      <button 
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className="space-y-4 md:col-span-2 bg-orange-50/40 dark:bg-orange-950/5 p-5 rounded-2xl border border-orange-100 dark:border-orange-950/20 shadow-sm"
+                  >
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <label className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                        {t('otpEmailLabel')}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={countdown > 0}
+                        className="text-[10px] font-black uppercase tracking-widest text-[#EF5222] hover:underline disabled:text-slate-400 cursor-pointer transition-all"
+                      >
+                        {countdown > 0 ? t('resendOtpAfter', { time: countdown }) : t('resendOtp')}
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                      {/* Giao diện 6 ô nhập mã OTP hiện đại, hiệu ứng VIP */}
+                      <div className="flex gap-2 justify-center w-full sm:w-auto">
+                        {[0, 1, 2, 3, 4, 5].map((idx) => (
+                          <input
+                            key={idx}
+                            ref={(el) => { otpInputRefs.current[idx] = el; }}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={1}
+                            value={otpArray[idx]}
+                            onChange={(e) => handleOtpChange(e.target.value, idx)}
+                            onKeyDown={(e) => handleOtpKeyDown(e, idx)}
+                            onPaste={handleOtpPaste}
+                            className={`w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-2xl border-2 text-center text-xl font-black transition-all duration-300 outline-none
+                              ${otpArray[idx] 
+                                ? 'border-[#EF5222] bg-[#EF5222]/5 dark:bg-[#EF5222]/10 text-[#EF5222] shadow-sm shadow-[#EF5222]/10' 
+                                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:border-[#EF5222]'
+                              }
+                              focus:ring-4 focus:ring-[#EF5222]/10 focus:scale-105 focus:shadow-md focus:shadow-[#EF5222]/5
+                            `}
+                          />
+                        ))}
+                      </div>
+
+                      <motion.button 
+                        whileHover={loading ? {} : { scale: 1.03 }}
+                        whileTap={loading ? {} : { scale: 0.97 }}
                         type="button"
                         onClick={handleVerifyOtp}
-                        className="px-6 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-all"
+                        disabled={loading}
+                        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:brightness-110 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md shadow-orange-500/10 disabled:from-slate-350 disabled:to-slate-400 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 cursor-pointer flex items-center justify-center min-h-[48px]"
                       >
-                        Xác nhận
-                      </button>
+                        {loading ? (
+                          <span className="flex items-center gap-2 justify-center">
+                            <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {t('verifying')}
+                          </span>
+                        ) : (
+                          t('verify')
+                        )}
+                      </motion.button>
                     </div>
                   </motion.div>
                 )}
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden">
+            <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div key={bookingStep} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-                  <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-2">
+                  <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 gap-2">
                     <div className="flex items-center gap-3">
                       <svg className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                      <h2 className="text-lg font-bold uppercase text-slate-800 tracking-tight">Chọn ghế {tripType === 'round' ? (bookingStep === 'outbound' ? '(Lượt Đi)' : '(Lượt Về)') : ''}</h2>
+                      <h2 className="text-lg font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('selectSeatsTitle', { type: tripType === 'round' ? (bookingStep === 'outbound' ? t('outboundLabel') : t('returnLabel')) : '' })}</h2>
                     </div>
-                    <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 dark:bg-orange-950/20 px-3 py-1 text-xs font-bold text-orange-600 dark:text-orange-400">
                       <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span></span>
-                      22 Cabin VIP
+                      {t('cabinVipCount')}
                     </div>
                   </div>
 
@@ -593,24 +742,18 @@ export default function ChairPage() {
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }} 
                       animate={{ opacity: 1, y: 0 }} 
-                      className="mb-8 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 p-4 flex items-start gap-3 shadow-sm"
+                      className="mb-8 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-950 dark:to-slate-900 border border-orange-200 dark:border-orange-900/30 p-4 flex items-start gap-3 shadow-sm"
                     >
                       <div className="text-2xl animate-bounce mt-0.5">✨</div>
                       <div>
-                        <p className="text-sm font-bold text-orange-800">
-                          {session?.user ? 'Trợ lý AI cá nhân hóa' : 'Gợi ý vị trí tốt nhất'}
+                        <p className="text-sm font-bold text-orange-800 dark:text-orange-400">
+                          {session?.user ? t('aiTitle') : t('aiTitleGuest')}
                         </p>
                         
-                        <p className="text-xs text-orange-700 mt-1 leading-relaxed">
+                        <p className="text-xs text-orange-750 dark:text-slate-300 mt-1 leading-relaxed">
                           {session?.user 
-                            ? 'Dựa trên thói quen đi xe của bạn, hệ thống đã tự động chọn sẵn ghế ' 
-                            : 'Để giúp bạn thao tác nhanh hơn, hệ thống đã chọn sẵn một vị trí có tầm nhìn đẹp và thoải mái (ghế '}
-                          <strong className="text-orange-600 text-sm bg-white px-2 py-0.5 rounded border border-orange-200 mx-1">
-                            {currentAiSuggestedSeat}
-                          </strong>
-                          {session?.user 
-                            ? '. Bạn hoàn toàn có thể bỏ chọn và đổi sang ghế khác nếu muốn!' 
-                            : '). Bạn hoàn toàn có thể bỏ chọn và đổi sang ghế khác!'}
+                            ? t('aiDescPersonalized', { seat: currentAiSuggestedSeat }) 
+                            : t('aiDescGuest', { seat: currentAiSuggestedSeat })}
                         </p>
                       </div>
                     </motion.div>
@@ -618,12 +761,12 @@ export default function ChairPage() {
                   {/* ========================================================= */}
 
                   <div className="flex flex-col items-center gap-12 md:flex-row md:justify-around">
-                    {[{ label: 'Tầng dưới', data: seatsTầngDưới }, { label: 'Tầng trên', data: seatsTầngTrên }].map((floor, idx) => (
+                    {[{ label: t('outboundFloor'), data: seatsTầngDưới }, { label: t('returnFloor'), data: seatsTầngTrên }].map((floor, idx) => (
                       <div key={idx} className="w-[180px]">
                         <div className="mb-6 flex items-center justify-center gap-2">
-                          <div className="h-px w-8 bg-slate-200"></div>
+                          <div className="h-px w-8 bg-slate-200 dark:bg-slate-800"></div>
                           <p className="text-center text-xs font-bold uppercase tracking-widest text-slate-400">{floor.label}</p>
-                          <div className="h-px w-8 bg-slate-200"></div>
+                          <div className="h-px w-8 bg-slate-200 dark:bg-slate-800"></div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                         {floor.data.map(seat => {
@@ -641,14 +784,14 @@ export default function ChairPage() {
       disabled={isDisabled} 
       onClick={() => toggleSeat(seat.id, seat.status)} 
       className={`relative flex overflow-hidden h-10 w-full items-center justify-center rounded-lg border-2 text-xs font-bold shadow-sm transition-all ${
-        isSold ? 'border-slate-200 bg-slate-200 text-slate-400 cursor-not-allowed opacity-60' : 
-        isLocked ? 'border-slate-300 bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 
-        isSelected ? 'border-orange-500 bg-orange-50 text-orange-600 ring-4 ring-orange-500/20' : 
-        'border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:text-orange-500'
+        isSold ? 'border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60' : 
+        isLocked ? 'border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50' : 
+        isSelected ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 ring-4 ring-orange-500/20' : 
+        'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-350 hover:border-orange-300 dark:hover:border-orange-900 hover:text-orange-500'
       }`}
     >
       {/* Gạch chéo cho ghế khóa */}
-      {isLocked && <div className="absolute w-full h-[2px] bg-slate-400 -rotate-45"></div>}
+      {isLocked && <div className="absolute w-full h-[2px] bg-slate-400 dark:bg-slate-600 -rotate-45"></div>}
       {seat.id}
     </motion.button>
   );
@@ -664,36 +807,36 @@ export default function ChairPage() {
 
           <aside className="space-y-6">
             <div className="sticky top-6 space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm relative overflow-hidden">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 bg-orange-500 h-full"></div>
-                <h3 className="mb-5 text-base font-bold uppercase text-slate-800 tracking-tight">Hành trình của bạn</h3>
+                <h3 className="mb-5 text-base font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('yourTrip')}</h3>
                 <div className="space-y-0 text-sm">
                   <div className={`relative pl-6 ${tripType === 'round' ? 'pb-6' : ''}`}>
-                    {tripType === 'round' && <div className="absolute left-1.5 top-2 bottom-0 w-[2px] bg-slate-200"></div>}
-                    <div className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-[3px] border-white bg-blue-500 ring-1 ring-slate-200 z-10"></div>
+                    {tripType === 'round' && <div className="absolute left-1.5 top-2 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-800"></div>}
+                    <div className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-[3px] border-white dark:border-slate-900 bg-blue-500 ring-1 ring-slate-200 dark:ring-slate-800 z-10"></div>
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-bold text-slate-800 uppercase text-[13px]">{from} → {to}</p>
-                        <p className="text-xs text-slate-500 mt-1.5"><span className="font-semibold text-blue-600">{formatTime(departureDateObj)}</span> • {formatDate(departureDateObj, 'display')}</p>
+                        <p className="font-bold text-slate-800 dark:text-slate-200 uppercase text-[13px]">{from} → {to}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5"><span className="font-semibold text-blue-600 dark:text-blue-400">{formatTime(departureDateObj)}</span> • {formatDate(departureDateObj, 'display')}</p>
                       </div>
                       <div className="text-right">
-                        <span className="inline-block rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">Lượt đi ({outboundSeats.length}/{tickets})</span>
-                        <p className="mt-1 text-xs font-bold text-orange-500">{outboundSeats.length > 0 ? outboundSeats.join(', ') : 'Chưa chọn'}</p>
+                        <span className="inline-block rounded bg-slate-100 dark:bg-slate-950 px-2 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400">{t('outboundQty', { selected: outboundSeats.length, total: tickets })}</span>
+                        <p className="mt-1 text-xs font-bold text-orange-500">{outboundSeats.length > 0 ? outboundSeats.join(', ') : t('notSelected')}</p>
                       </div>
                     </div>
                   </div>
 
                   {tripType === 'round' && (
                     <div className="relative pl-6">
-                      <div className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-[3px] border-white bg-orange-500 ring-1 ring-slate-200 z-10"></div>
+                      <div className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-[3px] border-white dark:border-slate-900 bg-orange-500 ring-1 ring-slate-200 dark:ring-slate-800 z-10"></div>
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-bold text-slate-800 uppercase text-[13px]">{to} → {from}</p>
-                          <p className="text-xs text-slate-500 mt-1.5"><span className="font-semibold text-orange-600">{formatTime(returnDepartureDateObj)}</span> • {formatDate(returnDepartureDateObj, 'display')}</p>
+                          <p className="font-bold text-slate-800 dark:text-slate-200 uppercase text-[13px]">{to} → {from}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5"><span className="font-semibold text-orange-600 dark:text-orange-400">{formatTime(returnDepartureDateObj)}</span> • {formatDate(returnDepartureDateObj, 'display')}</p>
                         </div>
                         <div className="text-right">
-                          <span className="inline-block rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">Lượt về ({returnSeats.length}/{tickets})</span>
-                          <p className="mt-1 text-xs font-bold text-orange-500">{returnSeats.length > 0 ? returnSeats.join(', ') : 'Chưa chọn'}</p>
+                          <span className="inline-block rounded bg-slate-100 dark:bg-slate-950 px-2 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400">{t('returnQty', { selected: returnSeats.length, total: tickets })}</span>
+                          <p className="mt-1 text-xs font-bold text-orange-500">{returnSeats.length > 0 ? returnSeats.join(', ') : t('notSelected')}</p>
                         </div>
                       </div>
                     </div>
@@ -701,81 +844,81 @@ export default function ChairPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-base font-bold uppercase text-slate-800 tracking-tight">Chi tiết thanh toán</h3>
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+                <h3 className="mb-4 text-base font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('paymentDetails')}</h3>
                 
                 {!isWithinBookingWindow && (
-                  <div className="mb-4 rounded-xl bg-red-50 p-3.5 border border-red-200 text-red-600 text-xs flex items-start gap-2.5">
+                  <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-950/10 p-3.5 border border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 text-xs flex items-start gap-2.5">
                     <svg className="w-5 h-5 shrink-0 mt-0.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    <p className="leading-relaxed"><strong>Không thể đặt vé:</strong> Phải đặt vé trước giờ khởi hành ít nhất <strong>3 tiếng</strong>.</p>
+                    <p className="leading-relaxed"><strong>{t('cannotBook')}:</strong> {t('cannotBookDesc')}</p>
                   </div>
                 )}
 
                 <div className="mb-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-600 uppercase flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase flex items-center gap-1.5">
                       <svg className="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
-                      Ưu đãi & Khuyến mãi
+                      {t('offersAndPromos')}
                     </span>
                   </div>
                   
                   {appliedPromo ? (
-                    <div className="flex items-center justify-between bg-green-50 border border-green-200 p-3 rounded-xl shadow-sm">
+                    <div className="flex items-center justify-between bg-green-50 dark:bg-green-950/15 border border-green-200 dark:border-green-900/30 p-3 rounded-xl shadow-sm">
                       <div>
                         <div className="flex items-center gap-2 mb-0.5">
                           <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          <span className="text-sm font-bold text-green-700">{appliedPromo.code}</span>
+                          <span className="text-sm font-bold text-green-700 dark:text-green-400">{appliedPromo.code}</span>
                         </div>
-                        <p className="text-[11px] text-green-600 font-medium ml-6">{appliedPromo.title}</p>
+                        <p className="text-[11px] text-green-600 dark:text-green-500 font-medium ml-6">{appliedPromo.title}</p>
                       </div>
-                      <button onClick={handleRemovePromo} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded-md border border-slate-200 shadow-sm">
-                        Bỏ chọn
+                      <button onClick={handleRemovePromo} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors bg-white dark:bg-slate-950 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm">
+                        {t('removePromo')}
                       </button>
                     </div>
                   ) : (
                     sessionStatus === 'authenticated' ? (
                       <button 
                         onClick={() => setIsPromoModalOpen(true)}
-                        className="w-full flex items-center justify-between bg-orange-50/50 hover:bg-orange-50 border border-orange-200 border-dashed rounded-xl p-3 transition-colors text-orange-600"
+                        className="w-full flex items-center justify-between bg-orange-50/50 dark:bg-orange-950/5 hover:bg-orange-50 dark:hover:bg-orange-950/15 border border-orange-200 dark:border-orange-900/30 border-dashed rounded-xl p-3 transition-colors text-orange-600 dark:text-orange-400"
                       >
-                        <span className="text-sm font-bold">🎁 Chọn hoặc nhập mã ưu đãi</span>
+                        <span className="text-sm font-bold">{t('selectPromoBtn')}</span>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                       </button>
                     ) : (
-                      <div className="w-full bg-slate-100 border border-slate-200 rounded-xl p-3 text-center text-sm font-medium text-slate-500">
-                        Vui lòng đăng nhập để dùng Ưu đãi
+                      <div className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
+                        {t('loginToUsePromo')}
                       </div>
                     )
                   )}
                 </div>
 
-                <div className="space-y-3 text-sm mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-  <div className="flex justify-between text-slate-600">
-    <span>Lượt đi ({outboundSeats.length}x)</span>
-    {/* ĐÃ SỬA THÀNH outboundTotal */}
-    <span className="font-bold text-slate-800">{formatPrice(outboundTotal)}</span>
-  </div>
-  {tripType === 'round' && (
-    <div className="flex justify-between text-slate-600">
-      <span>Lượt về ({returnSeats.length}x)</span>
-      {/* ĐÃ SỬA THÀNH returnTotal */}
-      <span className="font-bold text-slate-800">{formatPrice(returnTotal)}</span>
-    </div>
-  )}
+                <div className="space-y-3 text-sm mt-4 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>{t('outboundMultiplier', { count: outboundSeats.length })}</span>
+                    {/* ĐÃ SỬA THÀNH outboundTotal */}
+                    <span className="font-bold text-slate-850 dark:text-slate-100">{formatPrice(outboundTotal)}</span>
+                  </div>
+                  {tripType === 'round' && (
+                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                      <span>{t('returnMultiplier', { count: returnSeats.length })}</span>
+                      {/* ĐÃ SỬA THÀNH returnTotal */}
+                      <span className="font-bold text-slate-850 dark:text-slate-100">{formatPrice(returnTotal)}</span>
+                    </div>
+                  )}
                   
                   {appliedPromo && baseTotalAmount > 0 && (
-                    <div className="flex justify-between text-green-600 items-center border-t border-slate-200 pt-2 mt-2">
-                      <span className="font-semibold">Giảm giá voucher</span>
+                    <div className="flex justify-between text-green-600 items-center border-t border-slate-200 dark:border-slate-800 pt-2 mt-2">
+                      <span className="font-semibold">{t('voucherDiscount')}</span>
                       <span className="font-bold">- {formatPrice(discountAmount)}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-end justify-between mt-4 px-1">
-                  <span className="text-sm font-bold uppercase text-slate-500 pb-1">Tổng cộng</span>
+                  <span className="text-sm font-bold uppercase text-slate-500 dark:text-slate-400 pb-1">{t('totalAmount')}</span>
                   <div className="text-right">
                     {appliedPromo && baseTotalAmount > 0 && (
-                      <div className="text-xs text-slate-400 line-through mb-0.5">{formatPrice(baseTotalAmount)}</div>
+                      <div className="text-xs text-slate-450 dark:text-slate-500 line-through mb-0.5">{formatPrice(baseTotalAmount)}</div>
                     )}
                     <span className="text-2xl font-black text-orange-600">{formatPrice(finalAmount)}</span>
                   </div>
@@ -784,31 +927,33 @@ export default function ChairPage() {
                 {/* ====================================================== */}
                 {/* --- CHỌN PHƯƠNG THỨC THANH TOÁN --- */}
                 {/* ====================================================== */}
-                <div className="mt-6 pt-5 border-t border-slate-200">
-                  <h4 className="text-xs font-bold text-slate-600 uppercase mb-3">Phương thức thanh toán</h4>
+                <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800">
+                  <h4 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-3">{t('paymentMethod')}</h4>
                   <div className="space-y-3">
                     
                     {/* Nút MoMo */}
-                    <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'MOMO' ? 'border-[#A50064] bg-pink-50/50 ring-1 ring-[#A50064]' : 'border-slate-200 hover:border-pink-300'}`}>
+                    <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'MOMO' ? 'border-[#A50064] bg-pink-50/50 dark:bg-pink-950/15 ring-1 ring-[#A50064]' : 'border-slate-200 dark:border-slate-850 hover:border-pink-300 dark:hover:border-pink-950/30'}`}>
                       <input type="radio" name="paymentMethod" value="MOMO" checked={paymentMethod === 'MOMO'} onChange={() => setPaymentMethod('MOMO')} className="hidden" />
                       <div className="w-8 h-8 rounded-lg bg-[#A50064] flex items-center justify-center shadow-sm">
                         <span className="text-white font-bold text-[10px]">MoMo</span>
                       </div>
-                      <span className={`text-sm font-bold ${paymentMethod === 'MOMO' ? 'text-[#A50064]' : 'text-slate-700'}`}>Ví điện tử MoMo</span>
+                      <span className={`text-sm font-bold ${paymentMethod === 'MOMO' ? 'text-[#A50064] dark:text-pink-400' : 'text-slate-700 dark:text-slate-350'}`}>{t('momoWallet')}</span>
                       {paymentMethod === 'MOMO' && (
                          <svg className="w-5 h-5 text-[#A50064] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       )}
                     </label>
 
-                    {/* Nút Chuyển khoản */}
-                    <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'BANK' ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500' : 'border-slate-200 hover:border-blue-300'}`}>
-                      <input type="radio" name="paymentMethod" value="BANK" checked={paymentMethod === 'BANK'} onChange={() => setPaymentMethod('BANK')} className="hidden" />
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-[12px]">🏦</span>
+                    {/* Nút VNPAY */}
+                    <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${paymentMethod === 'VNPAY' ? 'border-[#005BAA] bg-blue-50/50 dark:bg-blue-950/15 ring-1 ring-[#005BAA]' : 'border-slate-200 dark:border-slate-850 hover:border-blue-300 dark:hover:border-blue-950/30'}`}>
+                      <input type="radio" name="paymentMethod" value="VNPAY" checked={paymentMethod === 'VNPAY'} onChange={() => setPaymentMethod('VNPAY')} className="hidden" />
+                      <div className="w-8 h-8 rounded-lg bg-[#005BAA] flex items-center justify-center shadow-sm">
+                        <span className="text-white font-black text-[9px] tracking-tighter">VNPAY</span>
                       </div>
-                      <span className={`text-sm font-bold ${paymentMethod === 'BANK' ? 'text-blue-700' : 'text-slate-700'}`}>Chuyển khoản Ngân hàng (VietQR)</span>
-                      {paymentMethod === 'BANK' && (
-                         <svg className="w-5 h-5 text-blue-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="flex flex-col">
+                        <span className={`text-sm font-bold ${paymentMethod === 'VNPAY' ? 'text-[#005BAA] dark:text-blue-400' : 'text-slate-700 dark:text-slate-350'}`}>{t('vnpayGateway')}</span>
+                      </div>
+                      {paymentMethod === 'VNPAY' && (
+                         <svg className="w-5 h-5 text-[#005BAA] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       )}
                     </label>
 
@@ -829,11 +974,11 @@ export default function ChairPage() {
                     !isWithinBookingWindow ||
                     (!session?.user && !isOtpVerified) 
                   }
-                  className="mt-6 w-full flex justify-center items-center gap-2 rounded-xl bg-orange-500 py-4 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
+                  className="mt-6 w-full flex justify-center items-center gap-2 rounded-xl bg-orange-500 py-4 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 disabled:opacity-50 disabled:bg-slate-350 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  ) : tripType === 'round' && bookingStep === 'outbound' ? 'Tiếp tục chọn vé về' : `THANH TOÁN ${paymentMethod === 'MOMO' ? 'MOMO' : ''}`}
+                  ) : tripType === 'round' && bookingStep === 'outbound' ? t('nextStep') : t('payNow', { method: paymentMethod === 'MOMO' ? 'MOMO' : 'VNPAY' })}
                 </motion.button>
               </div>
             </div>
@@ -843,81 +988,81 @@ export default function ChairPage() {
 
       <AnimatePresence>
         {isPromoModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+              className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
-              <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50">
-                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+               <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <svg className="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
-                  Khuyến mãi & Ưu đãi
+                  {t('offersAndPromos')}
                 </h3>
-                <button onClick={() => setIsPromoModalOpen(false)} className="p-2 bg-slate-200 hover:bg-slate-300 rounded-full text-slate-600 transition-colors">
+                <button onClick={() => setIsPromoModalOpen(false)} className="p-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-full text-slate-600 dark:text-slate-400 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
 
-              <div className="p-5 border-b border-slate-100">
+              <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex gap-2">
                   <input 
                     type="text" 
                     value={promoInput}
                     onChange={(e) => setPromoInput(e.target.value)}
-                    placeholder="Nhập mã ưu đãi..." 
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold uppercase outline-none focus:border-orange-500 focus:bg-white transition-colors"
+                    placeholder={t('promoPlaceholder')} 
+                    className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-4 py-2.5 text-sm font-semibold uppercase outline-none focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 transition-colors"
                   />
                   <button 
                     onClick={handleApplyPromoManual}
                     className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
                   >
-                    Áp dụng
+                    {t('apply')}
                   </button>
                 </div>
               </div>
 
-              <div className="flex border-b border-slate-200">
+              <div className="flex border-b border-slate-200 dark:border-slate-800">
                 <button 
                   onClick={() => setPromoTab('my_vouchers')}
-                  className={`flex-1 py-3.5 text-sm font-bold transition-colors relative ${promoTab === 'my_vouchers' ? 'text-orange-600' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`flex-1 py-3.5 text-sm font-bold transition-colors relative ${promoTab === 'my_vouchers' ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'}`}
                 >
-                  Voucher của bạn
+                  {t('myVouchers')}
                   {promoTab === 'my_vouchers' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-500"></div>}
                 </button>
                 <button 
                   onClick={() => setPromoTab('redeem')}
-                  className={`flex-1 py-3.5 text-sm font-bold transition-colors relative ${promoTab === 'redeem' ? 'text-orange-600' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`flex-1 py-3.5 text-sm font-bold transition-colors relative ${promoTab === 'redeem' ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'}`}
                 >
-                  Đổi điểm lấy mã
+                  {t('redeemPoints')}
                   {promoTab === 'redeem' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-500"></div>}
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto flex-1 bg-slate-50/50">
+              <div className="p-5 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900/50">
                 {promoTab === 'my_vouchers' && (
                   <div className="space-y-3">
                     {availableVouchers.length === 0 ? (
-                      <div className="text-center py-8 text-slate-500 text-sm">Bạn chưa có mã ưu đãi nào.</div>
+                      <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">{t('noVouchers')}</div>
                     ) : (
                       availableVouchers.map((voucher) => (
                         <div 
                           key={voucher.id} 
-                          className={`bg-white border rounded-xl p-4 flex items-center justify-between shadow-sm transition-all
-                            ${voucher.isUsed ? 'border-gray-200 opacity-60 grayscale' : 'border-slate-200 hover:border-orange-300'}
+                          className={`bg-white dark:bg-slate-950 border rounded-xl p-4 flex items-center justify-between shadow-sm transition-all
+                            ${voucher.isUsed ? 'border-gray-200 dark:border-slate-900 opacity-60 grayscale' : 'border-slate-200 dark:border-slate-850 hover:border-orange-300 dark:hover:border-orange-900/30'}
                           `}
                         >
                           <div className="flex gap-3 items-center">
-                            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center flex-shrink-0">
                               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                             </div>
                             <div>
-                              <p className="font-bold text-slate-800 text-sm">{voucher.code}</p>
-                              <p className="text-xs text-slate-500 mt-0.5">{voucher.title}</p>
+                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{voucher.code}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{voucher.title}</p>
                               {voucher.isUsed && (
-                                <span className="text-[10px] text-red-500 font-bold uppercase mt-1 inline-block bg-red-50 px-1.5 py-0.5 rounded">
-                                  Đã sử dụng
+                                <span className="text-[10px] text-red-500 font-bold uppercase mt-1 inline-block bg-red-50 dark:bg-red-950/10 px-1.5 py-0.5 rounded">
+                                  {t('used')}
                                 </span>
                               )}
                             </div>
@@ -927,11 +1072,11 @@ export default function ChairPage() {
                             onClick={() => handleSelectVoucher(voucher)}
                             className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors
                               ${voucher.isUsed 
-                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
-                                : 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-500 hover:text-white'}
+                                ? 'bg-gray-100 dark:bg-slate-900 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-slate-800 cursor-not-allowed' 
+                                : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900/30 hover:bg-orange-500 hover:text-white'}
                             `}
                           >
-                            {voucher.isUsed ? 'Đã dùng' : 'Dùng ngay'}
+                            {voucher.isUsed ? t('used') : t('useNow')}
                           </button>
                         </div>
                       ))
@@ -943,33 +1088,33 @@ export default function ChairPage() {
                   <div className="space-y-4">
                     <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl p-4 text-white flex justify-between items-center shadow-md">
                       <div>
-                        <p className="text-xs font-medium opacity-90">Điểm tích lũy hiện tại</p>
-                        <p className="text-2xl font-black">{userPoints} <span className="text-sm font-semibold opacity-80">điểm</span></p>
+                        <p className="text-xs font-medium opacity-90">{t('currentPoints')}</p>
+                        <p className="text-2xl font-black">{userPoints} <span className="text-sm font-semibold opacity-80">{t('pointsUnit')}</span></p>
                       </div>
                       <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                         <svg className="w-6 h-6 text-yellow-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                       </div>
                     </div>
-                    <p className="text-[11px] text-center text-slate-500 italic">* Hoàn thành 1 chuyến đi nhận ngay 100 điểm.</p>
+                    <p className="text-[11px] text-center text-slate-500 dark:text-slate-450 italic">{t('pointsTip')}</p>
 
                     <div className="space-y-3">
                       {redeemableVouchers.map(promo => {
                         const canAfford = userPoints >= promo.cost;
                         return (
-                          <div key={promo.id} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                          <div key={promo.id} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
                             <div>
-                              <p className="font-bold text-slate-800 text-sm">{promo.title}</p>
+                              <p className="font-bold text-slate-800 dark:text-white text-sm">{promo.title}</p>
                               <p className="text-xs font-semibold text-orange-500 mt-0.5 flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                {promo.cost} điểm
+                                {promo.cost} {t('pointsUnit')}
                               </p>
                             </div>
                             <button 
                               disabled={!canAfford}
                               onClick={() => handleRedeem(promo)}
-                              className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${canAfford ? 'bg-slate-800 text-white hover:bg-slate-900 shadow-md active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                              className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${canAfford ? 'bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-200 hover:bg-slate-900 dark:hover:bg-slate-900 shadow-md active:scale-95' : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
                             >
-                              Đổi mã
+                              {t('redeemBtn')}
                             </button>
                           </div>
                         );

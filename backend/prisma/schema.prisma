@@ -40,6 +40,7 @@ model User {
   id           String   @id @default(uuid())
   email        String   @unique
   name         String?
+  phone        String?
   passwordHash String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -171,6 +172,9 @@ model Driver {
   status       DriverStatus @default(AVAILABLE) // Trạng thái chuẩn
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  baseSalary   Int          @default(5000000) // Lương cứng cơ bản (VND)
+  salaryPerKm  Int          @default(2000)    // Tiền công mỗi Km chạy (VND)
+
 
   trips        Trip[]       // Backward compatibility
   
@@ -228,6 +232,7 @@ model Order {
   returnDate                      DateTime?
   tickets                         Int
   amount                          Int
+  refundAmount                    Int           @default(0)  // Số tiền đã hoàn trả thực tế (0 nếu chưa hoàn)
   
   appliedPromoCode                String?
   
@@ -245,6 +250,7 @@ model Order {
   createdAt                       DateTime      @default(now())
   updatedAt                       DateTime      @updatedAt
   qrExpiredAt                     DateTime?     // Thời gian hết hạn mã QR (5 phút)
+  seatSwapCount                   Int           @default(0) // Số lần đổi ghế
   
   outboundArrivalTimeSnapshot     DateTime?
   outboundBusTypeSnapshot         String?
@@ -278,6 +284,7 @@ model Order {
   @@index([paymentStatus])
   @@index([bookingStatus])
   @@index([userId])
+  @@index([customerEmail]) // 🟢 MỚI: Tối ưu hiệu năng cực mạnh cho tính năng thống kê đổi/huỷ vé theo Email
 }
 
 model OrderSeat {
@@ -303,6 +310,7 @@ model OrderSeat {
 enum PaymentMethod { 
   MOMO 
   VIETQR
+  VNPAY
 }
 
 enum PaymentStatus {

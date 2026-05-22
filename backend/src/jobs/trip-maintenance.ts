@@ -196,7 +196,12 @@ async function deleteOldTrips() {
       },
     },
     include: {
-      outboundOrders: true, 
+      outboundOrders: {
+        where: {
+          paymentStatus: 'PAID',
+          bookingStatus: { in: ['CONFIRMED', 'COMPLETED'] }
+        }
+      }, 
     },
   });
 
@@ -213,7 +218,7 @@ async function deleteOldTrips() {
       },
     });
 
-    console.log(`📦 Đã lưu ${ordersToArchive.length} đơn hàng vào lưu trữ.`);
+    console.log(`📦 Đã lưu ${ordersToArchive.length} đơn hàng đã thanh toán vào lưu trữ.`);
   }
 
   // Xóa các chuyến xe đã hết hạn
@@ -256,7 +261,7 @@ async function autoCompleteTrips() {
         if (trip.busId) {
           await tx.bus.update({
             where: { id: trip.busId },
-            data: { currentLocation: trip.to }
+            data: { currentLocation: trip.to, status: 'READY' }
           });
         }
 
@@ -269,6 +274,28 @@ async function autoCompleteTrips() {
               status: 'RESTING' 
             }
           });
+
+          // 🟢 ĐỒNG BỘ DRIVER ASSIGNMENT: Ghi nhận hoàn thành để tính chuẩn số chuyến đã chạy
+          const assignStartTime = new Date(trip.departDate.getTime() - 30 * 60 * 1000);
+          const assignEndTime = trip.arrivalDate || new Date(trip.departDate.getTime() + trip.durationMinutes * 60000);
+          
+          const exist = await tx.driverAssignment.findUnique({ where: { tripId: trip.id } });
+          if (exist) {
+            await tx.driverAssignment.update({
+              where: { tripId: trip.id },
+              data: { status: 'COMPLETED' }
+            });
+          } else {
+            await tx.driverAssignment.create({
+              data: {
+                driverId: trip.driverId,
+                tripId: trip.id,
+                startTime: assignStartTime,
+                endTime: assignEndTime,
+                status: 'COMPLETED'
+              }
+            });
+          }
         }
       });
       console.log(`✅ [Auto-Complete] Đã tự động cập bến chuyến ${trip.id} từ ${trip.from} -> ${trip.to}`);
@@ -278,22 +305,66 @@ async function autoCompleteTrips() {
   }
 }
 
+// 🔥 TỰ ĐỘNG XOÁ ĐƠN HÀNG QUÁ HẠN VÀ NHĂNG GHẾ
+async function cancelExpiredBookings() {
+  const now = new Date();
+  try {
+    const expiredOrders = await prisma.order.findMany({
+      where: {
+        paymentStatus: 'PENDING',
+        bookingStatus: 'HOLD',
+        qrExpiredAt: { lte: now }
+      },
+      select: { id: true, orderCode: true }
+    });
+
+    for (const order of expiredOrders) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          // XOÁ GHẼ TRƯỚC
+          await tx.orderSeat.deleteMany({ where: { orderId: order.id } });
+          // SAU ĐÓ XOÁ ĐƠN HÀNG (không để lại trạng thái CANCELLED gây nhầm lẫn)
+          await tx.order.delete({ where: { id: order.id } });
+          await tx.adminLog.create({
+            data: {
+              action: 'ORDER_UPDATE',
+              entityType: 'ORDER',
+              entityId: order.id.toString(),
+              details: { reason: 'Bot tự động xoá đơn quá hạn thanh toán, giải phóng ghế.' }
+            }
+          });
+        });
+        console.log(`⏳ [Auto-Expire] Đã tự động hủy đơn hàng quá hạn ${order.orderCode} và nhả ghế.`);
+      } catch (err: any) {
+        // Bỏ qua nếu đơn đã bị xoá từ trước (ví dụ: vnpay-return xử lý trước)
+        if (err?.code !== 'P2025') {
+          console.error(`❌ [Auto-Expire] Lỗi xoá đơn ${order.orderCode}:`, err);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`❌ [Auto-Expire] Lỗi dọn dẹp đơn hàng quá hạn:`, error);
+  }
+}
+
 // 🔥 HÀM MỚI: TỰ ĐỘNG ĐIỀU PHỐI (CHẠY MỖI PHÚT)
 async function autoDispatchTrips() {
   const now = new Date();
 
   try {
+    // 🟢 TỰ ĐỘNG DỌN DẸP GIỮ CHỖ QUÁ HẠN 5 PHÚT
+    await cancelExpiredBookings();
     // ---------------------------------------------------------
-    // 0. TỰ ĐỘNG PHÂN CÔNG TÀI & XE (TRƯỚC 10 TIẾNG)
+    // 0. TỰ ĐỘNG PHÂN CÔNG TÀI & XE (TRƯỚC 168 TIẾNG - 7 NGÀY TỚI)
     // ---------------------------------------------------------
-    const tenHoursFromNow = new Date(now.getTime() + 10 * 60 * 60 * 1000);
+    const oneHundredSixtyEightHoursFromNow = new Date(now.getTime() + 168 * 60 * 60 * 1000);
     
-    // Tìm các chuyến chưa có tài xế, và sắp chạy trong vòng 10 tiếng tới
+    // Tìm các chuyến chưa có tài xế, và sắp chạy trong vòng 168 tiếng tới
     const tripsNeedsAssignment = await prisma.trip.findMany({
       where: {
         status: 'PUBLISHED',
         driverId: null, // Chưa được ai phân công
-        departDate: { lte: tenHoursFromNow, gt: now }
+        departDate: { lte: oneHundredSixtyEightHoursFromNow, gt: now }
       }
     });
 
@@ -410,16 +481,6 @@ async function autoDispatchTrips() {
             }
           });
 
-          // B. 🟢 TỰ ĐỘNG CHỐT ĐƠN HÀNG: Cập nhật các đơn đã thanh toán thành COMPLETED
-          await tx.order.updateMany({
-            where: { 
-              outboundTripId: trip.id,
-              paymentStatus: 'PAID',
-              bookingStatus: { not: 'CANCELLED' } // Không đụng tới vé đã huỷ
-            },
-            data: { bookingStatus: 'COMPLETED' }
-          });
-
           // C. 🟢 TỰ ĐỘNG SOÁT GHẾ: Cập nhật tất cả các ghế đã giữ của chuyến này
           await tx.orderSeat.updateMany({
             where: { tripId: trip.id },
@@ -451,7 +512,10 @@ async function autoDispatchTrips() {
           if (trip.busId) {
             await tx.bus.update({
               where: { id: trip.busId },
-              data: { currentLocation: trip.to }
+              data: { 
+                currentLocation: trip.to,
+                status: 'READY'
+              }
             });
           }
 
@@ -461,6 +525,17 @@ async function autoDispatchTrips() {
               data: { 
                 baseLocation: trip.to,
                 status: 'RESTING' 
+              }
+            });
+
+            // Đồng bộ trạng thái Phân công tài xế thành COMPLETED
+            await tx.driverAssignment.updateMany({
+              where: {
+                tripId: trip.id,
+                driverId: trip.driverId
+              },
+              data: {
+                status: 'COMPLETED'
               }
             });
           }
@@ -475,9 +550,54 @@ async function autoDispatchTrips() {
             }
           });
 
+          // 🟢 TỰ ĐỘNG CHỐT ĐƠN HÀNG KHI CHUYẾN XE CẬP BẾN AN TOÀN:
+          // 1. Chốt các đơn một chiều khi chuyến đi kết thúc (cập bến)
+          await tx.order.updateMany({
+            where: { 
+              outboundTripId: trip.id,
+              tripType: 'oneway',
+              paymentStatus: 'PAID',
+              bookingStatus: { not: 'CANCELLED' }
+            },
+            data: { bookingStatus: 'COMPLETED' }
+          });
+
+          // 2. Chốt các đơn khứ hồi khi chuyến về kết thúc (cập bến)
+          await tx.order.updateMany({
+            where: {
+              returnTripId: trip.id,
+              tripType: 'round',
+              paymentStatus: 'PAID',
+              bookingStatus: { not: 'CANCELLED' }
+            },
+            data: { bookingStatus: 'COMPLETED' }
+          });
+
         }); // <-- ĐÂY LÀ DẤU ĐÓNG CỦA BLOCK tx
         console.log(`✅ [Auto] Chuyến ${trip.id} (${trip.from} -> ${trip.to}) đã CẬP BẾN.`);
       }
+    }
+
+    // -----------------------------------------------------
+    // 3. TÀI XẾ NÀO NGHỈ ĐỦ 2 TIẾNG -> ĐỔI THÀNH SẴN SÀNG (AVAILABLE)
+    // -----------------------------------------------------
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    const assignmentsToRelease = await prisma.driverAssignment.findMany({
+      where: { 
+        endTime: { lte: twoHoursAgo }, 
+        driver: { status: 'RESTING' } 
+      },
+      include: { driver: true, trip: true }
+    });
+
+    for (const assign of assignmentsToRelease) {
+      await prisma.$transaction(async (tx) => {
+        await tx.driver.update({ where: { id: assign.driverId }, data: { status: 'AVAILABLE' } });
+        if (assign.trip.busId) {
+          await tx.bus.update({ where: { id: assign.trip.busId }, data: { status: 'READY' } });
+        }
+      });
+      console.log(`☕ [Auto] Tài xế ${assign.driver.name} đã nghỉ ngơi xong. SẴN SÀNG nhận chuyến mới.`);
     }
     
   } catch (error) {
