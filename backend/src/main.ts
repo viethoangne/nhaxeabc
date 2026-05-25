@@ -22,10 +22,28 @@ async function bootstrap() {
     'http://localhost:3000',
     'http://localhost:3002',
     process.env.FRONTEND_URL,
+    'https://nhaxeabc.vercel.app',
   ].filter(Boolean);
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      
+      const cleanedOrigin = origin.replace(/\/$/, '');
+      const isAllowed = allowedOrigins.some(allowed => {
+        const cleanedAllowed = allowed.replace(/\/$/, '');
+        return cleanedAllowed === cleanedOrigin;
+      }) || cleanedOrigin.endsWith('.vercel.app');
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
   });
 
