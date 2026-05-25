@@ -31,18 +31,18 @@ async function bootstrap() {
         callback(null, true);
         return;
       }
-      
+
       const cleanedOrigin = origin.replace(/\/$/, '');
       const isAllowed = allowedOrigins.some(allowed => {
         if (!allowed) return false;
-        const cleanedAllowed = allowed.replace(/\/$/, '');
+        const cleanedAllowed = (allowed || '').replace(/\/$/, '');
         return cleanedAllowed === cleanedOrigin;
       }) || cleanedOrigin.endsWith('.vercel.app');
 
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, false);
+        callback(new Error('Not allowed by CORS'), false);
       }
     },
     credentials: true,
@@ -66,4 +66,4 @@ async function bootstrap() {
   console.log(`Backend đang chạy tại port ${port}`);
 }
 
-bootstrap();
+bootstrap();
