@@ -1242,7 +1242,7 @@ export class PaymentService {
       },
     });
 
-    const processedOrders = [];
+    const processedOrders: any[] = [];
     for (const order of orders) {
       if (!order.customerEmail || order.customerEmail.trim() === '') continue;
       
