@@ -23,7 +23,7 @@ async function bootstrap() {
     'http://localhost:3002',
     process.env.FRONTEND_URL,
     'https://nhaxeabc.vercel.app',
-  ].filter(Boolean);
+  ].filter((v): v is string => Boolean(v));
 
   app.enableCors({
     origin: (origin, callback) => {
