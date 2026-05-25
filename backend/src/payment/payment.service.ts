@@ -842,9 +842,11 @@ export class PaymentService {
           console.log(`[Email Success] Đã gửi vé điện tử thành công cho đơn ${order.orderCode} ở chế độ nền.`);
         } catch (err) {
           console.error('Lỗi sinh ảnh vé hoặc gửi mail ở chế độ nền:', err);
+          throw err;
         }
     } catch (err) {
       console.error('Lỗi sinh ảnh vé hoặc gửi mail:', err);
+      throw err;
     }
   }
 
@@ -1203,14 +1205,22 @@ export class PaymentService {
 
     if (order.paymentStatus === PaymentStatus.PAID) {
       if (order.customerEmail) {
-        await this.sendTicketEmail(order);
-        return { success: true, message: 'Đơn đã thanh toán trước đó. Đã gửi lại email vé thành công!' };
+        try {
+          await this.sendTicketEmail(order);
+          return { success: true, message: 'Đơn đã thanh toán trước đó. Đã gửi lại email vé thành công!' };
+        } catch (err: any) {
+          return { success: false, message: 'Gửi email vé thất bại!', error: err.message || err.toString() };
+        }
       }
       return { success: true, message: 'Đơn đã thanh toán trước đó nhưng không có email!' };
     }
 
-    await this.processOrderSuccess(order.id, { transId: 'LOCAL_TEST' });
-    return { success: true, message: 'Đã xác nhận và gửi mail!' };
+    try {
+      await this.processOrderSuccess(order.id, { transId: 'LOCAL_TEST' });
+      return { success: true, message: 'Đã xác nhận và gửi mail!' };
+    } catch (err: any) {
+      return { success: false, message: 'Xác nhận thất bại hoặc lỗi gửi mail!', error: err.message || err.toString() };
+    }
   }
 
   async resendRecentEmails(days: number = 3) {

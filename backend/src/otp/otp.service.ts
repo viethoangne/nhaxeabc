@@ -220,12 +220,36 @@ export class OtpService {
             servername: 'smtp.gmail.com'
           },
           connectionTimeout: 5000,
-        } as any);
+         } as any);
         await t6.verify();
         results.ip_port587 = 'SUCCESS';
       } catch (e: any) {
         results.ip_port587 = e.message || e.toString();
       }
+    }
+
+    // Test 7: Brevo SMTP on Port 2525 (Checking if port 2525 is unblocked on Railway)
+    try {
+      const net = require('net');
+      await new Promise<void>((resolve, reject) => {
+        const socket = net.createConnection(2525, 'smtp-relay.brevo.com');
+        socket.setTimeout(3000);
+        socket.on('connect', () => {
+          socket.destroy();
+          resolve();
+        });
+        socket.on('timeout', () => {
+          socket.destroy();
+          reject(new Error('Timeout'));
+        });
+        socket.on('error', (err: any) => {
+          socket.destroy();
+          reject(err);
+        });
+      });
+      results.brevo_2525 = 'SUCCESS';
+    } catch (e: any) {
+      results.brevo_2525 = e.message || e.toString();
     }
 
     return results;
