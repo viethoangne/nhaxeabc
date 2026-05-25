@@ -23,7 +23,7 @@ async function bootstrap() {
     'http://localhost:3002',
     process.env.FRONTEND_URL,
     'https://nhaxeabc.vercel.app',
-  ].filter(Boolean);
+  ].filter((v): v is string => Boolean(v));
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -31,18 +31,17 @@ async function bootstrap() {
         callback(null, true);
         return;
       }
-
+      
       const cleanedOrigin = origin.replace(/\/$/, '');
       const isAllowed = allowedOrigins.some(allowed => {
-        if (!allowed) return false;
-        const cleanedAllowed = (allowed || '').replace(/\/$/, '');
+        const cleanedAllowed = allowed.replace(/\/$/, '');
         return cleanedAllowed === cleanedOrigin;
       }) || cleanedOrigin.endsWith('.vercel.app');
 
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'), false);
+        callback(null, false);
       }
     },
     credentials: true,
@@ -50,8 +49,8 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // Railway cung cấp $PORT tự động, fallback về 3001 cho local
-  const port = process.env.PORT || 3001;
+  // Khóa cứng cổng 3001 để khớp với cấu hình Public Networking trên Railway
+  const port = 3001;
   await app.listen(port, '0.0.0.0');
 
   // ✅ LẤY Prisma từ Nest
