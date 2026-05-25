@@ -497,165 +497,211 @@ export class AdminOrdersService {
           const totalPrice = Number(order.amount).toLocaleString('vi-VN');
           const busType = (order as any).outboundBusTypeSnapshot || order.outboundTrip?.busType || 'LIMOUSINE';
 
+          const isRoundTrip = order.tripType === 'round';
+          const ticketHeight = isRoundTrip ? 640 : 510;
+
           const ticketImageBuffer = (await nodeHtmlToImage({
-            puppeteerArgs: { args: ['--no-sandbox'] },
+            puppeteerArgs: {
+              args: ['--no-sandbox', '--disable-setuid-sandbox'],
+              defaultViewport: {
+                width: 840,
+                height: ticketHeight,
+              }
+            },
             html: `
               <html>
                 <head>
-                  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
                   <style>
                     * { box-sizing: border-box; }
                     body { 
                       font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-                      background: transparent;
+                      background: #f1f5f9;
                       margin: 0; 
                       padding: 20px;
-                      width: 900px;
+                      width: 840px;
                     }
-                    .ticket-container {
+                    .ticket {
                       background: #ffffff;
-                      border-radius: 12px;
-                      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+                      border-radius: 20px;
+                      border: 1px solid #e2e8f0;
+                      box-shadow: 0 15px 35px rgba(15, 23, 42, 0.05);
                       overflow: hidden;
-                      width: 100%;
+                      width: 800px;
+                      position: relative;
                     }
-                    .top-line {
-                      height: 6px;
-                      background-color: #EF5222;
-                      width: 100%;
-                    }
-                    .content {
-                      padding: 40px;
-                    }
-                    .header {
-                      display: flex;
-                      justify-content: space-between;
-                      align-items: flex-start;
-                      margin-bottom: 40px;
-                    }
-                    .brand-name {
-                      font-size: 24px;
-                      font-weight: 700;
-                      color: #1e293b;
-                      margin: 0;
-                    }
-                    .brand-sub {
-                      font-size: 10px;
-                      font-weight: 600;
-                      color: #94a3b8;
-                      letter-spacing: 2px;
-                      margin-top: 4px;
-                      text-transform: uppercase;
-                    }
-                    .order-code-wrapper {
-                      text-align: right;
-                    }
-                    .order-code-label {
-                      font-size: 10px;
-                      font-weight: 600;
-                      color: #94a3b8;
-                      text-transform: uppercase;
-                    }
-                    .order-code-val {
-                      font-size: 18px;
-                      font-weight: 700;
-                      color: #EF5222;
-                      margin-top: 4px;
-                      letter-spacing: 1px;
-                    }
-                    
-                    .route-section {
+                    .ticket-header {
+                      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                      padding: 24px 32px;
                       display: flex;
                       justify-content: space-between;
                       align-items: center;
-                      margin-bottom: 40px;
+                      color: #ffffff;
                     }
-                    .route-point {
+                    .brand {
+                      display: flex;
+                      align-items: center;
+                      gap: 10px;
+                    }
+                    .brand-logo {
+                      font-size: 24px;
+                    }
+                    .brand-text {
+                      font-size: 20px;
+                      font-weight: 800;
+                      letter-spacing: 1px;
+                    }
+                    .ticket-type {
+                      font-size: 11px;
+                      font-weight: 700;
+                      letter-spacing: 1.5px;
+                      opacity: 0.9;
+                      text-transform: uppercase;
+                    }
+                    .ticket-body {
+                      padding: 32px;
+                      background: #ffffff;
+                    }
+                    .route-container {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 24px;
+                    }
+                    .station {
                       flex: 1;
                     }
-                    .route-point.right {
+                    .station.align-right {
                       text-align: right;
                     }
-                    .route-label {
-                      font-size: 11px;
+                    .station .label {
+                      font-size: 10px;
+                      font-weight: 700;
                       color: #94a3b8;
+                      letter-spacing: 1px;
+                      margin-bottom: 6px;
                       text-transform: uppercase;
-                      margin-bottom: 8px;
-                      font-weight: 600;
                     }
-                    .route-city {
-                      font-size: 28px;
-                      font-weight: 750;
+                    .station .city {
+                      font-size: 26px;
+                      font-weight: 800;
                       color: #0f172a;
                     }
-                    .route-arrow {
-                      flex: 0 0 auto;
-                      padding: 0 20px;
-                      color: #fca5a5;
-                      margin-top: 15px;
+                    .arrow-container {
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      gap: 12px;
+                      flex: 0 0 160px;
                     }
-                    
+                    .arrow-line {
+                      height: 2px;
+                      background: #e2e8f0;
+                      flex: 1;
+                    }
+                    .arrow-icon {
+                      font-size: 18px;
+                      color: #ea580c;
+                      background: #fff7ed;
+                      width: 36px;
+                      height: 36px;
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      border: 1px solid #ffedd5;
+                    }
+                    .divider-container {
+                      position: relative;
+                      display: flex;
+                      align-items: center;
+                      margin: 16px -32px;
+                      overflow: hidden;
+                    }
+                    .notch {
+                      width: 20px;
+                      height: 20px;
+                      background: #f1f5f9;
+                      border-radius: 50%;
+                      position: absolute;
+                      z-index: 2;
+                      border: 1px solid #e2e8f0;
+                    }
+                    .notch.left {
+                      left: -10px;
+                    }
+                    .notch.right {
+                      right: -10px;
+                    }
+                    .dashed-line {
+                      width: 100%;
+                      height: 2px;
+                      border-top: 2px dashed #e2e8f0;
+                    }
                     .info-grid {
                       display: grid;
                       grid-template-columns: repeat(4, 1fr);
-                      gap: 30px 20px;
-                      border-top: 1px solid #f1f5f9;
-                      padding-top: 30px;
+                      gap: 20px 16px;
+                      margin-top: 24px;
                     }
-                    .info-col {
+                    .info-item {
                       display: flex;
                       flex-direction: column;
                     }
                     .info-label {
                       font-size: 10px;
+                      font-weight: 700;
                       color: #94a3b8;
-                      font-weight: 600;
+                      letter-spacing: 0.8px;
                       text-transform: uppercase;
                       margin-bottom: 6px;
                     }
-                    .info-val {
+                    .info-value {
                       font-size: 14px;
-                      color: #334155;
                       font-weight: 600;
+                      color: #334155;
                     }
-                    .info-sub {
-                      font-size: 12px;
-                      color: #64748b;
-                      font-weight: 400;
-                      margin-top: 4px;
+                    .info-value.highlight {
+                      color: #ea580c;
+                      font-weight: 700;
+                    }
+                    .info-value.price {
+                      font-size: 16px;
+                      font-weight: 800;
+                      color: #0f172a;
+                    }
+                    .info-value.status-paid {
+                      color: #10b981;
+                      font-weight: 700;
+                      font-size: 13px;
                     }
                     .seat-badge {
                       display: inline-block;
-                      padding: 2px 8px;
-                      border: 1px solid #fed7aa;
-                      color: #EF5222;
+                      padding: 3px 10px;
                       background: #fff7ed;
-                      border-radius: 4px;
-                      font-weight: 600;
-                      font-size: 13px;
-                    }
-                    .price-val {
-                      font-size: 18px;
-                      font-weight: 700;
-                      color: #1e293b;
-                    }
-                    .price-val span {
+                      border: 1px solid #ffedd5;
+                      color: #ea580c;
+                      border-radius: 6px;
                       font-size: 12px;
-                      font-weight: 600;
-                      margin-left: 2px;
+                      font-weight: 700;
                     }
-                    .type-val {
-                      color: #3b82f6;
-                    }
-                    .status-val {
-                      display: inline-flex;
+                    .ticket-footer {
+                      background: #f8fafc;
+                      border-top: 1px solid #e2e8f0;
+                      padding: 20px 32px;
+                      display: flex;
+                      justify-content: space-between;
                       align-items: center;
-                      gap: 4px;
-                      color: #10b981;
-                      font-weight: 600;
                     }
-                    .barcode-mock {
-                      height: 35px;
+                    .barcode-wrapper {
+                      display: flex;
+                      flex-direction: column;
+                      align-items: flex-start;
+                      gap: 4px;
+                    }
+                    .barcode {
+                      height: 40px;
+                      width: 160px;
                       background: repeating-linear-gradient(
                         90deg,
                         #1e293b,
@@ -667,102 +713,124 @@ export class AdminOrdersService {
                         transparent 8px,
                         transparent 10px
                       );
-                      opacity: 0.7;
-                      width: 100%;
+                      opacity: 0.85;
+                    }
+                    .barcode-text {
+                      font-size: 9px;
+                      font-weight: 700;
+                      color: #64748b;
+                      letter-spacing: 4px;
+                      text-indent: 4px;
+                      margin-top: 2px;
+                    }
+                    .footer-note {
+                      font-size: 11px;
+                      font-weight: 500;
+                      color: #94a3b8;
+                      font-style: italic;
                     }
                   </style>
                 </head>
                 <body>
-                  <div class="ticket-container">
-                    <div class="top-line"></div>
-                    <div class="content">
+                  <div class="ticket">
+                    <div class="ticket-header">
+                      <div class="brand">
+                        <span class="brand-logo">🚍</span>
+                        <span class="brand-text">NHÀ XE ABC</span>
+                      </div>
+                      <div class="ticket-type">VÉ ĐIỆN TỬ / ELECTRONIC TICKET</div>
+                    </div>
+                    
+                    <div class="ticket-body">
+                      <!-- Route section -->
+                      <div class="route-container">
+                        <div class="station">
+                          <div class="label">ĐIỂM ĐI</div>
+                          <div class="city">${order.from}</div>
+                        </div>
+                        <div class="arrow-container">
+                          <div class="arrow-line"></div>
+                          <div class="arrow-icon">➔</div>
+                          <div class="arrow-line"></div>
+                        </div>
+                        <div class="station align-right">
+                          <div class="label">ĐIỂM ĐẾN</div>
+                          <div class="city">${order.to}</div>
+                        </div>
+                      </div>
                       
-                      <div class="header">
-                        <div>
-                          <div class="brand-name">NHÀ XE ABC</div>
-                          <div class="brand-sub">VIP BOARDING PASS${order.tripType === 'round' ? ' (ROUND TRIP)' : ''}</div>
-                        </div>
-                        <div class="order-code-wrapper">
-                          <div class="order-code-label">MÃ ĐẶT CHỖ</div>
-                          <div class="order-code-val">#${order.orderCode}</div>
-                        </div>
+                      <!-- Divider with notches -->
+                      <div class="divider-container">
+                        <div class="notch left"></div>
+                        <div class="dashed-line"></div>
+                        <div class="notch right"></div>
                       </div>
-
-                      <div class="route-section">
-                        <div class="route-point">
-                          <div class="route-label">ĐIỂM ĐI</div>
-                          <div class="route-city">${order.from}</div>
-                        </div>
-                        <div class="route-arrow">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="${order.tripType === 'round' ? 'M4 12h16M20 12l-6-6M20 12l-6 6 M4 16h16M4 16l6-6M4 16l6 6' : 'M4 12H20M20 12L14 6M20 12L14 18'}" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </div>
-                        <div class="route-point right">
-                          <div class="route-label">ĐIỂM ĐẾN</div>
-                          <div class="route-city">${order.to}</div>
-                        </div>
-                      </div>
-
+                      
+                      <!-- Info Grid -->
                       <div class="info-grid">
-                        <div class="info-col">
-                          <div class="info-label">XUẤT BẾN ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
-                          <div class="info-val">${departureFormatted}</div>
+                        <div class="info-item">
+                          <div class="info-label">MÃ ĐẶT CHỖ</div>
+                          <div class="info-value highlight">#${order.orderCode}</div>
                         </div>
-                        <div class="info-col">
+                        <div class="info-item">
                           <div class="info-label">HÀNH KHÁCH</div>
-                          <div class="info-val">${order.customerName}</div>
-                          <div class="info-sub">${order.customerPhone || ''}</div>
+                          <div class="info-value">${order.customerName}</div>
                         </div>
-                        <div class="info-col">
+                        <div class="info-item">
                           <div class="info-label">SỐ GHẾ CẬP NHẬT</div>
-                          <div><span class="seat-badge">${seatDisplay}</span></div>
+                          <div class="info-value"><span class="seat-badge">${seatDisplay}</span></div>
                         </div>
-                        <div class="info-col">
-                          <div class="info-label">TỔNG THANH TOÁN</div>
-                          <div class="price-val">${totalPrice}<span>đ</span></div>
-                        </div>
-
-                        <div class="info-col">
-                          <div class="info-label">ĐẾN NƠI (DỰ KIẾN) ${order.tripType === 'round' ? '(ĐI)' : ''}</div>
-                          <div class="info-val">${arrivalFormatted}</div>
-                        </div>
-                        <div class="info-col">
+                        <div class="info-item">
                           <div class="info-label">LOẠI XE</div>
-                          <div class="info-val type-val">${busType}</div>
+                          <div class="info-value" style="color: #ea580c; font-weight: 700; text-transform: uppercase;">${busType}</div>
                         </div>
-                        <div class="info-col">
+                        
+                        <div class="info-item">
+                          <div class="info-label">XUẤT BẾN ${isRoundTrip ? '(CHIỀU ĐI)' : ''}</div>
+                          <div class="info-value">${departureFormatted}</div>
+                        </div>
+                        <div class="info-item">
+                          <div class="info-label">ĐẾN NƠI (DỰ KIẾN)</div>
+                          <div class="info-value">${arrivalFormatted}</div>
+                        </div>
+                        <div class="info-item">
+                          <div class="info-label">TỔNG TIỀN</div>
+                          <div class="info-value price">${totalPrice}đ</div>
+                        </div>
+                        <div class="info-item">
                           <div class="info-label">TRẠNG THÁI</div>
-                          <div class="status-val">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Đã thanh toán
+                          <div class="info-value status-paid">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 3px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            ĐÃ THANH TOÁN
                           </div>
                         </div>
-                        <div class="info-col">
-                           <div class="barcode-mock"></div>
-                        </div>
-                        <div class="info-col">
-                          <div class="info-label" style="color: ${swapCount > 0 ? '#f59e0b' : '#94a3b8'};">SỐ LẦN ĐỔI GHẾ</div>
-                          <div style="font-size: 22px; font-weight: 800; color: ${swapCount > 0 ? '#d97706' : '#94a3b8'}; letter-spacing: -0.5px;">
-                            ${swapCount} lần
-                            ${swapCount > 0 ? '<span style="font-size: 10px; font-weight: 600; color: #f59e0b; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: middle;">(ĐÃ ĐỔI)</span>' : ''}
-                          </div>
-                        </div>
-
-                        ${order.tripType === 'round' ? `
-                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
-                          <div class="info-label">XUẤT BẾN (VỀ)</div>
-                          <div class="info-val">${returnDepartureFormatted}</div>
-                        </div>
-                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;">
-                          <div class="info-label">ĐẾN NƠI (VỀ)</div>
-                          <div class="info-val">${returnArrivalFormatted}</div>
-                        </div>
-                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
-                        <div class="info-col" style="border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 5px;"></div>
-                        ` : ''}
                       </div>
 
+                      ${isRoundTrip ? `
+                      <div class="divider-container" style="margin-top: 15px;">
+                        <div class="dashed-line"></div>
+                      </div>
+                      <div class="info-grid" style="margin-top: 15px; padding-top: 0; border-top: none;">
+                        <div class="info-item">
+                          <div class="info-label">XUẤT BẾN (CHIỀU VỀ)</div>
+                          <div class="info-value">${returnDepartureFormatted}</div>
+                        </div>
+                        <div class="info-item">
+                          <div class="info-label">ĐẾN NƠI (CHIỀU VỀ)</div>
+                          <div class="info-value">${returnArrivalFormatted}</div>
+                        </div>
+                        <div class="info-item"></div>
+                        <div class="info-item"></div>
+                      </div>
+                      ` : ''}
+                    </div>
+                    
+                    <div class="ticket-footer">
+                      <div class="barcode-wrapper">
+                        <div class="barcode"></div>
+                        <div class="barcode-text">${order.orderCode}</div>
+                      </div>
+                      <div class="footer-note">Cảm ơn quý khách đã đồng hành cùng Nhà xe ABC!</div>
                     </div>
                   </div>
                 </body>
