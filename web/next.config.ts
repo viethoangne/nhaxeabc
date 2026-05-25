@@ -20,10 +20,12 @@ const nextConfig: NextConfig = {
 
   // Rewrite API sang backend
   async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const destinationUrl = backendUrl.replace(/\/$/, '');
     return [
       {
         source: '/api/:path((?!auth).*)', 
-        destination: 'http://localhost:3001/api/:path*',
+        destination: `${destinationUrl}/:path*`,
       },
     ];
   },
