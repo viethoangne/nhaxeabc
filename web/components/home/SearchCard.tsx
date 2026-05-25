@@ -283,7 +283,7 @@ export default function SearchCard({
             {activeDropdown === 'from' && fromSuggestions.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                className="absolute left-0 top-full z-50 mt-2 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                className="absolute left-0 bottom-full z-50 mb-4 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 {t('selectFrom')}</div>
                 <ul className="flex flex-col gap-1">
@@ -354,7 +354,7 @@ export default function SearchCard({
             {activeDropdown === 'to' && toSuggestions.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                className="absolute left-0 top-full z-50 mt-2 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 dark:border-slate-700 dark:bg-slate-800"
+                className="absolute left-0 bottom-full z-50 mb-4 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 {t('selectTo')}</div>
                 <ul className="flex flex-col gap-1">
@@ -468,7 +468,7 @@ export default function SearchCard({
             {activeDropdown === 'tickets' && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl bg-white p-5 shadow-2xl dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+                className="absolute right-0 bottom-full z-50 mb-4 w-64 rounded-2xl bg-white p-5 shadow-2xl dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('ticketQty')}</span>
