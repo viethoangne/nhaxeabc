@@ -168,6 +168,62 @@ export class OtpService {
       results.port587_default = e.message || e.toString();
     }
 
+    // Test 5 & 6: Resolving IP manually
+    const dns = require('dns').promises;
+    let ipv4List: string[] = [];
+    try {
+      ipv4List = await dns.resolve4('smtp.gmail.com');
+      results.resolvedIpv4s = ipv4List;
+    } catch (e: any) {
+      results.resolvedIpv4s = 'FAILED: ' + (e.message || e.toString());
+    }
+
+    if (ipv4List.length > 0) {
+      const ip = ipv4List[0];
+      
+      // Test 5: IP + Port 465 (secure: true, servername: 'smtp.gmail.com')
+      try {
+        const t5 = nodemailer.createTransport({
+          host: ip,
+          port: 465,
+          secure: true,
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+          tls: {
+            servername: 'smtp.gmail.com'
+          },
+          connectionTimeout: 5000,
+        } as any);
+        await t5.verify();
+        results.ip_port465 = 'SUCCESS';
+      } catch (e: any) {
+        results.ip_port465 = e.message || e.toString();
+      }
+
+      // Test 6: IP + Port 587 (secure: false, servername: 'smtp.gmail.com')
+      try {
+        const t6 = nodemailer.createTransport({
+          host: ip,
+          port: 587,
+          secure: false,
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+          tls: {
+            servername: 'smtp.gmail.com'
+          },
+          connectionTimeout: 5000,
+        } as any);
+        await t6.verify();
+        results.ip_port587 = 'SUCCESS';
+      } catch (e: any) {
+        results.ip_port587 = e.message || e.toString();
+      }
+    }
+
     return results;
   }
 }
