@@ -1232,21 +1232,31 @@ export class PaymentService {
       },
     });
 
-    const results: any[] = [];
+    const processedOrders = [];
     for (const order of orders) {
       if (!order.customerEmail || order.customerEmail.trim() === '') continue;
-      try {
-        await this.sendTicketEmail(order);
-        results.push({ orderCode: order.orderCode, email: order.customerEmail, status: 'SUCCESS' });
-      } catch (err: any) {
-        results.push({ orderCode: order.orderCode, email: order.customerEmail, status: 'FAILED', error: err.message || err.toString() });
-      }
+      
+      // Chạy gửi mail ở chế độ nền (fire-and-forget) để tránh nghẽn/timeout request HTTP
+      this.sendTicketEmail(order)
+        .then(() => {
+          console.log(`[Resend Success] Đã gửi lại email thành công cho đơn ${order.orderCode}`);
+        })
+        .catch(err => {
+          console.error(`[Resend Failed] Lỗi khi gửi lại email cho đơn ${order.orderCode}:`, err);
+        });
+
+      processedOrders.push({
+        orderCode: order.orderCode,
+        email: order.customerEmail,
+      });
     }
 
     return {
+      success: true,
+      message: `Đang xử lý gửi lại email cho ${orders.length} đơn hàng ở chế độ nền.`,
       processedCount: orders.length,
       timeframeDays: days,
-      results,
+      orders: processedOrders,
     };
   }
 
