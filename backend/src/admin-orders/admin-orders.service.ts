@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentStatus, BookingStatus, TripDirection } from '@prisma/client';
 import { AuditLogService } from '../audit-log/audit-log.service';
-import { MailerService } from '@nestjs-modules/mailer';
+import { EmailService } from '../email/email.service';
 import * as QRCode from 'qrcode';
 import nodeHtmlToImage from 'node-html-to-image';
 
@@ -11,7 +11,7 @@ export class AdminOrdersService {
   constructor(
     private prisma: PrismaService,
     private auditLog: AuditLogService,
-    private mailerService: MailerService
+    private emailService: EmailService
   ) {}
 
   async getAllOrders() {
@@ -166,7 +166,7 @@ export class AdminOrdersService {
       `;
 
       try {
-        await this.mailerService.sendMail({
+        await this.emailService.sendMail({
           to: targetEmail,
           subject: `[Nhà Xe] Thông báo hủy vé từ Hệ thống - Mã ${order.orderCode}`,
           html: emailHtml,
@@ -335,7 +335,7 @@ export class AdminOrdersService {
       `;
 
       try {
-        await this.mailerService.sendMail({
+        await this.emailService.sendMail({
           to: targetEmail,
           subject: `[Nhà Xe] Biên lai Hoàn tiền vé - Mã ${order.orderCode}`,
           html: emailHtml,
@@ -779,23 +779,26 @@ export class AdminOrdersService {
 
           const qrCodeUrl = await QRCode.toDataURL(qrDataText, { width: 300 });
 
-          await this.mailerService.sendMail({
+          await this.emailService.sendMail({
             to: emailRecipient.trim(),
             subject: `[VÉ ĐIỆN TỬ CẬP NHẬT] ĐỔI GHẾ THÀNH CÔNG #${order.orderCode}`,
             html: `
               <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f8fafc; padding: 40px 20px;">
-                <h2 style="color: #EF5222; margin-bottom: 20px;">XÁC NHẬN CẬP NHẬT VÀ ĐỔI GHẾ THÀNH CÔNG</h2>
-                <p style="color: #475569; margin-bottom: 30px;">Hành trình của bạn đã được cập nhật số ghế mới thành công. Dưới đây là Vé xe điện tử mới của bạn:</p>
+                <h2 style="color: #EF5222; margin-bottom: 20px;">XÁC NHẬN ĐẶT VÉ THÀNH CÔNG (CẬP NHẬT)</h2>
+                <p style="color: #475569; margin-bottom: 30px;">Hành trình của quý khách đã được cập nhật số ghế mới thành công.</p>
                 
-                <img src="cid:ticket_image" style="width: 100%; max-width: 800px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" alt="Vé xe điện tử mới" />
-                
-                <div>
-                  <p style="font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase;">Mã QR Check-in Mới</p>
-                  <img src="cid:qr_image" style="width: 150px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 5px; background: white;" alt="QR Code" />
+                <div style="margin: 20px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 500px; text-align: left; border: 1px solid #e2e8f0;">
+                  <h3 style="color: #ea580c; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 16px;">Thông tin vé mới cập nhật</h3>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Mã đơn hàng:</strong> #${order.orderCode}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Hành khách:</strong> ${order.customerName}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Tuyến xe:</strong> ${order.from} ➔ ${order.to}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Số ghế mới:</strong> ${seatDisplay}</p>
                 </div>
-                
-                <div style="margin-top: 30px; padding: 15px; background: #eff6ff; color: #1d4ed8; border-radius: 8px; display: inline-block; font-size: 13px; border: 1px solid #dbeafe;">
-                  <strong>Thông báo:</strong> Vé cũ của bạn đã được cập nhật thành số ghế mới là <strong>${seatDisplay}</strong>. Quý khách vui lòng lưu lại vé mới này để check-in lên xe.
+
+                <div style="margin-top: 30px; padding: 18px; background: #fff7ed; color: #ea580c; border-radius: 8px; display: inline-block; font-size: 14px; border: 1px solid #ffedd5; max-width: 500px; text-align: left; line-height: 1.5;">
+                  <strong style="text-transform: uppercase;">Lưu ý quan trọng:</strong> <br/>
+                  1. Vui lòng sử dụng thông tin vé mới này để làm thủ tục check-in lên xe. <br/>
+                  2. <strong>Chi tiết vé điện tử đã cập nhật và Mã QR check-in mới</strong> đã được đính kèm trực tiếp trong Email này dưới dạng file hình ảnh (<strong>ve-xe-cap-nhat-${order.orderCode}.png</strong> và <strong>qr.png</strong>). Quý khách vui lòng mở/tải file đính kèm này để xuất trình cho nhân viên khi soát vé tại bến xe.
                 </div>
               </div>
             `,

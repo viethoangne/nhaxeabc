@@ -22,6 +22,7 @@ import { AdminCustomersModule } from './admin-customers/admin-customers.module';
 import { AdminLoyaltyModule } from './admin-loyalty/admin-loyalty.module';
 import { AdminChatModule } from './admin-chat/admin-chat.module';
 import { AdminPayrollModule } from './admin-payroll/admin-payroll.module';
+import { EmailModule } from './email/email.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -48,7 +49,8 @@ import { AppService } from './app.service';
     AdminCustomersModule,
     AdminLoyaltyModule,
     AdminChatModule,
-    AdminPayrollModule
+    AdminPayrollModule,
+    EmailModule
   ],
   controllers: [AppController],
   providers: [AppService],

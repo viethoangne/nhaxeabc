@@ -2,37 +2,12 @@ import { Module } from '@nestjs/common';
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
 import { PrismaModule } from '../prisma/prisma.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { OtpModule } from '../otp/otp.module'; // 1. IMPORT ĐƯỜNG DẪN TỚI OTP MODULE
+import { OtpModule } from '../otp/otp.module';
 
 @Module({
   imports: [
     PrismaModule,
-    OtpModule, // <--- THÊM VÀO ĐÂY LÀ XONG!
-    // Cấu hình MailerModule đồng bộ với ConfigService để lấy biến môi trường
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => ({
-        transport: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: config.get<string>('MAIL_USER'), // hoanglop10237zz@gmail.com
-            pass: config.get<string>('MAIL_PASS'), // xbmkqszcazhuwkss
-          },
-          family: 4,
-          tls: {
-            rejectUnauthorized: false,
-          },
-        },
-        defaults: {
-          from: `"NHÀ XE ABC" <${config.get<string>('MAIL_USER')}>`,
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    OtpModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService],

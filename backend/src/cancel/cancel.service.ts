@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { MailerService } from '@nestjs-modules/mailer';
+import { EmailService } from '../email/email.service';
 import { BookingStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class CancelService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailerService: MailerService,
+    private readonly emailService: EmailService,
   ) {}
 
   async cancelTicket(orderCode: string, phone: string, email: string) {
@@ -161,7 +161,7 @@ const emailHtml = `
 `;
 
     try {
-      await this.mailerService.sendMail({
+      await this.emailService.sendMail({
         to: targetEmail,
         subject: `[Nhà Xe] Xác nhận hủy vé & Hoàn tiền - Mã ${order.orderCode}`,
         html: emailHtml,

@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { MailerService } from '@nestjs-modules/mailer';
+import { EmailService } from '../email/email.service';
 import axios from 'axios';
 import * as crypto from 'crypto';
 import * as qs from 'qs';
@@ -46,7 +46,7 @@ export class PaymentService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
-    private readonly mailerService: MailerService,
+    private readonly emailService: EmailService,
     private readonly otpService: OtpService, // Inject vào đây
   ) {
     const clientId = this.configService.get<string>('PAYOS_CLIENT_ID');
@@ -805,23 +805,27 @@ export class PaymentService {
 
           const qrCodeUrl = await QRCode.toDataURL(qrDataText, { width: 300 });
 
-          await this.mailerService.sendMail({
+          await this.emailService.sendMail({
             to: emailRecipient,
             subject: `[VÉ ĐIỆN TỬ] XÁC NHẬN THÀNH CÔNG #${order.orderCode}`,
             html: `
               <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f8fafc; padding: 40px 20px;">
                 <h2 style="color: #EF5222; margin-bottom: 20px;">XÁC NHẬN ĐẶT VÉ THÀNH CÔNG</h2>
-                <p style="color: #475569; margin-bottom: 30px;">Cảm ơn bạn đã tin tưởng dịch vụ của Nhà xe ABC. Dưới đây là vé điện tử của bạn:</p>
+                <p style="color: #475569; margin-bottom: 30px;">Cảm ơn bạn đã tin tưởng dịch vụ của Nhà xe ABC.</p>
                 
-                <img src="cid:ticket_image" style="width: 100%; max-width: 800px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" alt="Vé xe điện tử" />
-                
-                <div>
-                  <p style="font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase;">Mã QR Check-in</p>
-                  <img src="cid:qr_image" style="width: 150px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 5px; background: white;" alt="QR Code" />
+                <div style="margin: 20px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 500px; text-align: left; border: 1px solid #e2e8f0;">
+                  <h3 style="color: #ea580c; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 16px;">Thông tin vé của quý khách</h3>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Mã đơn hàng:</strong> #${order.orderCode}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Hành khách:</strong> ${order.customerName}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Tuyến xe:</strong> ${order.from} ➔ ${order.to}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Số ghế:</strong> ${seatDisplay}</p>
+                  <p style="margin: 8px 0; font-size: 14px;"><strong>Tổng tiền:</strong> ${totalPrice}đ</p>
                 </div>
-                
-                <div style="margin-top: 30px; padding: 15px; background: #fff7ed; color: #ea580c; border-radius: 8px; display: inline-block; font-size: 13px; border: 1px solid #ffedd5;">
-                  <strong>Lưu ý:</strong> Vui lòng có mặt tại bến trước 30 phút so với giờ khởi hành.
+
+                <div style="margin-top: 30px; padding: 18px; background: #fff7ed; color: #ea580c; border-radius: 8px; display: inline-block; font-size: 14px; border: 1px solid #ffedd5; max-width: 500px; text-align: left; line-height: 1.5;">
+                  <strong style="text-transform: uppercase;">Lưu ý quan trọng:</strong> <br/>
+                  1. Vui lòng có mặt tại bến trước 30 phút so với giờ khởi hành để làm thủ tục. <br/>
+                  2. <strong>Chi tiết vé điện tử và Mã QR check-in</strong> đã được đính kèm trực tiếp trong Email này dưới dạng file hình ảnh (<strong>ve-xe-${order.orderCode}.png</strong> và <strong>qr.png</strong>). Quý khách vui lòng mở/tải file đính kèm này để xuất trình cho nhân viên khi soát vé tại bến xe.
                 </div>
               </div>
             `,

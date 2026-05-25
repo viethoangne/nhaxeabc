@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { EmailService } from '../email/email.service';
 import * as nodemailer from 'nodemailer';
 
 interface OtpData { code: string; expiresAt: number; }
@@ -9,27 +10,8 @@ export class OtpService {
   
   // THÊM MỚI: Bộ nhớ lưu các email ĐÃ XÁC THỰC (Lưu trong 30 phút)
   private verifiedEmails = new Map<string, number>(); 
-  
-  private transporter: nodemailer.Transporter;
 
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER, // LẤY TỪ FILE .ENV
-        pass: process.env.EMAIL_PASS, // LẤY TỪ FILE .ENV
-      },
-      // Force IPv4 because cloud environments (e.g. Railway) may block or lack IPv6 routing,
-      // which triggers the ENETUNREACH socket connect error.
-      family: 4,
-      connectionTimeout: 5000,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    } as any);
-  }
+  constructor(private readonly emailService: EmailService) {}
 
   async sendOtp(email: string) {
     if (!email) throw new BadRequestException('Vui lòng cung cấp email!');
@@ -42,24 +24,22 @@ export class OtpService {
     });
 
     const mailOptions = {
-      from: '"NHÀ XE ABC" <hoanglop10237zz@gmail.com>',
       to: email,
       subject: 'Mã xác thực OTP của bạn',
       html: `
         <div style="font-family: sans-serif; padding: 20px;">
           <h2>Xác thực Email đặt vé</h2>
           <p>Mã OTP của bạn là: <strong style="color: #ea580c; font-size: 24px;">${otpCode}</strong></p>
-          <p>Mã này có hiệu lực trong 60 Giây.</p>
+          <p>Mã này có hiệu lực trong 5 phút.</p>
         </div>
       `,
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await this.emailService.sendMail(mailOptions);
       return { message: 'Gửi OTP thành công!' };
     } catch (error) {
-      // THÊM DÒNG NÀY ĐỂ XEM LỖI NODEMAILER LÀ GÌ
-      console.error('LỖI GỬI MAIL CHI TIẾT:', error); 
+      console.error('LỖI GỬI MAIL OTP CHI TIẾT:', error); 
       throw new InternalServerErrorException('Không thể gửi email lúc này!');
     }
   }
