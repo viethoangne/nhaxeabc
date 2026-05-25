@@ -34,6 +34,7 @@ async function bootstrap() {
       
       const cleanedOrigin = origin.replace(/\/$/, '');
       const isAllowed = allowedOrigins.some(allowed => {
+        if (!allowed) return false;
         const cleanedAllowed = allowed.replace(/\/$/, '');
         return cleanedAllowed === cleanedOrigin;
       }) || cleanedOrigin.endsWith('.vercel.app');
