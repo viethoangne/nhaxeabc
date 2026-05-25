@@ -1,5 +1,8 @@
 // Trigger Railway rebuild after database schema sync
 // Trigger Railway rebuild
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
+
 import cookieParser from 'cookie-parser';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';

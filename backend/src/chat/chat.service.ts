@@ -1132,7 +1132,7 @@ export class ChatService {
   private async saveHistoryAsync(userId: string | undefined, userMsg: string, aiMsg: string) {
     // 1. Kiểm tra xem có nhận được userId không
     if (!userId) {
-      console.log("🚨 LỖI: Không tìm thấy userId, hệ thống từ chối lưu lịch sử!");
+      console.log("ℹ️ Khách vãng lai chat, không lưu lịch sử vào CSDL.");
       return;
     }
   
