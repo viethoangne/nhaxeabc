@@ -375,8 +375,8 @@ export class PaymentService {
 
     // NẾU LÀ VNPAY
     if (dto.paymentMethod === 'VNPAY') {
-      const tmnCode = this.configService.get<string>('VNPAY_TMN_CODE')?.trim() || '';
-      const secretKey = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || '';
+      const tmnCode = this.configService.get<string>('VNPAY_TMN_CODE')?.trim() || 'Q1KR1AMG';
+      const secretKey = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || 'WRN691BQUBKYT8LZGCSJFB4VBZKGPAKS';
       let vnpUrl = this.configService.get<string>('VNPAY_URL')?.trim() || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
       const returnUrl = `${backendUrl}/api/payment/vnpay-return`;
       console.log('[VNPAY DEBUG] backendUrl:', backendUrl, '| returnUrl:', returnUrl);
@@ -935,7 +935,7 @@ export class PaymentService {
   // Đây là nơi user được redirect sau khi thanh toán/huỷ trên trang VNPAY
   async handleVnpayReturn(query: any): Promise<{ redirect: string }> {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || '';
+    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || 'WRN691BQUBKYT8LZGCSJFB4VBZKGPAKS';
     const secureHash = query['vnp_SecureHash'];
     const responseCode = query['vnp_ResponseCode'];
     const orderCode = query['vnp_TxnRef'];
@@ -1002,7 +1002,7 @@ export class PaymentService {
   }
 
   async handleVnpayIpn(query: any) {
-    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET') || 'DJSKFJKSDJKFJSKDJFKSDKFJSDKFJ';
+    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET')?.trim() || 'WRN691BQUBKYT8LZGCSJFB4VBZKGPAKS';
     const secureHash = query['vnp_SecureHash'];
 
     // Clone and remove hash parameters
