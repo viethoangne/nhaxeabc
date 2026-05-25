@@ -16,11 +16,15 @@ import { OtpModule } from '../otp/otp.module'; // 1. IMPORT ĐƯỜNG DẪN TỚ
       useFactory: async (config: ConfigService) => ({
         transport: {
           host: 'smtp.gmail.com',
-          port: 465,
-          secure: true, // Cổng 465 yêu cầu secure: true (SSL)
+          port: 587,
+          secure: false,
           auth: {
             user: config.get<string>('MAIL_USER'), // hoanglop10237zz@gmail.com
             pass: config.get<string>('MAIL_PASS'), // xbmkqszcazhuwkss
+          },
+          family: 4,
+          tls: {
+            rejectUnauthorized: false,
           },
         },
         defaults: {

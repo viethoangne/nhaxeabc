@@ -15,8 +15,8 @@ export class OtpService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.EMAIL_USER, // LẤY TỪ FILE .ENV
         pass: process.env.EMAIL_PASS, // LẤY TỪ FILE .ENV
@@ -25,6 +25,9 @@ export class OtpService {
       // which triggers the ENETUNREACH socket connect error.
       family: 4,
       connectionTimeout: 5000,
+      tls: {
+        rejectUnauthorized: false,
+      },
     } as any);
   }
 

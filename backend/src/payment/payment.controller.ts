@@ -116,4 +116,11 @@ export class PaymentController {
   async getPaymentStatus(@Param('orderCode') orderCode: string) {
     return this.paymentService.getPaymentStatus(orderCode);
   }
+
+  // 9. Gửi lại email vé cho các đơn hàng thanh toán gần đây (Giải phóng email lỗi)
+  @Get('resend-recent')
+  async resendRecent(@Query('days') days?: string) {
+    const daysNum = days ? Number(days) : 3;
+    return this.paymentService.resendRecentEmails(daysNum);
+  }
 }

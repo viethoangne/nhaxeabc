@@ -1213,6 +1213,43 @@ export class PaymentService {
     return { success: true, message: 'Đã xác nhận và gửi mail!' };
   }
 
+  async resendRecentEmails(days: number = 3) {
+    const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const orders = await this.prisma.order.findMany({
+      where: {
+        paymentStatus: PaymentStatus.PAID,
+        createdAt: {
+          gte: fromDate,
+        },
+        customerEmail: {
+          not: null,
+        },
+      },
+      include: {
+        seats: true,
+        outboundTrip: true,
+        returnTrip: true,
+      },
+    });
+
+    const results: any[] = [];
+    for (const order of orders) {
+      if (!order.customerEmail || order.customerEmail.trim() === '') continue;
+      try {
+        await this.sendTicketEmail(order);
+        results.push({ orderCode: order.orderCode, email: order.customerEmail, status: 'SUCCESS' });
+      } catch (err: any) {
+        results.push({ orderCode: order.orderCode, email: order.customerEmail, status: 'FAILED', error: err.message || err.toString() });
+      }
+    }
+
+    return {
+      processedCount: orders.length,
+      timeframeDays: days,
+      results,
+    };
+  }
+
   async getOrderByCode(orderCode: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderCode },
