@@ -897,7 +897,7 @@ export class ChatService {
     }
 
     // --- ĐỊNH NGHĨA CÁC BIẾN CÒN THIẾU MÀ BẠN ĐANG BÁO LỖI ---
-    const displayDate = new Date(selectedDate).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN');
+    const displayDate = new Date(selectedDate).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
     const isRoundTrip = normalizedMsg.includes('khứ hồi') || normalizedMsg.includes('đi và về') || normalizedMsg.includes('2 chiều') || normalizedMsg.includes('roundtrip') || normalizedMsg.includes('round trip');
   
     // 3. Truy vấn cơ sở dữ liệu
@@ -916,7 +916,7 @@ export class ChatService {
       : `🚌 Dạ, các chuyến **${fromCity.toUpperCase()}** đi **${toCity.toUpperCase()}** ngày **${displayDate}**:\n\n`;
     
     dbResult.trips.forEach(trip => {
-      const time = trip.departDate.toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit' });
+      const time = trip.departDate.toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' });
       const price = trip.price 
         ? (locale === 'en' ? trip.price.toLocaleString('en-US') + ' VND' : trip.price.toLocaleString('vi-VN') + 'đ')
         : (locale === 'en' ? 'Updating' : 'Đang cập nhật');
@@ -963,7 +963,7 @@ export class ChatService {
       
       if (returnResult.trips && returnResult.trips.length > 0) {
         returnResult.trips.forEach(trip => {
-          const time = trip.departDate.toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit' });
+          const time = trip.departDate.toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' });
           const price = trip.price 
             ? (locale === 'en' ? trip.price.toLocaleString('en-US') + ' VND' : trip.price.toLocaleString('vi-VN') + 'đ')
             : (locale === 'en' ? 'Updating' : 'Đang cập nhật');
@@ -1016,10 +1016,10 @@ export class ChatService {
     if (bookingHistory.length > 0) {
       const latest = bookingHistory[0]; 
       const departDate = latest.outboundTripDetails.depart 
-        ? new Date(latest.outboundTripDetails.depart).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN') 
+        ? new Date(latest.outboundTripDetails.depart).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) 
         : (locale === 'en' ? 'Updating' : 'Đang cập nhật');
       const departTime = latest.outboundTripDetails.depart 
-        ? new Date(latest.outboundTripDetails.depart).toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit' }) 
+        ? new Date(latest.outboundTripDetails.depart).toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' }) 
         : '';
 
       reply += locale === 'en'
@@ -1046,10 +1046,10 @@ export class ChatService {
       
       if (latest.route.type === 'Khứ hồi' && latest.returnTripDetails) {
         const returnDate = latest.returnTripDetails.depart 
-          ? new Date(latest.returnTripDetails.depart).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN') 
+          ? new Date(latest.returnTripDetails.depart).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) 
           : (locale === 'en' ? 'Updating' : 'Đang cập nhật');
         const returnTime = latest.returnTripDetails.depart 
-          ? new Date(latest.returnTripDetails.depart).toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit' }) 
+          ? new Date(latest.returnTripDetails.depart).toLocaleTimeString(locale === 'en' ? 'en-US' : 'vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' }) 
           : '';
         
         reply += locale === 'en'
