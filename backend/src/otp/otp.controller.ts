@@ -1,9 +1,14 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { OtpService } from './otp.service';
 
 @Controller('otp')
 export class OtpController {
   constructor(private readonly otpService: OtpService) {}
+
+  @Get('test-smtp')
+  async testSmtp() {
+    return this.otpService.testSmtp();
+  }
 
   @Post('send-otp')
   async sendOtp(@Body('email') email: string) {

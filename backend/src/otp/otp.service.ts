@@ -89,4 +89,85 @@ export class OtpService {
     }
     return true; // Đã xác thực
   }
+
+  // THÊM MỚI: Hàm chuẩn đoán để kiểm tra kết nối SMTP
+  async testSmtp() {
+    const results: any = {};
+    
+    // Test 1: Port 465 (secure: true, family: 4)
+    try {
+      const t1 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+        family: 4,
+        connectionTimeout: 5000,
+      } as any);
+      await t1.verify();
+      results.port465_v4 = 'SUCCESS';
+    } catch (e: any) {
+      results.port465_v4 = e.message || e.toString();
+    }
+
+    // Test 2: Port 587 (secure: false, family: 4)
+    try {
+      const t2 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+        family: 4,
+        connectionTimeout: 5000,
+      } as any);
+      await t2.verify();
+      results.port587_v4 = 'SUCCESS';
+    } catch (e: any) {
+      results.port587_v4 = e.message || e.toString();
+    }
+
+    // Test 3: Port 465 (secure: true, no family option)
+    try {
+      const t3 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+        connectionTimeout: 5000,
+      } as any);
+      await t3.verify();
+      results.port465_default = 'SUCCESS';
+    } catch (e: any) {
+      results.port465_default = e.message || e.toString();
+    }
+
+    // Test 4: Port 587 (secure: false, no family option)
+    try {
+      const t4 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+        connectionTimeout: 5000,
+      } as any);
+      await t4.verify();
+      results.port587_default = 'SUCCESS';
+    } catch (e: any) {
+      results.port587_default = e.message || e.toString();
+    }
+
+    return results;
+  }
 }
