@@ -13,8 +13,11 @@ export const authOptions = {
     async signIn({ user, account }) {
       if (account?.provider === 'google' && user.email) {
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api';
-          
+          let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api';
+          apiUrl = apiUrl.replace(/\/$/, '');
+          if (!apiUrl.endsWith('/api')) {
+            apiUrl = `${apiUrl}/api`;
+          }
           const res = await axios.post(`${apiUrl}/auth/google-login`, {
             email: user.email,
             name: user.name,
