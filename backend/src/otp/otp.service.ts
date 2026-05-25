@@ -24,6 +24,7 @@ export class OtpService {
       // Force IPv4 because cloud environments (e.g. Railway) may block or lack IPv6 routing,
       // which triggers the ENETUNREACH socket connect error.
       family: 4,
+      connectionTimeout: 5000,
     } as any);
   }
 
