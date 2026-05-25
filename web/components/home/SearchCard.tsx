@@ -23,11 +23,13 @@ const formatDateToVN = (dateString: string) => {
 const CustomCalendar = ({ 
   selectedDate, 
   onSelect, 
-  minDate 
+  minDate,
+  isInline = false
 }: { 
   selectedDate: string; 
   onSelect: (date: string) => void;
   minDate?: string;
+  isInline?: boolean;
 }) => {
   const locale = useLocale();
   const [currentMonth, setCurrentMonth] = useState(
@@ -52,7 +54,10 @@ const CustomCalendar = ({
     : ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
 
   return (
-    <div className="absolute left-0 bottom-full z-50 mb-4 min-w-[300px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-800">
+    <div className={isInline 
+      ? "w-full max-w-[340px] rounded-2xl bg-transparent p-1 text-slate-800 dark:text-white"
+      : "absolute left-0 bottom-full z-50 mb-4 min-w-[300px] rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-800"
+    }>
       <div className="mb-4 flex items-center justify-between">
         <button type="button" onClick={prevMonth} className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -202,21 +207,21 @@ export default function SearchCard({
   };
 
   return (
-    <section className="relative z-10 w-full max-w-6xl mx-auto -mt-20 md:-mt-28 lg:-mt-25 px-0" ref={containerRef}>
+    <section className="relative z-10 w-full max-w-6xl mx-auto mt-0 md:-mt-28 lg:-mt-25 px-0 md:px-4" ref={containerRef}>
       
       {/* 1. TABS: One Way / Round Trip */}
-      <div className="flex items-center gap-2 mb-4 px-2">
+      <div className="flex items-center gap-2 mb-4 px-2 md:px-0 justify-center md:justify-start">
         <button
           type="button"
           onClick={() => { setTripType('oneway'); setReturnDate(''); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
             tripType === 'oneway' 
               ? 'bg-orange-500 text-white shadow-orange-500/30' 
-              : 'bg-white/80 text-slate-700 hover:bg-white backdrop-blur-md'
+              : 'bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-white backdrop-blur-md'
           }`}
         >
-          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'oneway' ? 'border-white' : 'border-slate-400'}`}>
-            {tripType === 'oneway' && <div className="w-2 h-2 bg-white rounded-full animate-scale" />}
+          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'oneway' ? 'border-white' : 'border-slate-405'}`}>
+            {tripType === 'oneway' && <div className="w-2 h-2 bg-white rounded-full" />}
           </div>
           {t('oneWay')}
         </button>
@@ -224,21 +229,21 @@ export default function SearchCard({
         <button
           type="button"
           onClick={() => setTripType('round')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
             tripType === 'round' 
               ? 'bg-orange-500 text-white shadow-orange-500/30' 
-              : 'bg-white/80 text-slate-700 hover:bg-white backdrop-blur-md'
+              : 'bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-white backdrop-blur-md'
           }`}
         >
-          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'round' ? 'border-white' : 'border-slate-400'}`}>
-            {tripType === 'round' && <div className="w-2 h-2 bg-white rounded-full animate-scale" />}
+          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'round' ? 'border-white' : 'border-slate-405'}`}>
+            {tripType === 'round' && <div className="w-2 h-2 bg-white rounded-full" />}
           </div>
           {t('roundTrip')}
         </button>
       </div>
 
-      {/* 2. MAIN SEARCH BAR */}
-      <div className="relative p-2 md:p-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] shadow-2xl flex flex-col md:flex-row items-stretch gap-2 border border-white/50 transition-all duration-500">
+      {/* 💻 DESKTOP MAIN SEARCH BAR (Hidden on mobile) */}
+      <div className="hidden md:flex relative p-2 md:p-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] shadow-2xl items-stretch gap-2 border border-white/50 dark:border-slate-800 transition-all duration-500">
         
         {/* Điểm Đi */}
         <div className="relative flex-1 min-w-[160px] transition-all duration-500">
@@ -278,7 +283,7 @@ export default function SearchCard({
             {activeDropdown === 'from' && fromSuggestions.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                className="absolute left-0 bottom-full z-50 mb-4 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl dark:bg-slate-800"
+                className="absolute left-0 top-full z-50 mt-2 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 {t('selectFrom')}</div>
                 <ul className="flex flex-col gap-1">
@@ -299,7 +304,7 @@ export default function SearchCard({
         </div>
 
         {/* Nút Đổi Chiều (Swap) */}
-        <div className="absolute left-[50%] top-[45px] md:static md:flex items-center justify-center shrink-0 -translate-x-1/2 md:-translate-x-0 z-10 hidden">
+        <div className="flex items-center justify-center shrink-0 z-10">
           <motion.button
             type="button" onClick={swap} whileHover={{ scale: 1.1, rotate: 180 }} whileTap={{ scale: 0.9 }} transition={{ duration: 0.3 }}
             className="grid h-10 w-10 place-items-center rounded-full bg-white text-orange-500 shadow-md border border-orange-100 hover:text-orange-600 hover:bg-orange-50 dark:bg-slate-700 dark:text-white"
@@ -310,8 +315,8 @@ export default function SearchCard({
           </motion.button>
         </div>
 
-       {/* Điểm Đến */}
-       <div className="relative flex-1 min-w-[160px] transition-all duration-500">
+        {/* Điểm Đến */}
+        <div className="relative flex-1 min-w-[160px] transition-all duration-500">
           <div 
             onClick={() => setActiveDropdown('to')} 
             className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
@@ -349,7 +354,7 @@ export default function SearchCard({
             {activeDropdown === 'to' && toSuggestions.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                className="absolute left-0 bottom-full z-50 mb-4 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl dark:bg-slate-800"
+                className="absolute left-0 top-full z-50 mt-2 w-full min-w-[280px] rounded-2xl bg-white p-3 shadow-2xl border border-slate-100 dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">📌 {t('selectTo')}</div>
                 <ul className="flex flex-col gap-1">
@@ -369,11 +374,11 @@ export default function SearchCard({
           </AnimatePresence>
         </div>
 
-        {/* Khối Ngày Tháng (Được gộp để xử lý hiệu ứng trượt mượt mà) */}
-        <div className="flex flex-col md:flex-row gap-2 shrink-0">
+        {/* Khối Ngày Tháng */}
+        <div className="flex gap-2 shrink-0">
           
           {/* Ngày Đi */}
-          <div className="relative w-full md:w-[170px] shrink-0">
+          <div className="relative w-[170px] shrink-0">
             <div 
               onClick={() => setActiveDropdown('departDate')} 
               className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
@@ -410,8 +415,7 @@ export default function SearchCard({
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className={`shrink-0 origin-left ${activeDropdown === 'returnDate' ? 'overflow-visible' : 'overflow-hidden'}`}
               >
-                {/* Fixed width inner container to prevent text squeezing */}
-                <div className="relative w-full md:w-[170px] h-full">
+                <div className="relative w-[170px] h-full">
                   <div 
                     onClick={() => setActiveDropdown('returnDate')} 
                     className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
@@ -443,7 +447,7 @@ export default function SearchCard({
         </div>
 
         {/* Số Vé / Hành Khách */}
-        <div className="relative flex-1 md:max-w-[160px]">
+        <div className="relative flex-1 max-w-[160px]">
           <div 
             onClick={() => setActiveDropdown('tickets')} 
             className={`group h-full flex flex-col justify-center px-5 py-3 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm border ${
@@ -463,9 +467,9 @@ export default function SearchCard({
           <AnimatePresence>
             {activeDropdown === 'tickets' && (
               <motion.div
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-              className="absolute right-0 bottom-full z-50 mb-4 w-64 rounded-2xl bg-white p-5 shadow-2xl dark:bg-slate-800"
-            >
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl bg-white p-5 shadow-2xl dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('ticketQty')}</span>
                   <div className="flex items-center gap-3">
@@ -483,7 +487,7 @@ export default function SearchCard({
         <button
           onClick={handleSaveAndSearch}
           disabled={isLoading}
-          className="flex md:w-[72px] shrink-0 items-center justify-center rounded-2xl bg-orange-500 hover:bg-orange-600 text-white transition-all shadow-lg shadow-orange-500/40 p-4 md:p-0"
+          className="flex w-[72px] shrink-0 items-center justify-center rounded-2xl bg-orange-500 hover:bg-orange-600 text-white transition-all shadow-lg shadow-orange-500/40 cursor-pointer"
         >
           {isLoading ? (
             <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -492,9 +496,406 @@ export default function SearchCard({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </motion.svg>
           )}
-          <span className="ml-2 font-bold md:hidden">{t('searchTrips')}</span>
         </button>
       </div>
+
+      {/* 📱 MOBILE SEARCH CARD (Only visible on mobile screens) */}
+      <div className="block md:hidden bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl rounded-3xl p-5 shadow-xl border border-slate-100 dark:border-slate-800/80 mx-4 transition-all duration-300">
+        
+        {/* Route Selector (From & To Grouped together) */}
+        <div className="relative border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 overflow-hidden mb-4">
+          {/* From Input */}
+          <div 
+            onClick={() => setActiveDropdown('from')}
+            className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30 border-b border-slate-100 dark:border-slate-800/60"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-950/20 text-[#EF5222]">
+              <span className="text-xl">📍</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">{t('from')}</span>
+              <span className={`block text-sm font-black truncate ${!from ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                {from || t('selectFrom')}
+              </span>
+            </div>
+          </div>
+
+          {/* Swap Button (Absolute positioned on the right) */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); swap(); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-slate-800 text-[#EF5222] shadow-md border border-slate-100 dark:border-slate-705 active:scale-90 transition-transform"
+          >
+            <svg className="w-5 h-5 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          </button>
+
+          {/* To Input */}
+          <div 
+            onClick={() => setActiveDropdown('to')}
+            className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/20 text-amber-500">
+              <span className="text-xl">📍</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">{t('to')}</span>
+              <span className={`block text-sm font-black truncate ${!to ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                {to || t('selectTo')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Date and Passenger Layout */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* Depart Date */}
+          <div 
+            onClick={() => setActiveDropdown('departDate')}
+            className="flex items-center gap-2.5 p-3.5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
+          >
+            <span className="text-lg">📅</span>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{t('departDate')}</span>
+              <span className="block text-[11px] font-black text-slate-900 dark:text-white truncate">
+                {departDate ? formatDateToVN(departDate) : t('selectDate')}
+              </span>
+            </div>
+          </div>
+
+          {/* Passengers */}
+          <div 
+            onClick={() => setActiveDropdown('tickets')}
+            className="flex items-center gap-2.5 p-3.5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
+          >
+            <span className="text-lg">👥</span>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{t('passenger')}</span>
+              <span className="block text-[11px] font-black text-slate-900 dark:text-white truncate">
+                {tickets} {t('peopleCount')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Return Date (if roundtrip, spans full width) */}
+        {tripType === 'round' && (
+          <div 
+            onClick={() => setActiveDropdown('returnDate')}
+            className="flex items-center gap-3 p-3.5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-105/30 dark:hover:bg-slate-900/30 mb-4"
+          >
+            <span className="text-lg">📅</span>
+            <div className="min-w-0">
+              <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{t('returnDate')}</span>
+              <span className="block text-xs font-black text-slate-900 dark:text-white truncate">
+                {returnDate ? formatDateToVN(returnDate) : t('selectDate')}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Search Button */}
+        <button
+          onClick={handleSaveAndSearch}
+          disabled={isLoading}
+          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:brightness-110 text-white text-sm font-black uppercase tracking-widest transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer"
+        >
+          {isLoading ? (
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>{t('searchTrips')}</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* 📱 MOBILE SELECTION MODALS / SHEETS (Only visible on screens below md) */}
+      <AnimatePresence>
+        {/* 1. Modal for SELECT FROM (Điểm đi) */}
+        {activeDropdown === 'from' && (
+          <motion.div 
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+            className="md:hidden fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-[#0B0F19]"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                {t('selectFrom')}
+              </span>
+              <button 
+                type="button" 
+                onClick={() => setActiveDropdown(null)}
+                className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Input Search Block */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800/60">
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">🔍</span>
+                <input
+                  type="text"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  placeholder="Nhập tên thành phố..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EF5222]/20 focus:border-[#EF5222]"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Suggestions & Popular Cities Scroll View */}
+            <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
+              {fromSuggestions.length > 0 ? (
+                <div>
+                  <div className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">💡 Địa điểm gợi ý</div>
+                  <ul className="flex flex-col gap-1.5">
+                    {fromSuggestions.map((suggestion) => (
+                      <li key={suggestion}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectFrom(suggestion)}
+                          className="w-full flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-350 bg-slate-50/50 hover:bg-orange-50/40 dark:bg-slate-900/30 dark:hover:bg-slate-800/50 text-left transition-colors"
+                        >
+                          <span>📍</span>
+                          <span>{suggestion}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-sm font-semibold text-slate-400">
+                  Không tìm thấy địa điểm phù hợp
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* 2. Modal for SELECT TO (Điểm đến) */}
+        {activeDropdown === 'to' && (
+          <motion.div 
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+            className="md:hidden fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-[#0B0F19]"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                {t('selectTo')}
+              </span>
+              <button 
+                type="button" 
+                onClick={() => setActiveDropdown(null)}
+                className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Input Search Block */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800/60">
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">🔍</span>
+                <input
+                  type="text"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  placeholder="Nhập tên thành phố..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EF5222]/20 focus:border-[#EF5222]"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Suggestions & Popular Cities Scroll View */}
+            <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
+              {toSuggestions.length > 0 ? (
+                <div>
+                  <div className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">💡 Địa điểm gợi ý</div>
+                  <ul className="flex flex-col gap-1.5">
+                    {toSuggestions.map((suggestion) => (
+                      <li key={suggestion}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectTo(suggestion)}
+                          className="w-full flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-350 bg-slate-50/50 hover:bg-orange-50/40 dark:bg-slate-900/30 dark:hover:bg-slate-800/50 text-left transition-colors"
+                        >
+                          <span>📍</span>
+                          <span>{suggestion}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-sm font-semibold text-slate-400">
+                  Không tìm thấy địa điểm phù hợp
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* 3. Bottom Sheet Modal for DEPART DATE */}
+        {activeDropdown === 'departDate' && (
+          <div className="md:hidden fixed inset-0 z-[9999] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
+            {/* Click backdrop to close */}
+            <div className="absolute inset-0 z-0" onClick={() => setActiveDropdown(null)} />
+            
+            {/* Sheet Panel */}
+            <motion.div 
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative z-10 w-full bg-white dark:bg-[#0B0F19] rounded-t-[2rem] p-5 shadow-2xl flex flex-col max-h-[85vh] overflow-y-auto no-scrollbar"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                  {t('departDate')}
+                </span>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveDropdown(null)}
+                  className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Responsive Calendar inside sheet */}
+              <div className="flex justify-center select-none py-2">
+                <CustomCalendar selectedDate={departDate} onSelect={handleSelectDepartDate} isInline={true} />
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 4. Bottom Sheet Modal for RETURN DATE */}
+        {activeDropdown === 'returnDate' && (
+          <div className="md:hidden fixed inset-0 z-[9999] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
+            {/* Click backdrop to close */}
+            <div className="absolute inset-0 z-0" onClick={() => setActiveDropdown(null)} />
+            
+            {/* Sheet Panel */}
+            <motion.div 
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative z-10 w-full bg-white dark:bg-[#0B0F19] rounded-t-[2rem] p-5 shadow-2xl flex flex-col max-h-[85vh] overflow-y-auto no-scrollbar"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                  {t('returnDate')}
+                </span>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveDropdown(null)}
+                  className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Responsive Calendar inside sheet */}
+              <div className="flex justify-center select-none py-2">
+                <CustomCalendar selectedDate={returnDate} onSelect={handleSelectReturnDate} minDate={departDate} isInline={true} />
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 5. Bottom Sheet Modal for PASSENGERS (Hành khách) */}
+        {activeDropdown === 'tickets' && (
+          <div className="md:hidden fixed inset-0 z-[9999] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
+            {/* Click backdrop to close */}
+            <div className="absolute inset-0 z-0" onClick={() => setActiveDropdown(null)} />
+            
+            {/* Sheet Panel */}
+            <motion.div 
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative z-10 w-full bg-white dark:bg-[#0B0F19] rounded-t-[2rem] p-5 shadow-2xl flex flex-col"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                  Chọn số hành khách
+                </span>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveDropdown(null)}
+                  className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Quantity selector inside sheet */}
+              <div className="flex items-center justify-between py-4 px-4 border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 rounded-2xl mb-6">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t('ticketQty')}</span>
+                <div className="flex items-center gap-4">
+                  <button 
+                    type="button" 
+                    onClick={() => handleTicketChange(false)} 
+                    disabled={tickets <= MIN_TICKETS} 
+                    className="grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 text-slate-600 hover:bg-orange-100 disabled:opacity-40 select-none cursor-pointer"
+                  >
+                    −
+                  </button>
+                  <span className="font-extrabold text-lg text-slate-900 dark:text-white w-6 text-center">{tickets}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => handleTicketChange(true)} 
+                    disabled={tickets >= MAX_TICKETS} 
+                    className="grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 text-slate-600 hover:bg-orange-100 disabled:opacity-40 select-none cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Button */}
+              <button
+                type="button"
+                onClick={() => setActiveDropdown(null)}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#EF5222] to-[#F59E0B] text-white text-xs font-black uppercase tracking-widest transition-all cursor-pointer shadow-md text-center"
+              >
+                Xác nhận
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

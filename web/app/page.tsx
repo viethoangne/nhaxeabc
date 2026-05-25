@@ -26,7 +26,7 @@ export default function HomePage() {
       </div>
 
       {/* Thanh tìm kiếm chìm vào banner một nửa (Cô lập hoàn toàn, z-index 50) */}
-      <div className="relative w-full z-50 -mt-24 md:-mt-32 mx-auto max-w-5xl px-4">
+      <div className="relative w-full z-50 mt-4 md:-mt-32 mx-auto max-w-5xl px-4">
         <SearchCard {...searchCardProps} />
       </div>
 
