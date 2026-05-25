@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             />
 
             <MaintenanceProvider>
-              <div className="flex min-h-screen w-full relative">
+              <div className="flex flex-col lg:flex-row min-h-screen w-full relative">
                 <Header />
                 <main className="flex-1 min-w-0 flex flex-col transition-all duration-300 ease-in-out"> 
                   {children}

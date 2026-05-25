@@ -22,6 +22,8 @@ import {
   HiOutlineMail,
   HiOutlineClock,
   HiOutlineUser,
+  HiOutlineMenu,
+  HiOutlineX,
 } from "react-icons/hi";
 
 // Return standard sizes for icons
@@ -82,7 +84,13 @@ export default function Header() {
   const router = useRouter(); 
   const { data: session } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
 
   const brandColor = "#EF5222";
   const [isMounted, setIsMounted] = useState(false);
@@ -148,9 +156,221 @@ export default function Header() {
   return (
     <>
 
+      {/* 📱 MOBILE HEADER TOP BAR */}
+      <div className="lg:hidden sticky top-0 left-0 w-full h-[60px] bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md border-b border-slate-100 dark:border-[#121824]/40 flex items-center justify-between px-4 z-[999] shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        {/* Brand Logo and Name */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/brand/ABC.png"
+            alt="ABC Logo"
+            width={36}
+            height={28}
+            className="object-contain dark:invert dark:mix-blend-screen"
+          />
+          <span className="font-black text-[12px] tracking-[0.12em] uppercase bg-gradient-to-r from-[#EF5222] to-[#F59E0B] bg-clip-text text-transparent">
+            ABC BUS LINE
+          </span>
+        </Link>
+
+        {/* Right actions: ThemeToggle and Hamburger Button */}
+        <div className="flex items-center gap-3">
+          <ThemeToggle isCollapsed={true} />
+          
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-[#EF5222] hover:border-orange-500/20 active:scale-95 transition-all cursor-pointer"
+          >
+            {isMenuOpen ? (
+              <HiOutlineX className="w-5 h-5" />
+            ) : (
+              <HiOutlineMenu className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* 📱 MOBILE MENU DRAWER OVERLAY */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[998]"
+            />
+
+            {/* Slide-in Menu Panel */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="lg:hidden fixed top-[60px] bottom-0 left-0 w-[280px] bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-r border-slate-100 dark:border-[#121824]/40 z-[998] flex flex-col p-4 shadow-2xl overflow-y-auto no-scrollbar"
+            >
+              {/* Navigation Items */}
+              <nav className="flex flex-col gap-1.5">
+                {NAV_ITEMS.map((item) => {
+                  const active = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
+                  return (
+                    <Link key={item.href} href={item.href} className="w-full">
+                      <motion.div
+                        whileTap={{ scale: 0.98 }}
+                        className={`flex items-center gap-3.5 px-4 h-[44px] rounded-2xl transition-all duration-300 ${
+                          active
+                            ? "text-white font-extrabold shadow-lg shadow-orange-500/25"
+                            : "text-slate-500 dark:text-slate-400 hover:text-[#EF5222] dark:hover:text-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-900/40 font-bold"
+                        }`}
+                        style={active ? { backgroundImage: "linear-gradient(135deg, #EF5222, #F59E0B)" } : {}}
+                      >
+                        <div className="shrink-0">
+                          {getNavIcon(item.href)}
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-wider">
+                          {getNavLabel(item.href, t)}
+                        </span>
+                      </motion.div>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* VIP Member or Login Section */}
+              <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800/45 flex flex-col gap-4">
+                {session?.user ? (
+                  <div className="w-full">
+                    <Link href="/loyalty" className="block w-full">
+                      <div className="relative overflow-hidden bg-gradient-to-br from-[#CF9E41] via-[#F6E3B8] to-[#9F7425] text-slate-955 rounded-2xl p-3 shadow-md">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 shrink-0 rounded-full border-2 border-[#9F7425]/30 p-0.5 overflow-hidden flex items-center justify-center bg-white shadow-sm">
+                            <img
+                              src={session.user.image || "/default-avatar.png"}
+                              alt="User"
+                              className="rounded-full object-cover w-full h-full"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-black uppercase tracking-wider truncate max-w-[150px] leading-tight text-slate-950">
+                              {session.user.name}
+                            </p>
+                            <p className="text-[7.5px] font-black uppercase tracking-widest text-[#694c13] leading-none mt-0.5">
+                              GOLD MEMBER
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-2 border-t border-slate-955/10 flex justify-between items-center">
+                          <span className="text-[8px] font-black uppercase tracking-widest text-[#694c13]">
+                            LOYALTY VIP
+                          </span>
+                          <span className="text-[11px] font-black bg-slate-955/10 px-2 py-0.5 rounded-lg">
+                            {userPoints} ⭐
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <button
+                      onClick={() => signOut()}
+                      className="flex items-center justify-center w-full mt-3 py-2 text-red-500 hover:bg-red-50/60 dark:hover:bg-red-950/20 rounded-xl transition-all duration-200 text-[10px] font-black uppercase tracking-wider"
+                    >
+                      <HiOutlineLogout className="w-4 h-4 mr-1 shrink-0" />
+                      {t("logout")}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl p-3 text-center shadow-md">
+                    <span className="text-[9px] font-black text-[#EF5222] dark:text-orange-400 uppercase tracking-widest block mb-2 leading-none">
+                      LOTUSMILES VIP
+                    </span>
+                    <Link href="/login" className="block w-full">
+                      <button className="w-full py-2 rounded-xl bg-gradient-to-r from-[#EF5222] to-[#F59E0B] text-white text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer">
+                        {t("login")}
+                      </button>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Mobile Language Selector */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsLangOpen(!isLangOpen)}
+                    className="w-full flex items-center justify-between gap-2 rounded-2xl bg-slate-50/80 dark:bg-slate-950 p-2.5 border border-slate-200/60 dark:border-slate-800/65 shadow-inner select-none cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      {i18n.language === "vi" ? (
+                        <>
+                          <svg viewBox="0 0 30 20" className="w-5 h-3.5 rounded-sm object-cover shadow-sm">
+                            <rect width="30" height="20" fill="#DA251D" />
+                            <polygon points="15,4 16.18,7.63 20,7.63 16.91,9.88 18.09,13.5 15,11.25 11.91,13.5 13.09,9.88 10,7.63 13.82,7.63" fill="#FFFF00" />
+                          </svg>
+                          <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Tiếng Việt</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg viewBox="0 0 30 20" className="w-5 h-3.5 rounded-sm object-cover shadow-sm">
+                            <rect width="30" height="20" fill="#012169" />
+                            <path stroke="#FFF" strokeWidth="3" d="M0 0l30 20M30 0L0 20" />
+                            <path stroke="#C8102E" strokeWidth="1" d="M0 0l30 20M30 0L0 20" />
+                            <path stroke="#FFF" strokeWidth="5" d="M15 0v20M0 10h30" />
+                            <path stroke="#C8102E" strokeWidth="3" d="M15 0v20M0 10h30" />
+                          </svg>
+                          <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">English</span>
+                        </>
+                      )}
+                    </div>
+                    <svg 
+                      className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-300 ${isLangOpen ? "rotate-180" : ""}`} 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+
+                  <AnimatePresence>
+                    {isLangOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        className="absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-[#090D1A] border border-slate-200 dark:border-slate-800 shadow-xl rounded-2xl p-1.5 z-[999] flex flex-col gap-0.5"
+                      >
+                        {LANGUAGES.map((lang) => {
+                          const isActive = i18n.language === lang.code;
+                          return (
+                            <button
+                              key={lang.code}
+                              onClick={() => {
+                                changeLanguage(lang.code as any);
+                                setIsLangOpen(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                isActive
+                                  ? "bg-orange-50/50 dark:bg-orange-950/20 text-[#EF5222] dark:text-orange-400 font-extrabold"
+                                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                              }`}
+                            >
+                              {lang.flag("w-5 h-3.5 rounded-sm object-cover shadow-sm")}
+                              <span>{lang.label}</span>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* 🔮 MODERN GLASSMORPHIC SIDEBAR - BRAND ACCENT ORANGE */}
       <header
-        className={`sticky top-0 left-0 h-screen bg-white/90 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-r border-slate-100 dark:border-[#121824]/40 flex flex-col z-[999] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_40px_rgba(0,0,0,0.2)] ${
+        className={`hidden lg:flex sticky top-0 left-0 h-screen bg-white/90 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-r border-slate-100 dark:border-[#121824]/40 flex flex-col z-[999] transition-all duration-500 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_40px_rgba(0,0,0,0.2)] ${
           isCollapsed ? "w-[72px]" : "w-[215px]"
         }`}
       >
