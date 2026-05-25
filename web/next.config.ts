@@ -1,6 +1,7 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from "next";
 
+// Trigger Vercel rebuild with new Root Directory setting
 // Khởi tạo plugin next-intl
 const withNextIntl = createNextIntlPlugin();
 
