@@ -34,7 +34,6 @@ async function bootstrap() {
       
       const cleanedOrigin = origin.replace(/\/$/, '');
       const isAllowed = allowedOrigins.some(allowed => {
-        if (!allowed) return false;
         const cleanedAllowed = allowed.replace(/\/$/, '');
         return cleanedAllowed === cleanedOrigin;
       }) || cleanedOrigin.endsWith('.vercel.app');
@@ -50,8 +49,8 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // Railway cung cấp $PORT tự động, fallback về 3001 cho local
-  const port = process.env.PORT || 3001;
+  // Khóa cứng cổng 3001 để khớp với cấu hình Public Networking trên Railway
+  const port = 3001;
   await app.listen(port, '0.0.0.0');
 
   // ✅ LẤY Prisma từ Nest
@@ -66,4 +65,4 @@ async function bootstrap() {
   console.log(`Backend đang chạy tại port ${port}`);
 }
 
-bootstrap();
+bootstrap();
