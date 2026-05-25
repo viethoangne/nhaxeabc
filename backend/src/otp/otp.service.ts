@@ -97,82 +97,6 @@ export class OtpService {
   // THÊM MỚI: Hàm chuẩn đoán để kiểm tra kết nối SMTP
   async testSmtp() {
     const results: any = {};
-    
-    // Test 1: Port 465 (secure: true, family: 4)
-    try {
-      const t1 = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-        family: 4,
-        connectionTimeout: 5000,
-      } as any);
-      await t1.verify();
-      results.port465_v4 = 'SUCCESS';
-    } catch (e: any) {
-      results.port465_v4 = e.message || e.toString();
-    }
-
-    // Test 2: Port 587 (secure: false, family: 4)
-    try {
-      const t2 = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-        family: 4,
-        connectionTimeout: 5000,
-      } as any);
-      await t2.verify();
-      results.port587_v4 = 'SUCCESS';
-    } catch (e: any) {
-      results.port587_v4 = e.message || e.toString();
-    }
-
-    // Test 3: Port 465 (secure: true, no family option)
-    try {
-      const t3 = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-        connectionTimeout: 5000,
-      } as any);
-      await t3.verify();
-      results.port465_default = 'SUCCESS';
-    } catch (e: any) {
-      results.port465_default = e.message || e.toString();
-    }
-
-    // Test 4: Port 587 (secure: false, no family option)
-    try {
-      const t4 = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-        connectionTimeout: 5000,
-      } as any);
-      await t4.verify();
-      results.port587_default = 'SUCCESS';
-    } catch (e: any) {
-      results.port587_default = e.message || e.toString();
-    }
-
-    // Test 5 & 6: Resolving IP manually
     const dns = require('dns').promises;
     let ipv4List: string[] = [];
     try {
@@ -182,76 +106,167 @@ export class OtpService {
       results.resolvedIpv4s = 'FAILED: ' + (e.message || e.toString());
     }
 
-    if (ipv4List.length > 0) {
-      const ip = ipv4List[0];
-      
-      // Test 5: IP + Port 465 (secure: true, servername: 'smtp.gmail.com')
+    const tasks: Promise<void>[] = [];
+
+    // Test 1: Port 465 (secure: true, family: 4)
+    tasks.push((async () => {
       try {
-        const t5 = nodemailer.createTransport({
-          host: ip,
+        const t1 = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
           port: 465,
           secure: true,
           auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
           },
-          tls: {
-            servername: 'smtp.gmail.com'
-          },
+          family: 4,
           connectionTimeout: 5000,
         } as any);
-        await t5.verify();
-        results.ip_port465 = 'SUCCESS';
+        await t1.verify();
+        results.port465_v4 = 'SUCCESS';
       } catch (e: any) {
-        results.ip_port465 = e.message || e.toString();
+        results.port465_v4 = e.message || e.toString();
       }
+    })());
 
-      // Test 6: IP + Port 587 (secure: false, servername: 'smtp.gmail.com')
+    // Test 2: Port 587 (secure: false, family: 4)
+    tasks.push((async () => {
       try {
-        const t6 = nodemailer.createTransport({
-          host: ip,
+        const t2 = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
           port: 587,
           secure: false,
           auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
           },
-          tls: {
-            servername: 'smtp.gmail.com'
+          family: 4,
+          connectionTimeout: 5000,
+        } as any);
+        await t2.verify();
+        results.port587_v4 = 'SUCCESS';
+      } catch (e: any) {
+        results.port587_v4 = e.message || e.toString();
+      }
+    })());
+
+    // Test 3: Port 465 (secure: true, no family option)
+    tasks.push((async () => {
+      try {
+        const t3 = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
           },
           connectionTimeout: 5000,
-         } as any);
-        await t6.verify();
-        results.ip_port587 = 'SUCCESS';
+        } as any);
+        await t3.verify();
+        results.port465_default = 'SUCCESS';
       } catch (e: any) {
-        results.ip_port587 = e.message || e.toString();
+        results.port465_default = e.message || e.toString();
       }
+    })());
+
+    // Test 4: Port 587 (secure: false, no family option)
+    tasks.push((async () => {
+      try {
+        const t4 = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+          connectionTimeout: 5000,
+        } as any);
+        await t4.verify();
+        results.port587_default = 'SUCCESS';
+      } catch (e: any) {
+        results.port587_default = e.message || e.toString();
+      }
+    })());
+
+    if (ipv4List.length > 0) {
+      const ip = ipv4List[0];
+      
+      // Test 5: IP + Port 465 (secure: true, servername: 'smtp.gmail.com')
+      tasks.push((async () => {
+        try {
+          const t5 = nodemailer.createTransport({
+            host: ip,
+            port: 465,
+            secure: true,
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+            },
+            tls: {
+              servername: 'smtp.gmail.com'
+            },
+            connectionTimeout: 5000,
+          } as any);
+          await t5.verify();
+          results.ip_port465 = 'SUCCESS';
+        } catch (e: any) {
+          results.ip_port465 = e.message || e.toString();
+        }
+      })());
+
+      // Test 6: IP + Port 587 (secure: false, servername: 'smtp.gmail.com')
+      tasks.push((async () => {
+        try {
+          const t6 = nodemailer.createTransport({
+            host: ip,
+            port: 587,
+            secure: false,
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+            },
+            tls: {
+              servername: 'smtp.gmail.com'
+            },
+            connectionTimeout: 5000,
+          } as any);
+          await t6.verify();
+          results.ip_port587 = 'SUCCESS';
+        } catch (e: any) {
+          results.ip_port587 = e.message || e.toString();
+        }
+      })());
     }
 
     // Test 7: Brevo SMTP on Port 2525 (Checking if port 2525 is unblocked on Railway)
-    try {
-      const net = require('net');
-      await new Promise<void>((resolve, reject) => {
-        const socket = net.createConnection(2525, 'smtp-relay.brevo.com');
-        socket.setTimeout(3000);
-        socket.on('connect', () => {
-          socket.destroy();
-          resolve();
+    tasks.push((async () => {
+      try {
+        const net = require('net');
+        await new Promise<void>((resolve, reject) => {
+          const socket = net.createConnection(2525, 'smtp-relay.brevo.com');
+          socket.setTimeout(3000);
+          socket.on('connect', () => {
+            socket.destroy();
+            resolve();
+          });
+          socket.on('timeout', () => {
+            socket.destroy();
+            reject(new Error('Timeout'));
+          });
+          socket.on('error', (err: any) => {
+            socket.destroy();
+            reject(err);
+          });
         });
-        socket.on('timeout', () => {
-          socket.destroy();
-          reject(new Error('Timeout'));
-        });
-        socket.on('error', (err: any) => {
-          socket.destroy();
-          reject(err);
-        });
-      });
-      results.brevo_2525 = 'SUCCESS';
-    } catch (e: any) {
-      results.brevo_2525 = e.message || e.toString();
-    }
+        results.brevo_2525 = 'SUCCESS';
+      } catch (e: any) {
+        results.brevo_2525 = e.message || e.toString();
+      }
+    })());
 
+    await Promise.all(tasks);
     return results;
   }
 }
