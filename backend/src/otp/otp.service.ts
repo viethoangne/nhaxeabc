@@ -14,12 +14,17 @@ export class OtpService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER, // LẤY TỪ FILE .ENV
         pass: process.env.EMAIL_PASS, // LẤY TỪ FILE .ENV
       },
-    });
+      // Force IPv4 because cloud environments (e.g. Railway) may block or lack IPv6 routing,
+      // which triggers the ENETUNREACH socket connect error.
+      family: 4,
+    } as any);
   }
 
   async sendOtp(email: string) {
