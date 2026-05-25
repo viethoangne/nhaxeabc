@@ -20,12 +20,18 @@ const nextConfig: NextConfig = {
 
   // Rewrite API sang backend
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-    const destinationUrl = backendUrl.replace(/\/$/, '');
+    let backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    backendUrl = backendUrl.replace(/\/$/, '');
+    
+    // Nếu biến môi trường cấu hình thiếu /api ở cuối, tự động điền để khớp với NestJS prefix
+    if (!backendUrl.endsWith('/api')) {
+      backendUrl = `${backendUrl}/api`;
+    }
+
     return [
       {
         source: '/api/:path((?!auth).*)', 
-        destination: `${destinationUrl}/:path*`,
+        destination: `${backendUrl}/:path*`,
       },
     ];
   },
