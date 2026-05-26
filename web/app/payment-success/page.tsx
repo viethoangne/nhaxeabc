@@ -113,12 +113,12 @@ export default function PaymentSuccessPage() {
   };
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12 relative overflow-visible">
+    <main className="mx-auto max-w-4xl px-4 py-6 sm:py-12 relative overflow-visible">
       {/* Festive Floating Particles celebration */}
       <ConfettiEffect />
       
       <motion.div 
-        className="rounded-[32px] border border-slate-200/75 bg-white/95 p-8 md:p-10 shadow-2xl shadow-slate-100 relative overflow-hidden backdrop-blur-md"
+        className="rounded-2xl sm:rounded-[32px] border border-slate-200/75 bg-white/95 p-5 sm:p-8 md:p-10 shadow-2xl shadow-slate-100 relative overflow-hidden backdrop-blur-md"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 90, damping: 15 }}
@@ -129,7 +129,7 @@ export default function PaymentSuccessPage() {
 
         <div className="flex flex-col items-center text-center relative z-10">
           {/* Spring-animated checkmark circle with glowing rings */}
-          <div className="relative mb-6">
+          <div className="relative mb-4 sm:mb-6">
             {/* Pulsing halo rings */}
             <motion.div
               className="absolute inset-0 rounded-full bg-emerald-100/50"
@@ -155,7 +155,7 @@ export default function PaymentSuccessPage() {
           </div>
 
           <motion.h1 
-            className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent"
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -163,13 +163,13 @@ export default function PaymentSuccessPage() {
             {t('title')}
           </motion.h1>
 
-          <p className="mt-3.5 max-w-2xl text-slate-500 font-semibold leading-relaxed">
+          <p className="mt-3 max-w-2xl text-slate-500 text-sm sm:text-base font-semibold leading-relaxed">
             {t('desc')}
           </p>
 
           {/* Mail info alert card */}
           <motion.div 
-            className="mt-8 w-full overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-6 shadow-sm shadow-amber-50/50 relative"
+            className="mt-6 sm:mt-8 w-full overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 to-orange-50/40 p-4 sm:p-6 shadow-sm shadow-amber-50/50 relative"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, ease: 'easeOut' }}
@@ -185,8 +185,8 @@ export default function PaymentSuccessPage() {
                 <Mail className="h-7 w-7" />
               </motion.div>
               
-              <h3 className="text-xl font-bold text-amber-800">{t('checkMailTitle')}</h3>
-              <p className="text-amber-700 leading-relaxed text-sm md:text-base max-w-xl font-medium">
+              <h3 className="text-lg sm:text-xl font-bold text-amber-800">{t('checkMailTitle')}</h3>
+              <p className="text-amber-700 leading-relaxed text-xs sm:text-sm md:text-base max-w-xl font-medium">
                 {t('checkMailDesc')}
               </p>
             </div>
@@ -194,23 +194,23 @@ export default function PaymentSuccessPage() {
         </div>
 
         {/* Detailed Info Cards */}
-        <div className="mt-8 grid gap-4 md:grid-cols-2 relative z-10">
+        <div className="mt-6 sm:mt-8 grid gap-4 md:grid-cols-2 relative z-10">
           {/* Card Mã đơn hàng */}
           <motion.div 
-            className="group relative rounded-2xl border border-slate-100 bg-slate-50/50 p-5 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:border-slate-200/80"
+            className="group relative rounded-2xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:border-slate-200/80"
             initial={{ x: -25, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
             <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('orderCode')}</div>
             
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-2xl font-black text-slate-800 font-sans tracking-normal">
+            <div className="mt-3 flex items-center justify-between gap-3 overflow-hidden">
+              <span className="text-lg sm:text-2xl font-black text-slate-800 font-sans tracking-normal truncate">
                 {finalOrderCode || '---'}
               </span>
               
               {finalOrderCode && (
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <button
                     onClick={handleCopyOrderCode}
                     className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-500 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:text-orange-500 hover:border-orange-200 active:scale-90"
@@ -262,7 +262,7 @@ export default function PaymentSuccessPage() {
 
           {/* Card Trạng thái */}
           <motion.div 
-            className="group rounded-2xl border border-slate-100 bg-slate-50/50 p-5 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:border-slate-200/80"
+            className="group rounded-2xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:border-slate-200/80"
             initial={{ x: 25, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -275,7 +275,7 @@ export default function PaymentSuccessPage() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
               </span>
               
-              <span className="text-2xl font-black bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+              <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                 {t('paid')}
               </span>
             </div>
@@ -284,25 +284,25 @@ export default function PaymentSuccessPage() {
 
         {/* Important notices panel */}
         <motion.div 
-          className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50/20 p-6 relative overflow-hidden"
+          className="mt-6 sm:mt-8 rounded-2xl border border-emerald-100 bg-emerald-50/20 p-4 sm:p-6 relative overflow-hidden"
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
           <div className="absolute -left-10 -bottom-10 w-28 h-28 bg-emerald-200/5 rounded-full blur-2xl pointer-events-none animate-pulse" />
           
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2.5">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2.5">
             <AlertCircle className="h-5 w-5 text-emerald-600" />
             <span>{t('importantNotice')}</span>
           </h2>
           
-          <ul className="mt-4 space-y-3.5 z-10 relative">
+          <ul className="mt-3 sm:mt-4 space-y-3 sm:space-y-3.5 z-10 relative">
             {[
               t('notice1'),
               t('notice2'),
               t('notice3')
             ].map((text, idx) => (
-              <li key={idx} className="flex items-start gap-3.5 text-sm text-slate-600 leading-relaxed font-semibold">
+              <li key={idx} className="flex items-start gap-3.5 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
                 <span className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-[10px]">
                   ✓
                 </span>
@@ -314,14 +314,14 @@ export default function PaymentSuccessPage() {
 
         {/* Action button row */}
         <motion.div 
-          className="mt-9 flex flex-wrap justify-center gap-4 relative z-10"
+          className="mt-6 sm:mt-9 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 relative z-10"
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 px-8 py-4 font-bold text-white shadow-lg shadow-orange-100 transition-all duration-300 hover:shadow-xl hover:shadow-orange-200 hover:-translate-y-0.5 active:scale-95"
+            className="flex items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3.5 sm:px-8 sm:py-4 text-sm sm:text-base font-bold text-white shadow-lg shadow-orange-100 transition-all duration-300 hover:shadow-xl hover:shadow-orange-200 hover:-translate-y-0.5 active:scale-95 w-full sm:w-auto"
           >
             <Home className="h-5 w-5" />
             {t('btnHome')}
@@ -329,7 +329,7 @@ export default function PaymentSuccessPage() {
 
           <Link
             href="/search-trip"
-            className="flex items-center gap-2 rounded-2xl border-2 border-slate-200 bg-white px-8 py-4 font-bold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-95"
+            className="flex items-center justify-center gap-2 rounded-xl sm:rounded-2xl border-2 border-slate-200 bg-white px-6 py-3.5 sm:px-8 sm:py-4 text-sm sm:text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:scale-95 w-full sm:w-auto"
           >
             <Ticket className="h-5 w-5" />
             {t('btnNew')}
