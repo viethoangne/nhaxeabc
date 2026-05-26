@@ -431,10 +431,10 @@ export default function SearchTripPage() {
                 
                 {activeFilters.times.map((timeRange) => {
                   let label = '';
-                  if (timeRange === '00-06') label = t('earlyMorning') || 'Sáng sớm';
-                  if (timeRange === '06-12') label = t('morning') || 'Buổi sáng';
-                  if (timeRange === '12-18') label = t('afternoon') || 'Buổi chiều';
-                  if (timeRange === '18-24') label = t('evening') || 'Buổi tối';
+                  if (timeRange === '00-06') label = `${t('earlyMorning') || 'Sáng sớm'} (00:00 - 06:00)`;
+                  if (timeRange === '06-12') label = `${t('morning') || 'Buổi sáng'} (06:00 - 12:00)`;
+                  if (timeRange === '12-18') label = `${t('afternoon') || 'Buổi chiều'} (12:00 - 18:00)`;
+                  if (timeRange === '18-24') label = `${t('evening') || 'Buổi tối'} (18:00 - 24:00)`;
                   
                   return (
                     <button
