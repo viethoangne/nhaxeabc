@@ -255,10 +255,10 @@ export default function HistoryPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-orange-400/5 to-rose-400/5 blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-10 left-10 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-blue-400/5 to-indigo-400/5 blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-6xl mx-auto px-4 pt-10 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 pt-5 relative z-10">
         
         {/* BREADCRUMB */}
-        <div className="pt-2 pb-6">
+        <div className="mb-5">
           <Breadcrumb items={[{ label: t('title') }]} />
         </div>
 
