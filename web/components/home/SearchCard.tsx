@@ -623,7 +623,7 @@ export default function SearchCard({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="md:hidden fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-[#0B0F19]"
+            className="md:hidden fixed inset-0 z-[10000] flex flex-col bg-white dark:bg-[#0B0F19]"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50">
@@ -709,7 +709,7 @@ export default function SearchCard({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="md:hidden fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-[#0B0F19]"
+            className="md:hidden fixed inset-0 z-[10000] flex flex-col bg-white dark:bg-[#0B0F19]"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50">
@@ -790,7 +790,7 @@ export default function SearchCard({
 
         {/* 3. Bottom Sheet Modal for DEPART DATE */}
         {activeDropdown === 'departDate' && (
-          <div className="md:hidden fixed inset-0 z-[9999] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
+          <div className="md:hidden fixed inset-0 z-[10000] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
             {/* Click backdrop to close */}
             <div className="absolute inset-0 z-0" onClick={() => setActiveDropdown(null)} />
             
@@ -828,7 +828,7 @@ export default function SearchCard({
 
         {/* 4. Bottom Sheet Modal for RETURN DATE */}
         {activeDropdown === 'returnDate' && (
-          <div className="md:hidden fixed inset-0 z-[9999] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
+          <div className="md:hidden fixed inset-0 z-[10000] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
             {/* Click backdrop to close */}
             <div className="absolute inset-0 z-0" onClick={() => setActiveDropdown(null)} />
             
@@ -866,7 +866,7 @@ export default function SearchCard({
 
         {/* 5. Bottom Sheet Modal for PASSENGERS (Hành khách) */}
         {activeDropdown === 'tickets' && (
-          <div className="md:hidden fixed inset-0 z-[9999] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
+          <div className="md:hidden fixed inset-0 z-[10000] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
             {/* Click backdrop to close */}
             <div className="absolute inset-0 z-0" onClick={() => setActiveDropdown(null)} />
             

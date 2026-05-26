@@ -155,11 +155,18 @@ export default function Header() {
 
   return (
     <>
-
       {/* 📱 MOBILE HEADER TOP BAR */}
-      <div className="lg:hidden sticky top-0 left-0 w-full h-[60px] bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md border-b border-slate-100 dark:border-[#121824]/40 flex items-center justify-between px-4 z-[999] shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-        {/* Brand Logo and Name */}
-        <Link href="/" className="flex items-center gap-2">
+      <div className="lg:hidden sticky top-0 left-0 w-full h-[60px] bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md border-b border-slate-100 dark:border-[#121824]/40 flex items-center justify-between px-4 z-[999] shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative">
+        {/* Left actions: Hamburger Button */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-[#EF5222] hover:border-orange-500/20 active:scale-95 transition-all cursor-pointer"
+        >
+          <HiOutlineMenu className="w-5 h-5" />
+        </button>
+
+        {/* Center: Brand Logo and Name (Centered absolutely) */}
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex items-center gap-2">
           <Image
             src="/brand/ABC.png"
             alt="ABC Logo"
@@ -172,20 +179,19 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Right actions: ThemeToggle and Hamburger Button */}
-        <div className="flex items-center gap-3">
+        {/* Right actions: ThemeToggle and User Profile avatar */}
+        <div className="flex items-center gap-2.5">
           <ThemeToggle isCollapsed={true} />
           
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-[#EF5222] hover:border-orange-500/20 active:scale-95 transition-all cursor-pointer"
-          >
-            {isMenuOpen ? (
-              <HiOutlineX className="w-5 h-5" />
-            ) : (
-              <HiOutlineMenu className="w-5 h-5" />
-            )}
-          </button>
+          <Link href={session?.user ? "/loyalty" : "/login"}>
+            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60 shadow-sm cursor-pointer active:scale-95 transition-all">
+              {session?.user?.image ? (
+                <img src={session.user.image} alt="User avatar" className="w-full h-full object-cover" />
+              ) : (
+                <HiOutlineUserCircle className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+              )}
+            </div>
+          </Link>
         </div>
       </div>
 
@@ -199,7 +205,7 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[998]"
+              className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[1000]"
             />
 
             {/* Slide-in Menu Panel */}
@@ -208,8 +214,103 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="lg:hidden fixed top-[60px] bottom-0 left-0 w-[280px] bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-r border-slate-100 dark:border-[#121824]/40 z-[998] flex flex-col p-4 shadow-2xl overflow-y-auto no-scrollbar"
+              className="lg:hidden fixed top-0 bottom-0 left-0 w-[280px] bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl border-r border-slate-100 dark:border-[#121824]/40 z-[1001] flex flex-col p-4 shadow-2xl overflow-y-auto no-scrollbar"
             >
+              {/* Menu Top Bar (Vietnam Airlines style) */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60 mb-4">
+                {/* Left: Close X button */}
+                <button 
+                  type="button" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                >
+                  <HiOutlineX className="w-5 h-5" />
+                </button>
+
+                {/* Right: Language switch pill & User Avatar */}
+                <div className="flex items-center gap-2.5">
+                  {/* Language Selector Pill */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsLangOpen(!isLangOpen)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all select-none cursor-pointer"
+                    >
+                      {i18n.language === "vi" ? (
+                        <>
+                          <svg viewBox="0 0 30 20" className="w-4.5 h-3 rounded-sm object-cover shadow-sm pointer-events-none">
+                            <rect width="30" height="20" fill="#DA251D" />
+                            <polygon points="15,4 16.18,7.63 20,7.63 16.91,9.88 18.09,13.5 15,11.25 11.91,13.5 13.09,9.88 10,7.63 13.82,7.63" fill="#FFFF00" />
+                          </svg>
+                          <span className="text-[9px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">VI</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg viewBox="0 0 30 20" className="w-4.5 h-3 rounded-sm object-cover shadow-sm pointer-events-none">
+                            <rect width="30" height="20" fill="#012169" />
+                            <path stroke="#FFF" strokeWidth="3" d="M0 0l30 20M30 0L0 20" />
+                            <path stroke="#C8102E" strokeWidth="1" d="M0 0l30 20M30 0L0 20" />
+                            <path stroke="#FFF" strokeWidth="5" d="M15 0v20M0 10h30" />
+                            <path stroke="#C8102E" strokeWidth="3" d="M15 0v20M0 10h30" />
+                          </svg>
+                          <span className="text-[9px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">EN</span>
+                        </>
+                      )}
+                      <svg 
+                        className={`w-2.5 h-2.5 text-slate-400 dark:text-slate-550 transition-transform duration-300 ${isLangOpen ? "rotate-180" : ""}`} 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    <AnimatePresence>
+                      {isLangOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                          className="absolute right-0 top-full mt-1.5 w-[120px] bg-white dark:bg-[#090D1A] border border-slate-200 dark:border-slate-800 shadow-xl rounded-xl p-1 z-[999] flex flex-col gap-0.5"
+                        >
+                          {LANGUAGES.map((lang) => {
+                            const isActive = i18n.language === lang.code;
+                            return (
+                              <button
+                                key={lang.code}
+                                onClick={() => {
+                                  changeLanguage(lang.code as any);
+                                  setIsLangOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                                  isActive
+                                    ? "bg-orange-50/50 dark:bg-orange-950/20 text-[#EF5222] dark:text-orange-400 font-extrabold"
+                                    : "text-slate-550 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                                }`}
+                              >
+                                {lang.flag("w-4 h-2.5 rounded-sm object-cover shadow-sm")}
+                                <span>{lang.label}</span>
+                              </button>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* User Profile Avatar Link */}
+                  <Link href={session?.user ? "/loyalty" : "/login"} onClick={() => setIsMenuOpen(false)}>
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700 shadow-sm cursor-pointer active:scale-95 transition-all">
+                      {session?.user?.image ? (
+                        <img src={session.user.image} alt="User avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <HiOutlineUserCircle className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
               {/* Navigation Items */}
               <nav className="flex flex-col gap-1.5">
                 {NAV_ITEMS.map((item) => {
@@ -221,7 +322,7 @@ export default function Header() {
                         className={`flex items-center gap-3.5 px-4 h-[44px] rounded-2xl transition-all duration-300 ${
                           active
                             ? "text-white font-extrabold shadow-lg shadow-orange-500/25"
-                            : "text-slate-500 dark:text-slate-400 hover:text-[#EF5222] dark:hover:text-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-900/40 font-bold"
+                            : "text-slate-550 dark:text-slate-400 hover:text-[#EF5222] dark:hover:text-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-900/40 font-bold"
                         }`}
                         style={active ? { backgroundImage: "linear-gradient(135deg, #EF5222, #F59E0B)" } : {}}
                       >
@@ -241,7 +342,7 @@ export default function Header() {
               <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800/45 flex flex-col gap-4">
                 {session?.user ? (
                   <div className="w-full">
-                    <Link href="/loyalty" className="block w-full">
+                    <Link href="/loyalty" className="block w-full" onClick={() => setIsMenuOpen(false)}>
                       <div className="relative overflow-hidden bg-gradient-to-br from-[#CF9E41] via-[#F6E3B8] to-[#9F7425] text-slate-955 rounded-2xl p-3 shadow-md">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 shrink-0 rounded-full border-2 border-[#9F7425]/30 p-0.5 overflow-hidden flex items-center justify-center bg-white shadow-sm">
@@ -252,7 +353,7 @@ export default function Header() {
                             />
                           </div>
                           <div>
-                            <p className="text-[11px] font-black uppercase tracking-wider truncate max-w-[150px] leading-tight text-slate-950">
+                            <p className="text-[11px] font-black uppercase tracking-wider truncate max-w-[150px] leading-tight text-slate-955">
                               {session.user.name}
                             </p>
                             <p className="text-[7.5px] font-black uppercase tracking-widest text-[#694c13] leading-none mt-0.5">
@@ -272,8 +373,8 @@ export default function Header() {
                     </Link>
 
                     <button
-                      onClick={() => signOut()}
-                      className="flex items-center justify-center w-full mt-3 py-2 text-red-500 hover:bg-red-50/60 dark:hover:bg-red-950/20 rounded-xl transition-all duration-200 text-[10px] font-black uppercase tracking-wider"
+                      onClick={() => { signOut(); setIsMenuOpen(false); }}
+                      className="flex items-center justify-center w-full mt-3 py-2 text-red-500 hover:bg-red-50/60 dark:hover:bg-red-955/20 rounded-xl transition-all duration-200 text-[10px] font-black uppercase tracking-wider"
                     >
                       <HiOutlineLogout className="w-4 h-4 mr-1 shrink-0" />
                       {t("logout")}
@@ -284,84 +385,13 @@ export default function Header() {
                     <span className="text-[9px] font-black text-[#EF5222] dark:text-orange-400 uppercase tracking-widest block mb-2 leading-none">
                       LOTUSMILES VIP
                     </span>
-                    <Link href="/login" className="block w-full">
+                    <Link href="/login" className="block w-full" onClick={() => setIsMenuOpen(false)}>
                       <button className="w-full py-2 rounded-xl bg-gradient-to-r from-[#EF5222] to-[#F59E0B] text-white text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer">
                         {t("login")}
                       </button>
                     </Link>
                   </div>
                 )}
-
-                {/* Mobile Language Selector */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsLangOpen(!isLangOpen)}
-                    className="w-full flex items-center justify-between gap-2 rounded-2xl bg-slate-50/80 dark:bg-slate-950 p-2.5 border border-slate-200/60 dark:border-slate-800/65 shadow-inner select-none cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      {i18n.language === "vi" ? (
-                        <>
-                          <svg viewBox="0 0 30 20" className="w-5 h-3.5 rounded-sm object-cover shadow-sm">
-                            <rect width="30" height="20" fill="#DA251D" />
-                            <polygon points="15,4 16.18,7.63 20,7.63 16.91,9.88 18.09,13.5 15,11.25 11.91,13.5 13.09,9.88 10,7.63 13.82,7.63" fill="#FFFF00" />
-                          </svg>
-                          <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Tiếng Việt</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg viewBox="0 0 30 20" className="w-5 h-3.5 rounded-sm object-cover shadow-sm">
-                            <rect width="30" height="20" fill="#012169" />
-                            <path stroke="#FFF" strokeWidth="3" d="M0 0l30 20M30 0L0 20" />
-                            <path stroke="#C8102E" strokeWidth="1" d="M0 0l30 20M30 0L0 20" />
-                            <path stroke="#FFF" strokeWidth="5" d="M15 0v20M0 10h30" />
-                            <path stroke="#C8102E" strokeWidth="3" d="M15 0v20M0 10h30" />
-                          </svg>
-                          <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">English</span>
-                        </>
-                      )}
-                    </div>
-                    <svg 
-                      className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-300 ${isLangOpen ? "rotate-180" : ""}`} 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
-                    </svg>
-                  </button>
-
-                  <AnimatePresence>
-                    {isLangOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                        className="absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-[#090D1A] border border-slate-200 dark:border-slate-800 shadow-xl rounded-2xl p-1.5 z-[999] flex flex-col gap-0.5"
-                      >
-                        {LANGUAGES.map((lang) => {
-                          const isActive = i18n.language === lang.code;
-                          return (
-                            <button
-                              key={lang.code}
-                              onClick={() => {
-                                changeLanguage(lang.code as any);
-                                setIsLangOpen(false);
-                              }}
-                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                                isActive
-                                  ? "bg-orange-50/50 dark:bg-orange-950/20 text-[#EF5222] dark:text-orange-400 font-extrabold"
-                                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-                              }`}
-                            >
-                              {lang.flag("w-5 h-3.5 rounded-sm object-cover shadow-sm")}
-                              <span>{lang.label}</span>
-                            </button>
-                          );
-                        })}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
               </div>
             </motion.div>
           </>
