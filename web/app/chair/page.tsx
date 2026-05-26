@@ -989,7 +989,7 @@ export default function ChairPage() {
 
       <AnimatePresence>
         {isPromoModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
+          <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
             <motion.div 
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1041,7 +1041,7 @@ export default function ChairPage() {
                 </button>
               </div>
 
-              <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 pb-20 sm:pb-5 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900/50">
                 {promoTab === 'my_vouchers' && (
                   <div className="space-y-3">
                     {availableVouchers.length === 0 ? (
