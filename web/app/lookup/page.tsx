@@ -440,113 +440,124 @@ export default function LookupPage() {
             ============================================================ */}
           <AnimatePresence>
             {isCancelModalOpen && ticketInfo && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+                className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/70 backdrop-blur-md"
+                onClick={() => { setIsCancelModalOpen(false); setConfirmEmail(''); setIsAgreed(false); }}
               >
                 <motion.div 
-                  initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                  className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl p-8 max-w-lg w-full border border-gray-100 dark:border-slate-800 relative overflow-hidden transition-colors duration-500"
+                  initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white dark:bg-slate-900 rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-lg sm:w-full border border-gray-100 dark:border-slate-800 relative overflow-hidden transition-colors duration-500 max-h-[92vh] flex flex-col"
                 >
                   {/* Thanh trang trí phía trên */}
-                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 to-orange-500"></div>
-
-                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight text-center">{t('cancelModalTitle')}</h3>
-                  
-                  {/* KHỐI CHÍNH SÁCH HOÀN TIỀN */}
-                  <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-950/20 rounded-3xl p-6 mb-6 mt-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase">{t('refundPercent')}</span>
-                      <span className="text-xl font-black text-red-600">{refundPolicy.refundPercent}%</span>
-                    </div>
-                    <div className="flex justify-between items-center border-t border-red-200/30 dark:border-red-950/30 pt-3">
-                      <span className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase">{t('refundAmount')}</span>
-                      <span className="text-2xl font-black text-red-600">
-                        {((ticketInfo.amount * refundPolicy.refundPercent) / 100).toLocaleString('vi-VN')} đ
-                      </span>
-                    </div>
+                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 to-orange-500"></div>
+                  {/* Drag handle on mobile */}
+                  <div className="sm:hidden flex justify-center pt-4 pb-1 flex-shrink-0">
+                    <div className="w-10 h-1 bg-gray-300 dark:bg-slate-600 rounded-full"></div>
                   </div>
 
-                  {/* ĐIỀU KHOẢN HỦY VÉ */}
-                  <div className="mb-6">
-                    <label className="block text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase mb-3 ml-1 tracking-widest">
-                      {t('termsTitle')}
-                    </label>
-                    <div className="bg-gray-50 dark:bg-slate-950/50 rounded-2xl p-4 text-[12px] text-gray-600 dark:text-slate-400 leading-relaxed border border-gray-100 dark:border-slate-800 max-h-32 overflow-y-auto mb-4 custom-scrollbar">
-                      <ul className="space-y-2 list-disc pl-4 font-medium">
-                        <li>{t('term1')}</li>
-                        <li>{t('term2')}</li>
-                        <li>{t('term3')}</li>
-                        <li>{t('term4')}</li>
-                        <li>{t('term5')}</li>
-                        <li>{t('term6')}</li>
-                        <li>{t('term7')}</li>
-                      </ul>
-                    </div>
+                  {/* Scrollable body */}
+                  <div className="overflow-y-auto flex-1 px-5 sm:px-8 pt-2 sm:pt-6 pb-2">
+                    <h3 className="text-lg sm:text-2xl font-black text-gray-900 dark:text-white mb-2 uppercase tracking-tight text-center">{t('cancelModalTitle')}</h3>
 
-                    {/* CHECKBOX ĐỒNG Ý */}
-                    <label className="flex items-center gap-3 cursor-pointer group px-2">
-                      <div className="relative flex items-center justify-center">
-                        <input 
-                          type="checkbox" 
-                          className="peer appearance-none w-6 h-6 border-2 border-gray-300 dark:border-slate-700 rounded-lg checked:bg-red-500 checked:border-red-500 transition-all duration-300"
-                          checked={isAgreed}
-                          onChange={(e) => setIsAgreed(e.target.checked)}
-                        />
-                        <svg className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    {/* KHỐI CHÍNH SÁCH HOÀN TIỀN */}
+                    <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-950/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 mb-4 sm:mb-6 mt-3">
+                      <div className="flex justify-between items-center mb-2 sm:mb-3">
+                        <span className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase">{t('refundPercent')}</span>
+                        <span className="text-lg sm:text-xl font-black text-red-600">{refundPolicy.refundPercent}%</span>
                       </div>
-                      <span className="text-sm font-bold text-gray-700 dark:text-slate-300 group-hover:text-red-600 transition-colors">
-                        {t('agreeTermsCheckbox')}
-                      </span>
-                    </label>
-                  </div>
+                      <div className="flex justify-between items-center border-t border-red-200/30 dark:border-red-950/30 pt-2 sm:pt-3">
+                        <span className="text-xs font-bold text-gray-600 dark:text-slate-400 uppercase">{t('refundAmount')}</span>
+                        <span className="text-xl sm:text-2xl font-black text-red-600">
+                          {((ticketInfo.amount * refundPolicy.refundPercent) / 100).toLocaleString('vi-VN')} đ
+                        </span>
+                      </div>
+                    </div>
 
-                  {/* XÁC MINH THÔNG TIN BẢO MẬT */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase mb-2 ml-1">
-                        {t('emailLabel')} {isLoggedIn ? t('emailMatchNote') : t('emailTicketNote')}
+                    {/* ĐIỀU KHOẢN HỦY VÉ */}
+                    <div className="mb-4">
+                      <label className="block text-[10px] font-black text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1 tracking-widest">
+                        {t('termsTitle')}
                       </label>
-                      <input
-                        type="email"
-                        className={`w-full bg-gray-50 dark:bg-slate-950/80 border ${
-                          isLoggedIn && confirmEmail && confirmEmail !== session.user?.email 
-                          ? 'border-red-500' 
-                          : 'border-gray-200 dark:border-slate-800'
-                        } rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-red-500/20 font-bold text-gray-700 dark:text-slate-200 transition-all`}
-                        placeholder={isLoggedIn ? session.user?.email || "" : "nhanvien@gmail.com"}
-                        value={confirmEmail}
-                        onChange={(e) => setConfirmEmail(e.target.value)}
-                      />
-                      {isLoggedIn && confirmEmail && confirmEmail !== session.user?.email && (
-                        <p className="text-[10px] text-red-500 mt-1 ml-1 font-bold italic">*{t('emailMismatch')}</p>
-                      )}
+                      <div className="bg-gray-50 dark:bg-slate-950/50 rounded-xl p-3 text-[11px] sm:text-[12px] text-gray-600 dark:text-slate-400 leading-relaxed border border-gray-100 dark:border-slate-800 max-h-24 sm:max-h-32 overflow-y-auto mb-3 custom-scrollbar">
+                        <ul className="space-y-1.5 list-disc pl-4 font-medium">
+                          <li>{t('term1')}</li>
+                          <li>{t('term2')}</li>
+                          <li>{t('term3')}</li>
+                          <li>{t('term4')}</li>
+                          <li>{t('term5')}</li>
+                          <li>{t('term6')}</li>
+                          <li>{t('term7')}</li>
+                        </ul>
+                      </div>
+
+                      {/* CHECKBOX ĐỒNG Ý */}
+                      <label className="flex items-center gap-3 cursor-pointer group px-1">
+                        <div className="relative flex items-center justify-center flex-shrink-0">
+                          <input 
+                            type="checkbox" 
+                            className="peer appearance-none w-5 h-5 sm:w-6 sm:h-6 border-2 border-gray-300 dark:border-slate-700 rounded-lg checked:bg-red-500 checked:border-red-500 transition-all duration-300"
+                            checked={isAgreed}
+                            onChange={(e) => setIsAgreed(e.target.checked)}
+                          />
+                          <svg className="absolute w-3 h-3 sm:w-4 sm:h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span className="text-xs sm:text-sm font-bold text-gray-700 dark:text-slate-300 group-hover:text-red-600 transition-colors">
+                          {t('agreeTermsCheckbox')}
+                        </span>
+                      </label>
                     </div>
 
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase mb-2 ml-1">{t('confirmPhoneLabel')}</label>
-                      <input
-                        type="tel"
-                        className="w-full bg-gray-50 dark:bg-slate-950/80 border border-gray-200 dark:border-slate-800 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-red-500/20 font-bold text-gray-700 dark:text-slate-200 transition-all"
-                        placeholder={t('confirmPhonePlaceholder')}
-                        value={confirmPhone}
-                        onChange={(e) => setConfirmPhone(e.target.value)}
-                      />
+                    {/* XÁC MINH THÔNG TIN BẢO MẬT */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase mb-1.5 ml-1">
+                          {t('emailLabel')} {isLoggedIn ? t('emailMatchNote') : t('emailTicketNote')}
+                        </label>
+                        <input
+                          type="email"
+                          className={`w-full bg-gray-50 dark:bg-slate-950/80 border ${
+                            isLoggedIn && confirmEmail && confirmEmail !== session.user?.email 
+                            ? 'border-red-500' 
+                            : 'border-gray-200 dark:border-slate-800'
+                          } rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 outline-none focus:ring-2 focus:ring-red-500/20 font-bold text-gray-700 dark:text-slate-200 transition-all text-sm`}
+                          placeholder={isLoggedIn ? session.user?.email || "" : "nhanvien@gmail.com"}
+                          value={confirmEmail}
+                          onChange={(e) => setConfirmEmail(e.target.value)}
+                        />
+                        {isLoggedIn && confirmEmail && confirmEmail !== session.user?.email && (
+                          <p className="text-[10px] text-red-500 mt-1 ml-1 font-bold italic">*{t('emailMismatch')}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase mb-1.5 ml-1">{t('confirmPhoneLabel')}</label>
+                        <input
+                          type="tel"
+                          className="w-full bg-gray-50 dark:bg-slate-950/80 border border-gray-200 dark:border-slate-800 rounded-xl sm:rounded-2xl px-4 py-3 sm:px-5 sm:py-4 outline-none focus:ring-2 focus:ring-red-500/20 font-bold text-gray-700 dark:text-slate-200 transition-all text-sm"
+                          placeholder={t('confirmPhonePlaceholder')}
+                          value={confirmPhone}
+                          onChange={(e) => setConfirmPhone(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </div>
-                  {/* NÚT BẤM ĐIỀU KHIỂN */}
-                  <div className="flex gap-4">
+
+                  {/* NÚT BẤM ĐIỀU KHIỂN - pinned to bottom */}
+                  <div className="flex gap-3 px-5 sm:px-8 py-4 sm:py-5 border-t border-gray-100 dark:border-slate-800 flex-shrink-0">
                     <button 
                       onClick={() => { setIsCancelModalOpen(false); setConfirmEmail(''); setIsAgreed(false); }}
                       disabled={cancelLoading}
-                      className="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 font-black py-4 rounded-2xl transition-all uppercase text-xs tracking-widest"
+                      className="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 font-black py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all uppercase text-xs tracking-widest"
                     >
                       {t('backBtn')}
                     </button>
                     <button 
                       onClick={handleCancelTicket}
                       disabled={cancelLoading || !confirmEmail.trim() || !isAgreed}
-                      className={`flex-[1.5] font-black py-4 rounded-2xl transition-all shadow-lg uppercase text-xs tracking-widest flex justify-center items-center gap-2
+                      className={`flex-[1.5] font-black py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all shadow-lg uppercase text-xs tracking-widest flex justify-center items-center gap-2
                         ${isAgreed && confirmEmail.trim() 
                           ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-200 dark:shadow-red-950/20 cursor-pointer' 
                           : 'bg-gray-200 dark:bg-slate-800 text-gray-400 dark:text-slate-600 cursor-not-allowed shadow-none'}`}
