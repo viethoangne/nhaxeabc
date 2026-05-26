@@ -64,6 +64,7 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'oneway' | 'round'>('all');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // 🟢 TOAST NOTIFICATION STATE
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -285,8 +286,8 @@ export default function HistoryPage() {
         {/* THE 2-COLUMN MODEL */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          {/* LEFT STICKY SIDEBAR COLUMN: BỘ LỌC */}
-          <div className="w-full lg:w-[300px] shrink-0 lg:sticky lg:top-24 z-10">
+          {/* LEFT STICKY SIDEBAR COLUMN: BỘ LỌC (hidden on mobile, visible on desktop) */}
+          <div className="hidden lg:block w-full lg:w-[300px] shrink-0 lg:sticky lg:top-24 z-10">
             <div className="w-full rounded-[32px] border border-white/40 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(234,88,12,0.08)]">
               
               {/* Header */}
@@ -355,6 +356,109 @@ export default function HistoryPage() {
 
           {/* RIGHT COLUMN: DANH SÁCH VÉ SANG TRỌNG */}
           <div className="flex-1 w-full space-y-6">
+            
+            {/* MOBILE FILTERS (lg:hidden) */}
+            <div className="lg:hidden space-y-4 mb-2">
+              <div className="flex items-center gap-3">
+                {/* Horizontal Scrollable Status Tabs */}
+                <div className="flex-1 overflow-x-auto no-scrollbar flex gap-2 pb-1">
+                  {[
+                    { id: 'all', label: t('statusAll'), icon: CircleDot },
+                    { id: 'upcoming', label: t('statusUpcoming'), icon: Compass },
+                    { id: 'ongoing', label: t('statusOngoing'), icon: Bus },
+                    { id: 'completed', label: t('statusCompleted'), icon: ShieldCheck },
+                    { id: 'cancelled', label: t('statusCancelled'), icon: AlertCircle }
+                  ].map((tab) => {
+                    const checked = statusFilter === tab.id;
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setStatusFilter(tab.id as any)}
+                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all duration-300 ${
+                          checked
+                            ? 'border-[#ea580c] bg-orange-50/80 dark:bg-[#ea580c]/10 text-[#ea580c] shadow-sm'
+                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-400 hover:border-orange-200 dark:hover:border-slate-700'
+                        }`}
+                      >
+                        <Icon size={14} className={checked ? 'text-[#ea580c]' : 'text-slate-400 dark:text-slate-500'} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Toggle Type Filter Drawer Button */}
+                <button
+                  onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+                  className={`flex h-10 w-10 items-center justify-center rounded-2xl border transition-all duration-300 shrink-0 shadow-sm ${
+                    mobileFiltersOpen || typeFilter !== 'all'
+                      ? 'border-[#ea580c] bg-orange-50/80 dark:bg-[#ea580c]/10 text-[#ea580c]'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-orange-200 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <Filter size={16} />
+                </button>
+              </div>
+
+              {/* Collapsible advanced filters for mobile */}
+              <AnimatePresence>
+                {mobileFiltersOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    className="overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-lg space-y-4"
+                  >
+                    <div>
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
+                        <Bus size={14} className="text-[#ea580c]" />
+                        {t('ticketType')}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: 'all', label: t('typeAll') },
+                          { id: 'oneway', label: t('typeOneway') },
+                          { id: 'round', label: t('typeRound') }
+                        ].map((type) => {
+                          const checked = typeFilter === type.id;
+                          return (
+                            <button
+                              key={type.id}
+                              onClick={() => setTypeFilter(type.id as any)}
+                              className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-bold transition-all duration-300 ${
+                                checked
+                                  ? 'border-[#ea580c] bg-orange-50/80 dark:bg-[#ea580c]/10 text-[#ea580c]'
+                                  : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 text-slate-600 dark:text-slate-400'
+                              }`}
+                            >
+                              {type.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {hasActiveFilters && (
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{t('historyOptions')}</span>
+                        <button
+                          onClick={() => {
+                            setStatusFilter('all');
+                            setTypeFilter('all');
+                          }}
+                          className="text-xs font-bold text-[#ea580c] hover:underline"
+                        >
+                          {t('clearFilter')}
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {loading ? (
               <div className="space-y-6">
                 {[1, 2].map(i => (
@@ -467,37 +571,37 @@ export default function HistoryPage() {
                           </span>
                         </div>
                         
-                        <div className="flex gap-4 sm:gap-5 items-center">
-                          <div className="flex flex-col items-end justify-between w-[90px] sm:w-[100px] shrink-0 py-0.5">
-                            <span className="text-2xl sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{deptTimeDisplay}</span>
-                            <span className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 bg-orange-50/50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/30 px-2 py-0.5 rounded-lg my-2 shadow-sm leading-none">
+                        <div className="flex gap-2.5 sm:gap-5 items-center">
+                          <div className="flex flex-col items-end justify-between w-[70px] sm:w-[100px] shrink-0 py-0.5">
+                            <span className="text-xl sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{deptTimeDisplay}</span>
+                            <span className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 bg-orange-50/50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/30 px-2 py-0.5 rounded-lg my-1.5 shadow-sm leading-none">
                               {duration ? `${Math.floor(duration / 60)}${t('h')}${duration % 60}${t('m')}` : '---'}
                             </span>
-                            <span className="text-2xl sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{arrTimeDisplay}</span>
+                            <span className="text-xl sm:text-[32px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{arrTimeDisplay}</span>
                           </div>
 
                           {/* LINE ART INDICATOR */}
                           <div className="flex flex-col items-center py-1.5 self-stretch relative">
-                            <div className="w-3.5 h-3.5 rounded-full border-[3px] bg-white dark:bg-slate-900 z-10 border-orange-500 shadow-sm"></div>
+                            <div className="w-3 h-3 rounded-full border-2 bg-white dark:bg-slate-900 z-10 border-orange-500 shadow-sm"></div>
                             <div className="w-[2px] flex-grow bg-slate-300 dark:bg-slate-800 my-1 opacity-80 border-dashed border-l-2 border-spacing-2"></div>
-                            <div className="w-3.5 h-3.5 rounded-full border-[3px] bg-white dark:bg-slate-900 z-10 border-slate-400 shadow-sm"></div>
+                            <div className="w-3 h-3 rounded-full border-2 bg-white dark:bg-slate-900 z-10 border-slate-400 shadow-sm"></div>
                           </div>
 
                           {/* DESTINATIONS DETAILS */}
-                          <div className="flex flex-col justify-between py-0.5 flex-grow space-y-4 overflow-hidden">
+                          <div className="flex flex-col justify-between py-0.5 flex-grow space-y-3 overflow-hidden">
                             <div className="group-hover/timeline:translate-x-1 transition-transform duration-300">
-                              <span className="text-xs font-medium text-slate-400 block mb-0.5 truncate">{t('departure')}</span>
-                              <h5 className="font-semibold text-slate-800 dark:text-white text-lg sm:text-[20px] leading-tight truncate">{from}</h5>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">{safeFormatDate(deptDate)}</p>
+                              <span className="text-[10px] sm:text-xs font-medium text-slate-400 block mb-0.5 truncate">{t('departure')}</span>
+                              <h5 className="font-semibold text-slate-800 dark:text-white text-sm sm:text-[20px] leading-tight truncate">{from}</h5>
+                              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">{safeFormatDate(deptDate)}</p>
                             </div>
                             
                             <div className="group-hover/timeline:translate-x-1 transition-transform duration-300">
-                              <span className="text-xs font-medium text-slate-400 block mb-0.5 truncate">{t('destination')}</span>
-                              <h5 className="font-semibold text-slate-800 dark:text-white text-lg sm:text-[20px] leading-tight flex items-center gap-1.5 truncate">
-                                <MapPin size={16} className="text-orange-500 shrink-0" />
+                              <span className="text-[10px] sm:text-xs font-medium text-slate-400 block mb-0.5 truncate">{t('destination')}</span>
+                              <h5 className="font-semibold text-slate-800 dark:text-white text-sm sm:text-[20px] leading-tight flex items-center gap-1.5 truncate">
+                                <MapPin size={14} className="text-orange-500 shrink-0" />
                                 <span className="truncate">{to}</span>
                               </h5>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">{safeFormatDate(arrDate)}</p>
+                              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">{safeFormatDate(arrDate)}</p>
                             </div>
                           </div>
                         </div>
@@ -521,10 +625,10 @@ export default function HistoryPage() {
                         </div>
 
                         {/* Header Segment */}
-                        <div className="p-4 md:px-6 md:py-4 flex flex-wrap justify-between items-center gap-4 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-white dark:to-slate-900">
-                          <div className="flex flex-wrap items-center gap-2.5">
+                        <div className="p-4 md:px-6 md:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-white dark:to-slate-900">
+                          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                             {/* Animated Status Tag */}
-                            <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl uppercase tracking-wide transition-colors shadow-sm ${
+                            <div className={`flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2.5 py-1.5 rounded-xl uppercase tracking-wide transition-colors shadow-sm ${
                               isCancelled 
                                 ? 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30'
                                 : isUpcoming 
@@ -542,32 +646,32 @@ export default function HistoryPage() {
                               {isCancelled ? t('cancelled') : isUpcoming ? t('upcoming') : isOngoing ? t('ongoing') : t('completed')}
                             </div>
 
-                            <span className="text-xs font-medium px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-950 shadow-sm">
+                            <span className="text-[11px] sm:text-xs font-medium px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-950 shadow-sm">
                               {isRoundTrip ? t('roundTrip') : t('oneWay')} 
                             </span>
                             
-                            <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-850 flex items-center gap-1.5 font-medium shadow-sm">
-                              <Ticket size={14} className="text-orange-500 shrink-0" />
+                            <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-850 flex items-center gap-1.5 font-medium shadow-sm">
+                              <Ticket size={13} className="text-orange-500 shrink-0" />
                               <span>{t('orderCode')}</span>
                               <strong className="text-slate-900 dark:text-white font-bold">{item.orderCode}</strong>
                             </span>
                           </div>                   
 
                           {/* Top Right Pricing & Actions */}
-                          <div className="text-right flex items-center gap-3">
-                            <div>
-                              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 leading-none">{t('totalPayment')}</p>
-                              <p className="text-xl font-bold text-orange-600 mt-1 leading-none">
+                          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 dark:border-slate-800 pt-3 sm:pt-0">
+                            <div className="flex flex-col items-start sm:items-end">
+                              <p className="text-[10px] sm:text-xs font-medium text-slate-400 dark:text-slate-500 leading-none">{t('totalPayment')}</p>
+                              <p className="text-lg sm:text-xl font-bold text-orange-600 mt-1 leading-none">
                                 {formatPrice(Number(item.amount || 0))}
                               </p>
                             </div>
                             
                             <button
                               onClick={() => handleDeleteBooking(item.id)}
-                              className="p-2.5 text-slate-400 dark:text-slate-500 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-xl transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-rose-500 dark:hover:border-rose-600 shadow-sm"
+                              className="p-2 sm:p-2.5 text-slate-400 dark:text-slate-500 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 rounded-xl transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-rose-500 dark:hover:border-rose-600 shadow-sm"
                               title={t('deleteTitle')}
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={15} />
                             </button>
                           </div>
                         </div>
@@ -598,9 +702,9 @@ export default function HistoryPage() {
                           {/* Seats Details & Passenger Side Panel (Right Part) */}
                           <div className="w-full md:w-[240px] flex flex-col justify-between shrink-0 border-t md:border-t-0 md:border-l border-slate-200/80 dark:border-slate-800 pt-5 md:pt-0 md:pl-6">
                             
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-3">
                               {/* Inner card with seats */}
-                              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-850 rounded-2xl p-4 group-hover:bg-orange-50/40 dark:group-hover:bg-orange-950/10 transition-all duration-300 shadow-sm">
+                              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-850 rounded-2xl p-4 group-hover:bg-orange-50/40 dark:group-hover:bg-orange-950/10 transition-all duration-300 shadow-sm flex flex-col justify-center">
                                 <div className="flex justify-between items-center text-xs">
                                   <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2"><Compass size={14} className="text-orange-500" /> {isRoundTrip ? t('seatsOutbound') : t('seatsNumber')}</span>
                                   <span className="text-orange-600 dark:text-orange-400 font-bold text-base">{outboundSeats.length > 0 ? outboundSeats.map(s => s.seatNumber).join(', ') : '--'}</span>
@@ -614,18 +718,18 @@ export default function HistoryPage() {
                               </div>
 
                               {/* Customer metadata summary */}
-                              <div className="space-y-2.5 bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-850 shadow-sm">
+                              <div className="space-y-2.5 bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-850 shadow-sm flex flex-col justify-center">
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                                   <div className="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 shrink-0">
                                     <User size={13} />
                                   </div>
-                                  <span className="truncate">{item.customerName || t('notUpdated')}</span>
+                                  <span className="truncate max-w-[120px] sm:max-w-none">{item.customerName || t('notUpdated')}</span>
                                 </div>
                                 <div className="flex items-center gap-2.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                                   <div className="w-7 h-7 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-orange-500 shrink-0">
                                     <Phone size={13} />
                                   </div>
-                                  <span>{formatPhone(item.customerPhone)}</span>
+                                  <span className="truncate">{formatPhone(item.customerPhone)}</span>
                                 </div>
                               </div>
                             </div>
