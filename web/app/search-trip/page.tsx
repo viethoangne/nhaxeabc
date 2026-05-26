@@ -360,22 +360,24 @@ export default function SearchTripPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#020617] font-sans antialiased text-[#333333] dark:text-slate-200 transition-colors duration-500">
-      <PageContainer>
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-5">
+      <main className="mx-auto max-w-[1400px] px-4 pt-1 sm:pt-2 pb-8">
+        <div className="max-w-7xl mx-auto pt-0 pb-6 px-4 sm:px-6 lg:px-8 space-y-4">
           
-          <Breadcrumb items={[{ label: labelResults }]} />
-          
-          <button
-            onClick={() => router.back()}
-            className="group flex items-center gap-2 text-[#ea580c] transition-all duration-300 w-fit"
-          >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#ea580c] bg-transparent group-hover:bg-[#ea580c] group-hover:text-white transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform duration-300">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </div>
-            <span className="text-[14px] font-semibold uppercase tracking-wider">{t('goBack') || 'Trở về'}</span>
-          </button>
+          <div className="flex flex-col gap-2.5">
+            <Breadcrumb items={[{ label: labelResults }]} />
+            
+            <button
+              onClick={() => router.back()}
+              className="group flex items-center gap-2 text-[#ea580c] transition-all duration-300 w-fit"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#ea580c] bg-transparent group-hover:bg-[#ea580c] group-hover:text-white transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform duration-300">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </div>
+              <span className="text-[14px] font-semibold uppercase tracking-wider">{t('goBack') || 'Trở về'}</span>
+            </button>
+          </div>
 
           {/* HEADER "KẾT QUẢ TÌM CHUYẾN" */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-slate-800 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
@@ -505,7 +507,7 @@ export default function SearchTripPage() {
             </main>
           </div>
         </div>
-      </PageContainer>
+      </main>
 
       {/* MOBILE DRAWER */}
       <AnimatePresence>
