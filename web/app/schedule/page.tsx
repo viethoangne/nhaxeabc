@@ -119,7 +119,7 @@ export default function RouteList() {
             <span className="inline-block px-3 py-1 mb-2.5 text-[9px] font-black tracking-[0.2em] text-[#EF5222] uppercase bg-orange-50 dark:bg-orange-950/20 rounded-md border border-orange-100/50 dark:border-orange-900/30">
               {t('tagline')}
             </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-none flex items-center gap-2">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-none flex items-center gap-2">
               {t('heading1')} <span className="text-[#EF5222]">{t('heading2')}</span>
             </h1>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 italic">
@@ -157,7 +157,7 @@ export default function RouteList() {
               {/* Điểm đi */}
               <div className="flex items-center gap-3 px-4 py-2 hover:bg-white dark:hover:bg-slate-900/60 rounded-xl transition-all duration-200 group">
                 <MapPin className="text-slate-400 group-hover:text-[#EF5222] transition-colors shrink-0" size={18} />
-                <div className="flex-grow flex flex-col">
+                <div className="flex-grow flex flex-col relative pr-6">
                   <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('searchFrom')}</span>
                   <input 
                     type="text"
@@ -166,13 +166,24 @@ export default function RouteList() {
                     className="bg-transparent border-none outline-none p-0 text-sm font-bold text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 mt-0.5 w-full"
                     placeholder={t('searchFromPlaceholder')}
                   />
+                  {searchFrom && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchFrom('')}
+                      className="absolute right-0 bottom-1.5 p-0.5 rounded-full bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 active:scale-95 transition-all"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Điểm đến */}
               <div className="flex items-center gap-3 px-4 py-2 hover:bg-white dark:hover:bg-slate-900/60 rounded-xl transition-all duration-200 group border-t md:border-t-0 md:border-l border-slate-200/60 dark:border-slate-800/80">
                 <Compass className="text-slate-400 group-hover:text-[#EF5222] transition-colors shrink-0" size={18} />
-                <div className="flex-grow flex flex-col">
+                <div className="flex-grow flex flex-col relative pr-6">
                   <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">{t('searchTo')}</span>
                   <input 
                     type="text"
@@ -181,6 +192,17 @@ export default function RouteList() {
                     className="bg-transparent border-none outline-none p-0 text-sm font-bold text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 mt-0.5 w-full"
                     placeholder={t('searchToPlaceholder')}
                   />
+                  {searchTo && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchTo('')}
+                      className="absolute right-0 bottom-1.5 p-0.5 rounded-full bg-slate-200/50 hover:bg-slate-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 active:scale-95 transition-all"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -228,51 +250,70 @@ export default function RouteList() {
                   <motion.div 
                     key={route.id || routeIdx}
                     whileHover={{ y: -4, scale: 1.008 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleBookingRedirect(route.from, route.to)}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-3xl p-5 md:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.01)] dark:shadow-none transition-all duration-300 cursor-pointer flex flex-col md:grid md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr] items-center gap-5 text-center group hover:border-[#EF5222]/30 dark:hover:border-orange-500/20 hover:shadow-[0_12px_30px_-5px_rgba(239,82,34,0.04)] dark:hover:shadow-orange-950/5"
+                    className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-3xl p-4 md:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.01)] dark:shadow-none transition-all duration-300 cursor-pointer flex flex-col md:grid md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr] items-center gap-3.5 md:gap-5 group hover:border-[#EF5222]/30 dark:hover:border-orange-500/20 hover:shadow-[0_12px_30px_-5px_rgba(239,82,34,0.04)] dark:hover:shadow-orange-950/5"
                   >
                     {/* 1. Lộ trình */}
-                    <div className="flex items-center gap-3.5 w-full md:w-auto text-left col-span-1 border-b md:border-none pb-4 md:pb-0">
-                      <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-950/20 text-[#EF5222] flex items-center justify-center shrink-0 shadow-sm border border-orange-100/30 dark:border-orange-900/10">
-                        <Bus size={18} className="group-hover:animate-bounce" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-white text-base">
-                          <span className="group-hover:text-[#EF5222] transition-colors">{route.from}</span>
-                          <span className="text-slate-300 dark:text-slate-600 font-light">➔</span>
-                          <span className="group-hover:text-[#EF5222] transition-colors">{route.to}</span>
+                    <div className="flex items-center justify-between w-full md:w-auto text-left col-span-1 border-b md:border-none border-slate-100 dark:border-slate-800 pb-3 md:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-950/20 text-[#EF5222] flex items-center justify-center shrink-0 shadow-sm border border-orange-100/30 dark:border-orange-900/10">
+                          <Bus size={18} className="group-hover:animate-bounce" />
                         </div>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">{t('officialRoute')}</p>
+                        <div>
+                          <div className="flex items-center gap-2 font-bold text-slate-850 dark:text-white text-base">
+                            <span className="group-hover:text-[#EF5222] transition-colors">{route.from}</span>
+                            <span className="text-slate-300 dark:text-slate-600 font-light">➔</span>
+                            <span className="group-hover:text-[#EF5222] transition-colors">{route.to}</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">{t('officialRoute')}</p>
+                        </div>
                       </div>
+                      
+                      {/* Loại xe on Mobile */}
+                      <span className="md:hidden px-2.5 py-1 bg-orange-50 dark:bg-orange-950/30 rounded-lg text-[9px] font-black text-[#EF5222] border border-orange-100 dark:border-orange-900/20 uppercase tracking-widest">
+                        {route.busType || 'LIMOUSINE VIP'}
+                      </span>
                     </div>
 
-                    {/* 2. Loại xe */}
-                    <div className="col-span-1">
+                    {/* 2. Loại xe (Desktop only) */}
+                    <div className="col-span-1 hidden md:block">
                       <span className="px-3.5 py-1.5 bg-orange-50 dark:bg-orange-950/30 rounded-xl text-[9px] font-black text-[#EF5222] border border-orange-100 dark:border-orange-900/20 uppercase tracking-widest">
                         {route.busType || 'LIMOUSINE VIP'}
                       </span>
                     </div>
 
-                    {/* 3. Khoảng cách */}
-                    <div className="col-span-1 flex flex-row md:flex-col items-center md:justify-center gap-2 md:gap-0.5">
-                      <span className="md:hidden text-[9px] font-black text-slate-400 uppercase tracking-wider">{t('distance')}</span>
+                    {/* 3. Khoảng cách (Desktop only) */}
+                    <div className="col-span-1 hidden md:flex flex-col items-center justify-center gap-0.5">
                       <span className="text-sm font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                         <Map size={14} className="text-slate-400 shrink-0" />
                         {route.distanceKm} km
                       </span>
                     </div>
 
-                    {/* 4. Thời gian */}
-                    <div className="col-span-1 flex flex-row md:flex-col items-center md:justify-center gap-2 md:gap-0.5">
-                      <span className="md:hidden text-[9px] font-black text-slate-400 uppercase tracking-wider">{t('duration')}</span>
+                    {/* 4. Thời gian (Desktop only) */}
+                    <div className="col-span-1 hidden md:flex flex-col items-center justify-center gap-0.5">
                       <span className="text-sm font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                         <Clock size={14} className="text-slate-400 shrink-0" />
                         {Math.floor(route.durationMinutes / 60)}{t('h')}{route.durationMinutes % 60}{t('m')}
                       </span>
                     </div>
 
+                    {/* Mobile: Combined Khoảng cách & Thời gian row */}
+                    <div className="md:hidden w-full flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400 px-1">
+                      <span className="flex items-center gap-1.5">
+                        <Map size={14} className="text-slate-450 shrink-0" />
+                        {route.distanceKm} km
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                      <span className="flex items-center gap-1.5">
+                        <Clock size={14} className="text-slate-450 shrink-0" />
+                        {Math.floor(route.durationMinutes / 60)}{t('h')}{route.durationMinutes % 60}{t('m')}
+                      </span>
+                    </div>
+
                     {/* 5. Giá vé & Nút CTA */}
-                    <div className="col-span-1 flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-none pt-4 md:pt-0">
+                    <div className="col-span-1 flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t md:border-none border-slate-100 dark:border-slate-800 pt-3 md:pt-0">
                       <div className="text-left md:text-right">
                         <div className="text-xl font-black text-[#EF5222] leading-none">
                           {route.price?.toLocaleString()}đ
