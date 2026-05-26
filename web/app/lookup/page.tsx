@@ -154,13 +154,13 @@ export default function LookupPage() {
 
   // --- [5] GIAO DIỆN (UI) ---
   return (
-    <div className="min-h-[85vh] py-6 md:py-10 flex items-center justify-center p-4 md:p-8 bg-gray-50/50 dark:bg-[#020617] relative transition-colors duration-500">
+    <div className="min-h-[85vh] py-4 md:py-8 flex flex-col items-center justify-start p-4 md:p-8 bg-gray-50/50 dark:bg-[#020617] relative transition-colors duration-500">
       
       {/* KHỐI WRAPPER CHÍNH (Chứa cả Breadcrumb và Khung hiển thị) */}
       <div className="w-full max-w-6xl flex flex-col h-full">
         
         {/* --- COMPONENT BREADCRUMB ĐƯỢC THÊM VÀO ĐÂY --- */}
-        <div className="mb-6 w-full">
+        <div className="mb-4 md:mb-6 w-full">
           <Breadcrumb items={[{ label: t('breadcrumb'), href: '/tra-cuu' }]} />
         </div>
 

@@ -215,7 +215,7 @@ export default function NewsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#020617] pb-24 transition-colors duration-500 relative overflow-hidden text-slate-700 dark:text-slate-300 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#020617] pb-32 md:pb-24 transition-colors duration-500 relative overflow-hidden text-slate-700 dark:text-slate-300 font-sans">
       
       {/* 🛣️ Scenic Highway Image Background with Scroll Parallax */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -252,21 +252,21 @@ export default function NewsPage() {
       </div>
 
       {/* HEADER SECTION */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-6 md:pt-6 md:pb-8 relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: -10 }} 
           animate={{ opacity: 1, y: 0 }} 
           className="flex flex-col lg:flex-row lg:items-end justify-between gap-6"
         >
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-2.5 text-[9px] font-black tracking-[0.2em] text-[#EF5222] uppercase bg-orange-50 dark:bg-orange-950/20 rounded-md border border-orange-100/50 dark:border-orange-900/30">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-2.5 text-[8px] md:text-[9px] font-black tracking-[0.2em] text-[#EF5222] uppercase bg-orange-50 dark:bg-orange-950/20 rounded-md border border-orange-100/50 dark:border-orange-900/30">
               <Sparkles size={11} className="text-orange-500 animate-spin" />
               {t('tagline')}
             </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-none">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight leading-none">
               {t('heading1')} <span className="text-[#EF5222]">{t('heading2')}</span>
             </h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 md:mt-2 text-xs md:text-sm text-slate-500 dark:text-slate-400">
               {t('subHeading')}
             </p>
           </div>
@@ -305,7 +305,7 @@ export default function NewsPage() {
       </div>
 
       {/* CATEGORY FILTER BAR */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-12 relative z-10 overflow-x-auto no-scrollbar">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-6 md:mb-12 relative z-10 overflow-x-auto no-scrollbar">
         <div className="flex gap-3 pb-2 min-w-max">
           {categories.map((cat) => {
             const active = activeCategory === cat.id;
@@ -313,7 +313,7 @@ export default function NewsPage() {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`relative flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 border ${
+                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] md:text-xs md:px-5 md:py-3 md:rounded-2xl font-black uppercase tracking-wider transition-all duration-300 border ${
                   active 
                     ? 'text-white border-transparent shadow-lg shadow-orange-500/10' 
                     : 'text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800 hover:text-[#EF5222] dark:hover:text-orange-400 hover:border-orange-500/20 shadow-sm active:scale-95'
@@ -324,7 +324,7 @@ export default function NewsPage() {
                 {active && (
                   <motion.div
                     layoutId="activeCategoryPill"
-                    className="absolute inset-0 bg-[#EF5222] rounded-2xl -z-10 shadow-lg shadow-orange-500/15"
+                    className="absolute inset-0 bg-[#EF5222] rounded-xl md:rounded-2xl -z-10 shadow-lg shadow-orange-500/15"
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -344,7 +344,7 @@ export default function NewsPage() {
           {filteredArticles.length > 0 ? (
             <motion.div 
               layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8"
             >
               {filteredArticles.map((art, idx) => {
                 const colors = getCategoryStyles(art.category);
@@ -359,13 +359,13 @@ export default function NewsPage() {
                     transition={{ duration: 0.3, delay: Math.min(idx * 0.05, 0.3) }}
                     whileHover={{ y: -8, scale: 1.012 }}
                     onClick={() => setSelectedArticle(art)}
-                    className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.01)] hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-[460px] relative ${colors.hoverBorder}`}
+                    className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.01)] hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col h-[390px] md:h-[460px] relative ${colors.hoverBorder}`}
                   >
                     {/* Ambient light glow inside news card */}
                     <div className={`absolute -right-10 -bottom-10 w-32 h-32 ${colors.glow} rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500 pointer-events-none`} />
 
                     {/* Article cover image */}
-                    <div className="relative h-48 w-full bg-slate-100 dark:bg-slate-950 overflow-hidden border-b border-slate-155 dark:border-slate-800/80 shrink-0">
+                    <div className="relative h-40 md:h-48 w-full bg-slate-100 dark:bg-slate-950 overflow-hidden border-b border-slate-155 dark:border-slate-800/80 shrink-0">
                       <img 
                         src={art.image} 
                         alt={art.title}
@@ -378,9 +378,9 @@ export default function NewsPage() {
                     </div>
 
                     {/* Article body */}
-                    <div className="p-6 flex flex-col flex-grow justify-between relative z-10">
+                    <div className="p-4 md:p-6 flex flex-col flex-grow justify-between relative z-10">
                       <div>
-                        <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-3">
+                        <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-2 md:mb-3">
                           <span className="flex items-center gap-1.5">
                             <Calendar size={12} className="text-slate-400" />
                             {art.date}
@@ -391,17 +391,17 @@ export default function NewsPage() {
                           </span>
                         </div>
 
-                        <h3 className="text-base font-extrabold text-slate-850 dark:text-white mb-2.5 leading-snug group-hover:text-[#EF5222] transition-colors line-clamp-2">
+                        <h3 className="text-sm md:text-base font-extrabold text-slate-850 dark:text-white mb-1.5 md:mb-2.5 leading-snug group-hover:text-[#EF5222] transition-colors line-clamp-2">
                           {art.title}
                         </h3>
 
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 md:line-clamp-3">
                           {art.excerpt}
                         </p>
                       </div>
 
                       {/* Highly compact & elegant action button row */}
-                      <div className="pt-4 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between shrink-0 mt-4">
+                      <div className="pt-3 md:pt-4 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between shrink-0 mt-2 md:mt-4">
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 animate-pulse" />
                           {art.author}
@@ -466,7 +466,7 @@ export default function NewsPage() {
               </div>
 
               {/* Scrollable Article Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
+              <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
                 
                 {/* Visual Header */}
                 <div className="space-y-4">
@@ -491,7 +491,7 @@ export default function NewsPage() {
                 </div>
 
                 {/* Big article hero cover */}
-                <div className="relative h-64 md:h-80 w-full bg-slate-50 dark:bg-slate-950 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800">
+                <div className="relative h-48 sm:h-64 md:h-80 w-full bg-slate-50 dark:bg-slate-950 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800">
                   <img 
                     src={selectedArticle.image} 
                     alt={selectedArticle.title}
