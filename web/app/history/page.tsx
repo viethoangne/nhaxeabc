@@ -7,6 +7,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -257,20 +258,8 @@ export default function HistoryPage() {
       <div className="max-w-6xl mx-auto px-4 pt-10 relative z-10">
         
         {/* BREADCRUMB */}
-        <div className="flex items-center mb-8">
-          <button 
-            onClick={() => router.back()} 
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md text-slate-600 dark:text-slate-400 transition-all duration-200 mr-4 shadow-sm border border-slate-200/80 dark:border-slate-800"
-          >
-            <ChevronLeft size={20} className="stroke-[2.5px]" />
-          </button>
-          <div className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
-            <Link href="/" className="hover:text-orange-500 transition-colors flex items-center gap-1.5">
-              <Home size={14} /> {t('home')}
-            </Link>
-            <ChevronRight size={12} className="text-slate-300 dark:text-slate-700 stroke-[3px]" />
-            <span className="text-orange-600 font-bold">{t('title')}</span>
-          </div>
+        <div className="pt-2 pb-6">
+          <Breadcrumb items={[{ label: t('title') }]} />
         </div>
 
         {/* HEADER */}
