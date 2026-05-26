@@ -13,7 +13,8 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { useTripSearch } from '@/hooks/useTripSearch';
 import toast from 'react-hot-toast';
 import { useTranslations, useLocale } from 'next-intl';
-import { Sparkles, ArrowRight, Calendar, Ticket, ArrowLeftRight, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Calendar, Ticket, ArrowLeftRight, CheckCircle2, SlidersHorizontal, X } from 'lucide-react';
 
 interface FilterState {
   times: string[];
@@ -39,6 +40,7 @@ export default function SearchTripPage() {
   
   // Thêm state quản lý Tab
   const [activeTab, setActiveTab] = useState<'outbound' | 'return'>('outbound');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const displayTripType = tripType === 'round' ? t('roundTrip') : t('oneWay');
   const displayTickets = `${tickets} ${t('ticketCount')}`;
@@ -401,6 +403,14 @@ export default function SearchTripPage() {
                   <ArrowLeftRight className="w-4 h-4" />
                   {displayTripType}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="xl:hidden flex items-center gap-1.5 bg-[#ea580c] hover:bg-orange-600 text-white px-4 py-2 rounded-full border border-transparent shadow-sm active:scale-95 transition-all duration-300 font-bold"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  {t('filterTitle')}
+                </button>
               </div>
             </div>
           </div>
@@ -496,6 +506,62 @@ export default function SearchTripPage() {
           </div>
         </div>
       </PageContainer>
+
+      {/* MOBILE DRAWER */}
+      <AnimatePresence>
+        {isMobileFilterOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-end justify-center xl:hidden">
+            {/* Dark glass backdrop overlay */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileFilterOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Slide-over panel */}
+            <motion.div 
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="relative w-full max-w-lg bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-[32px] p-6 flex flex-col max-h-[85vh] overflow-y-auto z-10 shadow-2xl"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 pb-2 border-b border-slate-100 dark:border-slate-800/80">
+                <span className="text-sm font-black text-[#ea580c] uppercase tracking-wider">{t('filterTitle')}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors duration-200 active:scale-90"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto animate-none">
+                <SearchTripFilter
+                  className="border-none !p-0 !bg-transparent !shadow-none !backdrop-blur-none"
+                  onFilterChange={(f) => setActiveFilters(f as FilterState)}
+                />
+              </div>
+
+              {/* Footer CTA */}
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-full bg-[#ea580c] hover:bg-orange-650 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-500/10 active:scale-95 transition-all duration-300 uppercase tracking-widest text-xs"
+                >
+                  {t('apply')}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

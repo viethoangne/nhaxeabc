@@ -671,8 +671,7 @@ export default function ChairPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                      {/* Giao diện 6 ô nhập mã OTP hiện đại, hiệu ứng VIP */}
-                      <div className="flex gap-2 justify-center w-full sm:w-auto">
+                      <div className="flex gap-1 min-[360px]:gap-1.5 sm:gap-2 justify-center w-full sm:w-auto">
                         {[0, 1, 2, 3, 4, 5].map((idx) => (
                           <input
                             key={idx}
@@ -685,7 +684,7 @@ export default function ChairPage() {
                             onChange={(e) => handleOtpChange(e.target.value, idx)}
                             onKeyDown={(e) => handleOtpKeyDown(e, idx)}
                             onPaste={handleOtpPaste}
-                            className={`w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-2xl border-2 text-center text-xl font-black transition-all duration-300 outline-none
+                            className={`w-9 h-9 min-[360px]:w-10 min-[360px]:h-10 min-[400px]:w-11 min-[400px]:h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl border-2 text-center text-base sm:text-xl font-black transition-all duration-300 outline-none
                               ${otpArray[idx] 
                                 ? 'border-[#EF5222] bg-[#EF5222]/5 dark:bg-[#EF5222]/10 text-[#EF5222] shadow-sm shadow-[#EF5222]/10' 
                                 : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:border-[#EF5222]'
