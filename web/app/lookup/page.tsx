@@ -154,7 +154,7 @@ export default function LookupPage() {
 
   // --- [5] GIAO DIỆN (UI) ---
   return (
-    <div className="min-h-[85vh] flex items-center justify-center p-4 md:p-8 bg-gray-50/50 dark:bg-[#020617] overflow-hidden relative transition-colors duration-500">
+    <div className="min-h-[85vh] py-6 md:py-10 flex items-center justify-center p-4 md:p-8 bg-gray-50/50 dark:bg-[#020617] relative transition-colors duration-500">
       
       {/* KHỐI WRAPPER CHÍNH (Chứa cả Breadcrumb và Khung hiển thị) */}
       <div className="w-full max-w-6xl flex flex-col h-full">
@@ -175,18 +175,18 @@ export default function LookupPage() {
             className={`${ticketInfo ? 'md:col-span-4' : 'max-w-md mx-auto w-full'}`}
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
           >
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-slate-800 transition-colors duration-500">
-              <div className="bg-white dark:bg-slate-900 p-10 text-center border-b border-slate-50 dark:border-slate-800 transition-colors duration-500">
+            <div className="bg-white dark:bg-slate-900 rounded-[1.8rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-slate-800 transition-colors duration-500">
+              <div className="bg-white dark:bg-slate-900 p-6 md:p-10 text-center border-b border-slate-50 dark:border-slate-800 transition-colors duration-500">
                 <h1 className="text-xl font-black text-black dark:text-white uppercase tracking-tight">{t('title')}</h1>
                 <p className="text-[#EF5222] text-[10px] font-extrabold tracking-widest uppercase">{t('subtitle')}</p>
               </div>
 
-              <form onSubmit={handleLookup} className="p-8 space-y-5">
+              <form onSubmit={handleLookup} className="p-5 md:p-8 space-y-4 md:space-y-5">
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase mb-2 ml-1">{t('phone')}</label>
                   <input 
                     type="tel"
-                    className="w-full bg-gray-50 dark:bg-slate-950/80 border border-gray-100 dark:border-slate-800 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-[#EF5222]/20 font-bold text-gray-700 dark:text-slate-200 transition-all"
+                    className="w-full bg-gray-50 dark:bg-slate-950/80 border border-gray-100 dark:border-slate-800 rounded-xl md:rounded-2xl px-4 py-3 md:px-5 md:py-4 outline-none focus:ring-2 focus:ring-[#EF5222]/20 font-bold text-gray-700 dark:text-slate-200 transition-all"
                     placeholder={t('phonePlaceholder')}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -198,7 +198,7 @@ export default function LookupPage() {
                   <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase mb-2 ml-1">{t('orderCode')}</label>
                   <input 
                     type="text"
-                    className="w-full bg-gray-50 dark:bg-slate-950/80 border border-gray-100 dark:border-slate-800 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-[#EF5222]/20 font-bold text-gray-700 dark:text-slate-200 transition-all"
+                    className="w-full bg-gray-50 dark:bg-slate-950/80 border border-gray-100 dark:border-slate-800 rounded-xl md:rounded-2xl px-4 py-3 md:px-5 md:py-4 outline-none focus:ring-2 focus:ring-[#EF5222]/20 font-bold text-gray-700 dark:text-slate-200 transition-all"
                     placeholder={t('orderCodePlaceholder')}
                     value={orderCode}
                     onChange={(e) => setOrderCode(e.target.value)}
@@ -208,7 +208,7 @@ export default function LookupPage() {
 
                 <button 
                   disabled={loading}
-                  className="w-full bg-[#EF5222] text-white font-black rounded-2xl hover:bg-[#d4451b] transition-all shadow-lg shadow-orange-200 dark:shadow-orange-950/20 uppercase tracking-widest text-sm py-4 mt-2"
+                  className="w-full bg-[#EF5222] text-white font-black rounded-xl md:rounded-2xl hover:bg-[#d4451b] transition-all shadow-lg shadow-orange-200 dark:shadow-orange-950/20 uppercase tracking-widest text-sm py-3 md:py-4 mt-2"
                 >
                   {loading ? t('checking') : t('checkBtn')}
                 </button>
@@ -237,14 +237,14 @@ export default function LookupPage() {
                 transition={{ duration: 0.6, ease: "circOut" }}
                 className="md:col-span-8"
               >
-                <div className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[3rem] border-2 border-dashed border-orange-200 dark:border-orange-900/30 shadow-sm relative h-auto flex flex-col transition-colors duration-500">
+                <div className="bg-white dark:bg-slate-900 p-5 md:p-10 rounded-[2rem] md:rounded-[3rem] border-2 border-dashed border-orange-200 dark:border-orange-900/30 shadow-sm relative h-auto flex flex-col transition-colors duration-500">
                   
-                  <div className="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-6 mb-8">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 border-b border-slate-100 dark:border-slate-800 pb-4 mb-6 md:pb-6 md:mb-8">
                     <div>
                       <h2 className="text-xl font-black text-black dark:text-white uppercase tracking-tight">{t('ticketTitle')}</h2>
                       <p className="text-[#EF5222] text-[10px] font-extrabold tracking-widest uppercase mt-1">{t('ticketSubtitle')}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <div className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
                         {t('ticketCode', { code: ticketInfo.orderCode })}
                       </div>
@@ -258,23 +258,23 @@ export default function LookupPage() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                     {/* Cột trái của vé: Lộ trình */}
                     <div className="space-y-4 flex flex-col justify-between">
-                      <div className="bg-orange-50/40 dark:bg-orange-950/20 p-6 rounded-[2rem] border border-orange-200 dark:border-orange-900/30 flex-1 relative overflow-hidden">
+                      <div className="bg-orange-50/40 dark:bg-orange-950/20 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-orange-200 dark:border-orange-900/30 flex-1 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div>
                         
                         {ticketInfo.tripType === 'round' ? (
-                           <p className="text-[#EF5222] text-[10px] font-black uppercase mb-3 flex items-center gap-2">
+                           <p className="text-[#EF5222] text-[10px] font-black uppercase mb-2 md:mb-3 flex items-center gap-2">
                              <span className="w-2 h-2 rounded-full bg-[#EF5222] animate-pulse"></span> {t('outboundTitleRound')}
                            </p>
                         ) : (
-                           <p className="text-[#EF5222] text-[10px] font-black uppercase mb-3 flex items-center gap-2">
+                           <p className="text-[#EF5222] text-[10px] font-black uppercase mb-2 md:mb-3 flex items-center gap-2">
                              <span className="w-2 h-2 rounded-full bg-[#EF5222] animate-pulse"></span> {t('outboundTitleOneWay')}
                            </p>
                         )}
                         
-                        <div className="flex items-center gap-4 mb-6 font-black text-xl text-[#EF5222] relative z-10">
+                        <div className="flex items-center gap-2 mb-4 font-black text-lg md:text-xl text-[#EF5222] relative z-10">
                           <span>{ticketInfo.outboundFromSnapshot}</span>
                           <div className="flex-grow flex items-center h-px bg-gradient-to-r from-[#EF5222] to-transparent opacity-30 mx-2">
                             <span className="text-[#EF5222] ml-auto">➔</span>
@@ -314,12 +314,12 @@ export default function LookupPage() {
 
                       {/* Chiều về (Chỉ hiển thị nếu là vé khứ hồi) */}
                       {ticketInfo.tripType === 'round' && (
-                        <div className="bg-orange-50/40 dark:bg-orange-950/20 p-6 rounded-[2rem] border border-orange-200 dark:border-orange-900/30 flex-1 relative overflow-hidden mt-0">
+                        <div className="bg-orange-50/40 dark:bg-orange-950/20 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-orange-200 dark:border-orange-900/30 flex-1 relative overflow-hidden mt-0">
                           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></div>
-                          <p className="text-[#EF5222] text-[10px] font-black uppercase mb-3 flex items-center gap-2">
+                          <p className="text-[#EF5222] text-[10px] font-black uppercase mb-2 md:mb-3 flex items-center gap-2">
                              <span className="w-2 h-2 rounded-full bg-[#EF5222] animate-pulse"></span> {t('returnTitle')}
                           </p>
-                          <div className="flex items-center gap-4 mb-6 font-black text-xl text-[#EF5222]">
+                          <div className="flex items-center gap-2 mb-4 font-black text-lg md:text-xl text-[#EF5222]">
                             <span>{ticketInfo.returnFromSnapshot}</span>
                             <div className="flex-grow flex items-center h-px bg-gradient-to-r from-[#EF5222] to-transparent opacity-30 mx-2">
                               <span className="text-[#EF5222] ml-auto">➔</span>
@@ -361,10 +361,10 @@ export default function LookupPage() {
 
                     {/* Cột phải của vé: Khách hàng & Thanh toán */}
                     <div className="flex flex-col gap-4">
-                      <div className="bg-orange-50/30 dark:bg-orange-950/5 p-6 rounded-[2rem] border border-orange-100 dark:border-orange-900/10 flex-grow">
+                      <div className="bg-orange-50/30 dark:bg-orange-950/5 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-orange-100 dark:border-orange-900/10 flex-grow">
                         <div className="mb-4">
                           <p className="text-[9px] text-gray-400 dark:text-slate-500 font-black uppercase mb-1">{t('passenger')}</p>
-                          <p className="font-black text-gray-800 dark:text-slate-100 text-lg uppercase leading-none">{ticketInfo.customerName}</p>
+                          <p className="font-black text-gray-800 dark:text-slate-100 text-base md:text-lg uppercase leading-none">{ticketInfo.customerName}</p>
                         </div>
                         
                         <div className="mb-4">
@@ -399,7 +399,7 @@ export default function LookupPage() {
                       </div>
 
                       {/* Tổng tiền & Trạng thái thanh toán */}
-                      <div className="bg-[#1a1a1a] dark:bg-slate-950 dark:border dark:border-slate-800 p-6 rounded-[2rem] shadow-xl flex justify-between items-center text-white transition-all">
+                      <div className="bg-[#1a1a1a] dark:bg-slate-950 dark:border dark:border-slate-800 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-xl flex justify-between items-center text-white transition-all">
                         <div>
                           <p className="text-[9px] text-gray-400 dark:text-slate-500 font-black uppercase mb-1">{t('totalAmount')}</p>
                           <p className="text-2xl font-black text-[#EF5222] leading-none">
