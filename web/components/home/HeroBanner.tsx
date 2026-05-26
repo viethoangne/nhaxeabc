@@ -59,7 +59,7 @@ export default function HeroBanner() {
             fill
             priority={index === 0} // Chỉ ưu tiên load nhanh ảnh đầu tiên
             quality={100}
-            className="object-cover object-center pointer-events-none select-none"
+            className="object-cover object-top pointer-events-none select-none"
             sizes="100vw"
           />
 
