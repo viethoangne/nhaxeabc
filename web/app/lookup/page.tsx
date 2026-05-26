@@ -139,6 +139,7 @@ export default function LookupPage() {
       toast.success(res.data.message || t('cancelSuccess'));
       setTicketInfo({ ...ticketInfo, bookingStatus: 'CANCELLED' });
       setIsCancelModalOpen(false);
+      window.dispatchEvent(new Event('modal-close'));
       
       // Reset form
       setConfirmEmail(''); 
@@ -416,7 +417,10 @@ export default function LookupPage() {
                         <div className="mt-2 text-center">
                           {refundPolicy.canCancel ? (
                             <button 
-                              onClick={() => setIsCancelModalOpen(true)}
+                              onClick={() => {
+                              setIsCancelModalOpen(true);
+                              window.dispatchEvent(new Event('modal-open'));
+                            }}
                               className="text-red-500 font-bold text-sm underline hover:text-red-700 transition-colors"
                             >
                               {t('cancelTicketLink')}
@@ -443,7 +447,7 @@ export default function LookupPage() {
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/70 backdrop-blur-md"
-                onClick={() => { setIsCancelModalOpen(false); setConfirmEmail(''); setIsAgreed(false); }}
+                onClick={() => { setIsCancelModalOpen(false); setConfirmEmail(''); setIsAgreed(false); window.dispatchEvent(new Event('modal-close')); }}
               >
                 <motion.div 
                   initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
@@ -548,7 +552,7 @@ export default function LookupPage() {
                   {/* NÚT BẤM ĐIỀU KHIỂN - pinned to bottom */}
                   <div className="flex gap-3 px-5 sm:px-8 py-4 sm:py-5 border-t border-gray-100 dark:border-slate-800 flex-shrink-0">
                     <button 
-                      onClick={() => { setIsCancelModalOpen(false); setConfirmEmail(''); setIsAgreed(false); }}
+                      onClick={() => { setIsCancelModalOpen(false); setConfirmEmail(''); setIsAgreed(false); window.dispatchEvent(new Event('modal-close')); }}
                       disabled={cancelLoading}
                       className="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400 font-black py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all uppercase text-xs tracking-widest"
                     >

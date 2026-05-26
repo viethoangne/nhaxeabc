@@ -53,12 +53,21 @@ export default function ChatAI() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Ẩn FAB khi modal đang mở
 
   // --- TỰ ĐỘNG MỞ CHAT KHI CÓ SỰ KIỆN TỪ SIDEBAR ---
   useEffect(() => {
     const handleOpenChat = () => setIsOpen(true);
+    const handleModalOpen = () => setIsModalOpen(true);
+    const handleModalClose = () => setIsModalOpen(false);
     window.addEventListener("open-ai-chat", handleOpenChat);
-    return () => window.removeEventListener("open-ai-chat", handleOpenChat);
+    window.addEventListener("modal-open", handleModalOpen);
+    window.addEventListener("modal-close", handleModalClose);
+    return () => {
+      window.removeEventListener("open-ai-chat", handleOpenChat);
+      window.removeEventListener("modal-open", handleModalOpen);
+      window.removeEventListener("modal-close", handleModalClose);
+    };
   }, []);
   
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -401,8 +410,8 @@ export default function ChatAI() {
         )}
       </AnimatePresence>
 
-      {/* Khung chat góc phải */}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+      {/* Khung chat góc phải - ẩn trên mobile khi modal đang mở */}
+      <div className={`fixed bottom-6 right-6 z-[9999] flex flex-col items-end transition-all duration-300 ${isModalOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100 pointer-events-auto'}`}>
         <AnimatePresence>
           {isOpen && (
             <div className={isExpanded ? "fixed inset-0 flex items-center justify-center pointer-events-none" : "mb-6 origin-bottom-right pointer-events-auto"}>
