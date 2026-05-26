@@ -415,9 +415,69 @@ export default function SearchTripPage() {
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                   {t('filterTitle')}
+                  {(activeFilters.times.length > 0 || activeFilters.busTypes.length > 0) && (
+                    <span className="ml-1 bg-white text-[#ea580c] text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                      {activeFilters.times.length + activeFilters.busTypes.length}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
+
+            {/* Active Filter Chips (Visible on Mobile to show what filters are applied) */}
+            {(activeFilters.times.length > 0 || activeFilters.busTypes.length > 0) && (
+              <div className="xl:hidden flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
+                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-1">Đang lọc:</span>
+                
+                {activeFilters.times.map((timeRange) => {
+                  let label = '';
+                  if (timeRange === '00-06') label = t('earlyMorning') || 'Sáng sớm';
+                  if (timeRange === '06-12') label = t('morning') || 'Buổi sáng';
+                  if (timeRange === '12-18') label = t('afternoon') || 'Buổi chiều';
+                  if (timeRange === '18-24') label = t('evening') || 'Buổi tối';
+                  
+                  return (
+                    <button
+                      key={timeRange}
+                      type="button"
+                      onClick={() => {
+                        setActiveFilters(prev => ({
+                          ...prev,
+                          times: prev.times.filter(t => t !== timeRange)
+                        }));
+                      }}
+                      className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-3 py-1 rounded-full text-xs font-bold border border-orange-100 dark:border-orange-900/30 hover:bg-orange-100 transition-colors"
+                    >
+                      {label} <X size={12} />
+                    </button>
+                  );
+                })}
+
+                {activeFilters.busTypes.map((busType) => (
+                  <button
+                    key={busType}
+                    type="button"
+                    onClick={() => {
+                      setActiveFilters(prev => ({
+                        ...prev,
+                        busTypes: prev.busTypes.filter(b => b !== busType)
+                      }));
+                    }}
+                    className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-3 py-1 rounded-full text-xs font-bold border border-orange-100 dark:border-orange-900/30 hover:bg-orange-100 transition-colors"
+                  >
+                    {busType} <X size={12} />
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setActiveFilters({ times: [], busTypes: [] })}
+                  className="text-xs font-extrabold text-[#ea580c] hover:underline ml-2"
+                >
+                  {t('clearFilter') || 'Xóa lọc'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* MAIN LAYOUT */}
