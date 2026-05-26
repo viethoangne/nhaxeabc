@@ -476,29 +476,31 @@ export default function ChairPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] font-sans antialiased text-slate-700 dark:text-slate-300 transition-colors duration-500">
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <Breadcrumb items={[{ label: t('breadcrumbLookup'), href: `/search-trip${searchParams.toString() ? `?${searchParams.toString()}` : ''}` }, { label: t('breadcrumbSelect') }]} />
+      <div className="mx-auto max-w-7xl px-4 pt-2 pb-8 sm:py-8">
+        <div className="hidden sm:block">
+          <Breadcrumb items={[{ label: t('breadcrumbLookup'), href: `/search-trip${searchParams.toString() ? `?${searchParams.toString()}` : ''}` }, { label: t('breadcrumbSelect') }]} />
+        </div>
 
-        <div className="mb-8 mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <button onClick={() => bookingStep === 'return' ? setBookingStep('outbound') : router.back()} className="group flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-wider text-orange-600 transition-colors hover:text-orange-700">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-orange-600 transition-transform group-hover:-translate-x-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        <div className="mb-4 mt-2 sm:mb-8 sm:mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <button onClick={() => bookingStep === 'return' ? setBookingStep('outbound') : router.back()} className="group flex w-fit items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-orange-600 transition-colors hover:text-orange-700">
+            <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full border-2 border-orange-600 transition-transform group-hover:-translate-x-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
             </div>
             {bookingStep === 'return' ? t('backToOutbound') : t('backToSearch')}
           </button>
           {tripType === 'round' && (
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <span className={`px-3 py-1 rounded-full ${bookingStep === 'outbound' ? 'bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 font-bold' : 'bg-green-100 dark:bg-green-950/20 text-green-700 dark:text-green-400'}`}>{t('stepOutbound')}</span>
-              <div className={`h-0.5 w-8 ${bookingStep === 'return' ? 'bg-orange-500' : 'bg-slate-300 dark:bg-slate-800'}`} />
-              <span className={`px-3 py-1 rounded-full ${bookingStep === 'return' ? 'bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>{t('stepReturn')}</span>
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+              <span className={`px-2.5 py-1 rounded-full ${bookingStep === 'outbound' ? 'bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 font-bold' : 'bg-green-100 dark:bg-green-950/20 text-green-700 dark:text-green-400'}`}>{t('stepOutbound')}</span>
+              <div className={`h-0.5 w-6 sm:w-8 ${bookingStep === 'return' ? 'bg-orange-500' : 'bg-slate-350 dark:bg-slate-800'}`} />
+              <span className={`px-2.5 py-1 rounded-full ${bookingStep === 'return' ? 'bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>{t('stepReturn')}</span>
             </div>
           )}
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
           <div className="space-y-6 overflow-hidden">
-            <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-              <div className="mb-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm">
+              <div className="mb-4 sm:mb-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <svg className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 <h2 className="text-lg font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('contactHeader')}</h2>
               </div>
@@ -721,10 +723,10 @@ export default function ChairPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm overflow-hidden">
+            <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div key={bookingStep} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-                  <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 gap-2">
+                  <div className="mb-5 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 gap-2">
                     <div className="flex items-center gap-3">
                       <svg className="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                       <h2 className="text-lg font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('selectSeatsTitle', { type: tripType === 'round' ? (bookingStep === 'outbound' ? t('outboundLabel') : t('returnLabel')) : '' })}</h2>
@@ -806,7 +808,7 @@ export default function ChairPage() {
 
           <aside className="space-y-6">
             <div className="sticky top-6 space-y-6">
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm relative overflow-hidden">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 bg-orange-500 h-full"></div>
                 <h3 className="mb-5 text-base font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('yourTrip')}</h3>
                 <div className="space-y-0 text-sm">
@@ -843,7 +845,7 @@ export default function ChairPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm">
                 <h3 className="mb-4 text-base font-bold uppercase text-slate-800 dark:text-white tracking-tight">{t('paymentDetails')}</h3>
                 
                 {!isWithinBookingWindow && (
@@ -987,35 +989,35 @@ export default function ChairPage() {
 
       <AnimatePresence>
         {isPromoModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="w-full sm:max-w-md bg-white dark:bg-slate-900 border-t sm:border border-slate-100 dark:border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
-               <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+               <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
+                <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <svg className="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
                   {t('offersAndPromos')}
                 </h3>
-                <button onClick={() => setIsPromoModalOpen(false)} className="p-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-full text-slate-600 dark:text-slate-400 transition-colors">
+                <button onClick={() => setIsPromoModalOpen(false)} className="p-1.5 sm:p-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-full text-slate-600 dark:text-slate-400 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
 
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+              <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex gap-2">
                   <input 
                     type="text" 
                     value={promoInput}
                     onChange={(e) => setPromoInput(e.target.value)}
                     placeholder={t('promoPlaceholder')} 
-                    className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-4 py-2.5 text-sm font-semibold uppercase outline-none focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+                    className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold uppercase outline-none focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 transition-colors"
                   />
                   <button 
                     onClick={handleApplyPromoManual}
-                    className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
+                    className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors"
                   >
                     {t('apply')}
                   </button>
@@ -1025,21 +1027,21 @@ export default function ChairPage() {
               <div className="flex border-b border-slate-200 dark:border-slate-800">
                 <button 
                   onClick={() => setPromoTab('my_vouchers')}
-                  className={`flex-1 py-3.5 text-sm font-bold transition-colors relative ${promoTab === 'my_vouchers' ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'}`}
+                  className={`flex-1 py-3 text-xs sm:text-sm font-bold transition-colors relative ${promoTab === 'my_vouchers' ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'}`}
                 >
                   {t('myVouchers')}
                   {promoTab === 'my_vouchers' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-500"></div>}
                 </button>
                 <button 
                   onClick={() => setPromoTab('redeem')}
-                  className={`flex-1 py-3.5 text-sm font-bold transition-colors relative ${promoTab === 'redeem' ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'}`}
+                  className={`flex-1 py-3 text-xs sm:text-sm font-bold transition-colors relative ${promoTab === 'redeem' ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'}`}
                 >
                   {t('redeemPoints')}
                   {promoTab === 'redeem' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-500"></div>}
                 </button>
               </div>
 
-              <div className="p-5 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-slate-900/50">
                 {promoTab === 'my_vouchers' && (
                   <div className="space-y-3">
                     {availableVouchers.length === 0 ? (
@@ -1048,19 +1050,19 @@ export default function ChairPage() {
                       availableVouchers.map((voucher) => (
                         <div 
                           key={voucher.id} 
-                          className={`bg-white dark:bg-slate-950 border rounded-xl p-4 flex items-center justify-between shadow-sm transition-all
+                          className={`bg-white dark:bg-slate-950 border rounded-xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-all gap-2
                             ${voucher.isUsed ? 'border-gray-200 dark:border-slate-900 opacity-60 grayscale' : 'border-slate-200 dark:border-slate-850 hover:border-orange-300 dark:hover:border-orange-900/30'}
                           `}
                         >
-                          <div className="flex gap-3 items-center">
-                            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                          <div className="flex gap-2.5 sm:gap-3 items-center min-w-0">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                             </div>
-                            <div>
-                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{voucher.code}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{voucher.title}</p>
+                            <div className="min-w-0">
+                              <p className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate">{voucher.code}</p>
+                              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{voucher.title}</p>
                               {voucher.isUsed && (
-                                <span className="text-[10px] text-red-500 font-bold uppercase mt-1 inline-block bg-red-50 dark:bg-red-950/10 px-1.5 py-0.5 rounded">
+                                <span className="text-[9px] text-red-500 font-bold uppercase mt-1 inline-block bg-red-50 dark:bg-red-950/10 px-1.5 py-0.5 rounded">
                                   {t('used')}
                                 </span>
                               )}
@@ -1069,7 +1071,7 @@ export default function ChairPage() {
                           <button 
                             disabled={voucher.isUsed}
                             onClick={() => handleSelectVoucher(voucher)}
-                            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors
+                            className={`text-[10px] sm:text-xs font-bold px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg border transition-colors flex-shrink-0
                               ${voucher.isUsed 
                                 ? 'bg-gray-100 dark:bg-slate-900 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-slate-800 cursor-not-allowed' 
                                 : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900/30 hover:bg-orange-500 hover:text-white'}
@@ -1085,25 +1087,25 @@ export default function ChairPage() {
 
                 {promoTab === 'redeem' && (
                   <div className="space-y-4">
-                    <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl p-4 text-white flex justify-between items-center shadow-md">
+                    <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl p-3 sm:p-4 text-white flex justify-between items-center shadow-md">
                       <div>
-                        <p className="text-xs font-medium opacity-90">{t('currentPoints')}</p>
-                        <p className="text-2xl font-black">{userPoints} <span className="text-sm font-semibold opacity-80">{t('pointsUnit')}</span></p>
+                        <p className="text-[10px] sm:text-xs font-medium opacity-90">{t('currentPoints')}</p>
+                        <p className="text-xl sm:text-2xl font-black">{userPoints} <span className="text-xs sm:text-sm font-semibold opacity-80">{t('pointsUnit')}</span></p>
                       </div>
-                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-yellow-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                       </div>
                     </div>
-                    <p className="text-[11px] text-center text-slate-500 dark:text-slate-450 italic">{t('pointsTip')}</p>
+                    <p className="text-[10px] text-center text-slate-500 dark:text-slate-450 italic">{t('pointsTip')}</p>
 
                     <div className="space-y-3">
                       {redeemableVouchers.map(promo => {
                         const canAfford = userPoints >= promo.cost;
                         return (
-                          <div key={promo.id} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-sm">
-                            <div>
-                              <p className="font-bold text-slate-800 dark:text-white text-sm">{promo.title}</p>
-                              <p className="text-xs font-semibold text-orange-500 mt-0.5 flex items-center gap-1">
+                          <div key={promo.id} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 flex items-center justify-between shadow-sm gap-2">
+                            <div className="min-w-0">
+                              <p className="font-bold text-slate-800 dark:text-white text-xs sm:text-sm truncate">{promo.title}</p>
+                              <p className="text-[10px] sm:text-xs font-semibold text-orange-500 mt-0.5 flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                                 {promo.cost} {t('pointsUnit')}
                               </p>
@@ -1111,7 +1113,7 @@ export default function ChairPage() {
                             <button 
                               disabled={!canAfford}
                               onClick={() => handleRedeem(promo)}
-                              className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${canAfford ? 'bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-200 hover:bg-slate-900 dark:hover:bg-slate-900 shadow-md active:scale-95' : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
+                              className={`text-[10px] sm:text-xs font-bold px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-all flex-shrink-0 ${canAfford ? 'bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-200 hover:bg-slate-900 dark:hover:bg-slate-900 shadow-md active:scale-95' : 'bg-slate-100 dark:bg-slate-900 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
                             >
                               {t('redeemBtn')}
                             </button>
