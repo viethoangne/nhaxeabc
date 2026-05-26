@@ -36,7 +36,10 @@ export default function SearchTripPage() {
   const returnDate = searchParams.get('returnDate') || '';
 
   const [selectedOutboundTrip, setSelectedOutboundTrip] = useState<Trip | null>(null);
-  const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
+  const [activeFilters, setActiveFilters] = useState<FilterState>({
+    times: [],
+    busTypes: [],
+  });
   
   // Thêm state quản lý Tab
   const [activeTab, setActiveTab] = useState<'outbound' | 'return'>('outbound');
@@ -421,7 +424,7 @@ export default function SearchTripPage() {
           <div className="grid grid-cols-1 gap-8 xl:grid-cols-[280px_1fr] items-start pt-2"> 
             
             <aside className="hidden xl:block sticky top-24 z-10">
-              <SearchTripFilter onFilterChange={(f) => setActiveFilters(f as FilterState)} />
+              <SearchTripFilter filters={activeFilters} onFilterChange={setActiveFilters} />
             </aside>
 
             <main className="space-y-6">
@@ -546,7 +549,8 @@ export default function SearchTripPage() {
               <div className="flex-1 overflow-y-auto animate-none">
                 <SearchTripFilter
                   className="border-none !p-0 !bg-transparent !shadow-none !backdrop-blur-none"
-                  onFilterChange={(f) => setActiveFilters(f as FilterState)}
+                  filters={activeFilters}
+                  onFilterChange={setActiveFilters}
                 />
               </div>
 

@@ -21,16 +21,12 @@ type FilterState = {
 
 type Props = {
   className?: string;
-  onFilterChange?: (filters: FilterState) => void;
+  filters: FilterState;
+  onFilterChange: (filters: FilterState) => void;
 };
 
-export default function SearchTripFilter({ className = '', onFilterChange }: Props) {
+export default function SearchTripFilter({ className = '', filters, onFilterChange }: Props) {
   const t = useTranslations('SearchTrip');
-
-  const [filters, setFilters] = useState<FilterState>({
-    times: [],
-    busTypes: [],
-  });
 
   const timeOptions = [
     { label: t('earlyMorning'), range: '00:00 - 06:00', value: '00-06', icon: Sunrise },
@@ -43,21 +39,18 @@ export default function SearchTripFilter({ className = '', onFilterChange }: Pro
     { label: 'Limousine', desc: t('vipCabin'), value: 'Limousine', icon: Gem },
   ];
 
-  useEffect(() => {
-    onFilterChange?.(filters);
-  }, [filters, onFilterChange]);
-
   const toggleFilter = (key: keyof FilterState, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: prev[key].includes(value)
-        ? prev[key].filter((v) => v !== value)
-        : [...prev[key], value],
-    }));
+    const updated = {
+      ...filters,
+      [key]: filters[key].includes(value)
+        ? filters[key].filter((v) => v !== value)
+        : [...filters[key], value],
+    };
+    onFilterChange(updated);
   };
 
   const handleClear = () => {
-    setFilters({ times: [], busTypes: [] });
+    onFilterChange({ times: [], busTypes: [] });
   };
 
   return (
