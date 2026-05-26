@@ -1287,15 +1287,7 @@ export class PaymentService {
     if (!order) return { success: false, message: 'Đơn hàng không tồn tại' };
 
     if (order.paymentStatus === PaymentStatus.PAID) {
-      if (order.customerEmail) {
-        try {
-          await this.sendTicketEmail(order);
-          return { success: true, message: 'Đơn đã thanh toán trước đó. Đã gửi lại email vé thành công!' };
-        } catch (err: any) {
-          return { success: false, message: 'Gửi email vé thất bại!', error: err.message || err.toString() };
-        }
-      }
-      return { success: true, message: 'Đơn đã thanh toán trước đó nhưng không có email!' };
+      return { success: true, message: 'Đơn hàng đã được xác nhận thanh toán thành công trước đó.' };
     }
 
     try {
@@ -1431,4 +1423,4 @@ export class PaymentService {
     }
     return sorted;
   }
-}
+}
