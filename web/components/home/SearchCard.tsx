@@ -210,18 +210,18 @@ export default function SearchCard({
     <section className="relative z-10 w-full max-w-6xl mx-auto mt-0 md:-mt-28 lg:-mt-25 px-0 md:px-4" ref={containerRef}>
       
       {/* 1. TABS: One Way / Round Trip */}
-      <div className="flex items-center gap-2 mb-4 px-2 md:px-0 justify-center md:justify-start">
+      <div className="flex items-center gap-2 mb-3.5 px-2 md:px-0 justify-center md:justify-start">
         <button
           type="button"
           onClick={() => { setTripType('oneway'); setReturnDate(''); }}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
+          className={`flex items-center gap-1.5 md:gap-2 px-3.5 py-2 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
             tripType === 'oneway' 
               ? 'bg-orange-500 text-white shadow-orange-500/30' 
               : 'bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-white backdrop-blur-md'
           }`}
         >
-          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'oneway' ? 'border-white' : 'border-slate-405'}`}>
-            {tripType === 'oneway' && <div className="w-2 h-2 bg-white rounded-full" />}
+          <div className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'oneway' ? 'border-white' : 'border-slate-400'}`}>
+            {tripType === 'oneway' && <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full" />}
           </div>
           {t('oneWay')}
         </button>
@@ -229,14 +229,14 @@ export default function SearchCard({
         <button
           type="button"
           onClick={() => setTripType('round')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
+          className={`flex items-center gap-1.5 md:gap-2 px-3.5 py-2 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold transition-all duration-200 shadow-sm hover:scale-105 active:scale-95 cursor-pointer ${
             tripType === 'round' 
               ? 'bg-orange-500 text-white shadow-orange-500/30' 
               : 'bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-white backdrop-blur-md'
           }`}
         >
-          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'round' ? 'border-white' : 'border-slate-405'}`}>
-            {tripType === 'round' && <div className="w-2 h-2 bg-white rounded-full" />}
+          <div className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-2 flex items-center justify-center ${tripType === 'round' ? 'border-white' : 'border-slate-400'}`}>
+            {tripType === 'round' && <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full" />}
           </div>
           {t('roundTrip')}
         </button>
@@ -500,21 +500,21 @@ export default function SearchCard({
       </div>
 
       {/* 📱 MOBILE SEARCH CARD (Only visible on mobile screens) */}
-      <div className="block md:hidden bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl rounded-3xl p-5 shadow-xl border border-slate-100 dark:border-slate-800/80 mx-4 transition-all duration-300">
+      <div className="block md:hidden bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl border border-slate-100 dark:border-slate-800/80 mx-3 transition-all duration-300">
         
         {/* Route Selector (From & To Grouped together) */}
-        <div className="relative border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 overflow-hidden mb-4">
+        <div className="relative border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 overflow-hidden mb-3">
           {/* From Input */}
           <div 
             onClick={() => setActiveDropdown('from')}
-            className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30 border-b border-slate-100 dark:border-slate-800/60"
+            className="flex items-center gap-2.5 p-3 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30 border-b border-slate-100 dark:border-slate-800/60"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-950/20 text-[#EF5222]">
-              <span className="text-xl">📍</span>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/20 text-[#EF5222]">
+              <span className="text-lg">📍</span>
             </div>
             <div className="flex-1 min-w-0">
-              <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">{t('from')}</span>
-              <span className={`block text-sm font-black truncate ${!from ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">{t('from')}</span>
+              <span className={`block text-sm font-bold truncate ${!from ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
                 {from || t('selectFrom')}
               </span>
             </div>
@@ -524,9 +524,9 @@ export default function SearchCard({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); swap(); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-slate-800 text-[#EF5222] shadow-md border border-slate-100 dark:border-slate-705 active:scale-90 transition-transform"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white dark:bg-slate-800 text-[#EF5222] shadow border border-slate-100 dark:border-slate-700 active:scale-90 transition-all duration-200 hover:bg-orange-50"
           >
-            <svg className="w-5 h-5 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>
           </button>
@@ -534,14 +534,14 @@ export default function SearchCard({
           {/* To Input */}
           <div 
             onClick={() => setActiveDropdown('to')}
-            className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
+            className="flex items-center gap-2.5 p-3 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/20 text-amber-500">
-              <span className="text-xl">📍</span>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-950/20 text-amber-500">
+              <span className="text-lg">📍</span>
             </div>
             <div className="flex-1 min-w-0">
-              <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">{t('to')}</span>
-              <span className={`block text-sm font-black truncate ${!to ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+              <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">{t('to')}</span>
+              <span className={`block text-sm font-bold truncate ${!to ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>
                 {to || t('selectTo')}
               </span>
             </div>
@@ -549,16 +549,16 @@ export default function SearchCard({
         </div>
 
         {/* Date and Passenger Layout */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-2.5 mb-3">
           {/* Depart Date */}
           <div 
             onClick={() => setActiveDropdown('departDate')}
-            className="flex items-center gap-2.5 p-3.5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
+            className="flex items-center gap-2 p-2.5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
           >
-            <span className="text-lg">📅</span>
+            <span className="text-base">📅</span>
             <div className="min-w-0">
-              <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{t('departDate')}</span>
-              <span className="block text-[11px] font-black text-slate-900 dark:text-white truncate">
+              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">{t('departDate')}</span>
+              <span className="block text-[11px] font-bold text-slate-900 dark:text-white truncate">
                 {departDate ? formatDateToVN(departDate) : t('selectDate')}
               </span>
             </div>
@@ -567,12 +567,12 @@ export default function SearchCard({
           {/* Passengers */}
           <div 
             onClick={() => setActiveDropdown('tickets')}
-            className="flex items-center gap-2.5 p-3.5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
+            className="flex items-center gap-2 p-2.5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-100/30 dark:hover:bg-slate-900/30"
           >
-            <span className="text-lg">👥</span>
+            <span className="text-base">👥</span>
             <div className="min-w-0">
-              <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{t('passenger')}</span>
-              <span className="block text-[11px] font-black text-slate-900 dark:text-white truncate">
+              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">{t('passenger')}</span>
+              <span className="block text-[11px] font-bold text-slate-900 dark:text-white truncate">
                 {tickets} {t('peopleCount')}
               </span>
             </div>
@@ -583,12 +583,12 @@ export default function SearchCard({
         {tripType === 'round' && (
           <div 
             onClick={() => setActiveDropdown('returnDate')}
-            className="flex items-center gap-3 p-3.5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-105/30 dark:hover:bg-slate-900/30 mb-4"
+            className="flex items-center gap-2 p-2.5 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/30 cursor-pointer hover:bg-slate-105/30 dark:hover:bg-slate-900/30 mb-3"
           >
-            <span className="text-lg">📅</span>
+            <span className="text-base">📅</span>
             <div className="min-w-0">
-              <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">{t('returnDate')}</span>
-              <span className="block text-xs font-black text-slate-900 dark:text-white truncate">
+              <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">{t('returnDate')}</span>
+              <span className="block text-[11px] font-bold text-slate-900 dark:text-white truncate">
                 {returnDate ? formatDateToVN(returnDate) : t('selectDate')}
               </span>
             </div>
@@ -599,13 +599,13 @@ export default function SearchCard({
         <button
           onClick={handleSaveAndSearch}
           disabled={isLoading}
-          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:brightness-110 text-white text-sm font-black uppercase tracking-widest transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:brightness-110 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-orange-500/10 flex items-center justify-center gap-2 cursor-pointer"
         >
           {isLoading ? (
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            <span className="h-4.5 w-4.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
           ) : (
             <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <span>{t('searchTrips')}</span>
@@ -626,14 +626,17 @@ export default function SearchCard({
             className="md:hidden fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-[#0B0F19]"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/80">
-              <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
-                {t('selectFrom')}
-              </span>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📍</span>
+                <span className="text-base font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                  {t('selectFrom')}
+                </span>
+              </div>
               <button 
                 type="button" 
                 onClick={() => setActiveDropdown(null)}
-                className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -642,17 +645,31 @@ export default function SearchCard({
             </div>
 
             {/* Input Search Block */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800/60">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/30 dark:bg-slate-950/10">
+              <label className="block text-[11px] font-black uppercase text-[#EF5222] mb-1.5 tracking-wider">
+                {t('from')} (Khởi hành)
+              </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">🔍</span>
                 <input
                   type="text"
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  placeholder="Nhập tên thành phố..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EF5222]/20 focus:border-[#EF5222]"
+                  placeholder={`${t('selectFrom')}...`}
+                  className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EF5222]/20 focus:border-[#EF5222] transition-all"
                   autoFocus
                 />
+                {from && (
+                  <button
+                    type="button"
+                    onClick={() => setFrom('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -695,14 +712,17 @@ export default function SearchCard({
             className="md:hidden fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-[#0B0F19]"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/80">
-              <span className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
-                {t('selectTo')}
-              </span>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📍</span>
+                <span className="text-base font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                  {t('selectTo')}
+                </span>
+              </div>
               <button 
                 type="button" 
                 onClick={() => setActiveDropdown(null)}
-                className="p-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -711,17 +731,31 @@ export default function SearchCard({
             </div>
 
             {/* Input Search Block */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800/60">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/30 dark:bg-slate-950/10">
+              <label className="block text-[11px] font-black uppercase text-amber-500 mb-1.5 tracking-wider">
+                {t('to')} (Điểm đến)
+              </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">🔍</span>
                 <input
                   type="text"
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
-                  placeholder="Nhập tên thành phố..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EF5222]/20 focus:border-[#EF5222]"
+                  placeholder={`${t('selectTo')}...`}
+                  className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#EF5222]/20 focus:border-[#EF5222] transition-all"
                   autoFocus
                 />
+                {to && (
+                  <button
+                    type="button"
+                    onClick={() => setTo('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
 
