@@ -383,37 +383,44 @@ export default function SearchTripPage() {
           </div>
 
           {/* HEADER "KẾT QUẢ TÌM CHUYẾN" */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-[0_2px_10px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-slate-800 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-            <h1 className="text-sm font-bold tracking-widest text-gray-400 dark:text-slate-500 uppercase mb-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 shadow-[0_2px_10px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-slate-800 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+            <h1 className="text-[10px] sm:text-sm font-bold tracking-widest text-gray-400 dark:text-slate-500 uppercase mb-2">
               {labelResults}
             </h1>
             
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex items-center flex-wrap gap-4 text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+            <div className="flex flex-col gap-4">
+              {/* Điểm đi -> Điểm đến */}
+              <div className="flex items-center gap-2 sm:gap-4 text-lg sm:text-2xl font-extrabold text-gray-900 dark:text-white">
                 <span className="text-gray-900 dark:text-white">{from}</span>
-                <ArrowRight className="w-6 h-6 sm:w-8 sm:h-8 text-[#ea580c]" strokeWidth={2.5} />
+                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-[#ea580c]" strokeWidth={2.5} />
                 <span className="text-gray-900 dark:text-white">{to}</span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-sm font-medium">
-                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950/80 text-gray-700 dark:text-slate-350 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-800">
-                  <Calendar className="w-4 h-4 text-gray-500 dark:text-slate-400" />
-                  {formatDisplayDate(date)} {returnDate && ` - ${formatDisplayDate(returnDate)}`}
+              {/* Hàng thông tin (Ngày, vé, chiều) & Nút lọc */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Lưới 3 cột trên mobile, flex trên desktop */}
+                <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-3 text-[10px] sm:text-sm font-medium w-full sm:w-auto">
+                  <div className="flex items-center justify-center gap-1 bg-gray-50 dark:bg-slate-950/80 text-gray-700 dark:text-slate-350 px-1 py-1.5 sm:px-4 sm:py-2 rounded-full border border-gray-200 dark:border-slate-800 text-center truncate">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 h-4 text-gray-500 dark:text-slate-400 shrink-0" />
+                    <span className="truncate">{formatDisplayDate(date)}</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-1 bg-gray-50 dark:bg-slate-950/80 text-gray-700 dark:text-slate-350 px-1 py-1.5 sm:px-4 sm:py-2 rounded-full border border-gray-200 dark:border-slate-800 text-center truncate">
+                    <Ticket className="w-3.5 h-3.5 sm:w-4 h-4 text-gray-500 dark:text-slate-400 shrink-0" />
+                    <span className="truncate">{displayTickets}</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-1 bg-[#fff7ed] dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-1 py-1.5 sm:px-4 sm:py-2 rounded-full border border-[#ffedd5] dark:border-orange-900/30 text-center truncate">
+                    <ArrowLeftRight className="w-3.5 h-3.5 sm:w-4 h-4 shrink-0" />
+                    <span className="truncate">{displayTripType}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-950/80 text-gray-700 dark:text-slate-350 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-800">
-                  <Ticket className="w-4 h-4 text-gray-500 dark:text-slate-400" />
-                  {displayTickets}
-                </div>
-                <div className="flex items-center gap-1.5 bg-[#fff7ed] dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-4 py-2 rounded-full border border-[#ffedd5] dark:border-orange-900/30">
-                  <ArrowLeftRight className="w-4 h-4" />
-                  {displayTripType}
-                </div>
+
+                {/* Nút lọc cho mobile */}
                 <button
                   type="button"
                   onClick={() => setIsMobileFilterOpen(true)}
-                  className="xl:hidden flex items-center gap-1.5 bg-[#ea580c] hover:bg-orange-600 text-white px-4 py-2 rounded-full border border-transparent shadow-sm active:scale-95 transition-all duration-300 font-bold"
+                  className="xl:hidden flex items-center justify-center gap-1.5 bg-[#ea580c] hover:bg-orange-600 text-white px-4 py-2 rounded-full border border-transparent shadow-sm active:scale-95 transition-all duration-300 font-bold text-xs w-full sm:w-auto h-9 sm:h-auto"
                 >
-                  <SlidersHorizontal className="w-4 h-4" />
+                  <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 h-4" />
                   {t('filterTitle')}
                   {(activeFilters.times.length > 0 || activeFilters.busTypes.length > 0) && (
                     <span className="ml-1 bg-white text-[#ea580c] text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
@@ -424,17 +431,17 @@ export default function SearchTripPage() {
               </div>
             </div>
 
-            {/* Active Filter Chips (Visible on Mobile to show what filters are applied) */}
+            {/* Tag đang lọc hiển thị nhỏ gọn */}
             {(activeFilters.times.length > 0 || activeFilters.busTypes.length > 0) && (
-              <div className="xl:hidden flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
-                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-1">Đang lọc:</span>
+              <div className="xl:hidden flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
+                <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-1">Đang lọc:</span>
                 
                 {activeFilters.times.map((timeRange) => {
                   let label = '';
-                  if (timeRange === '00-06') label = `${t('earlyMorning') || 'Sáng sớm'} (00:00 - 06:00)`;
-                  if (timeRange === '06-12') label = `${t('morning') || 'Buổi sáng'} (06:00 - 12:00)`;
-                  if (timeRange === '12-18') label = `${t('afternoon') || 'Buổi chiều'} (12:00 - 18:00)`;
-                  if (timeRange === '18-24') label = `${t('evening') || 'Buổi tối'} (18:00 - 24:00)`;
+                  if (timeRange === '00-06') label = `${t('earlyMorning') || 'Sáng sớm'} (00-06h)`;
+                  if (timeRange === '06-12') label = `${t('morning') || 'Buổi sáng'} (06-12h)`;
+                  if (timeRange === '12-18') label = `${t('afternoon') || 'Buổi chiều'} (12-18h)`;
+                  if (timeRange === '18-24') label = `${t('evening') || 'Buổi tối'} (18-24h)`;
                   
                   return (
                     <button
@@ -446,9 +453,9 @@ export default function SearchTripPage() {
                           times: prev.times.filter(t => t !== timeRange)
                         }));
                       }}
-                      className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-3 py-1 rounded-full text-xs font-bold border border-orange-100 dark:border-orange-900/30 hover:bg-orange-100 transition-colors"
+                      className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-2 py-1 rounded-full text-[10px] font-bold border border-orange-100 dark:border-orange-900/30 hover:bg-orange-100 transition-colors"
                     >
-                      {label} <X size={12} />
+                      {label} <X size={10} />
                     </button>
                   );
                 })}
@@ -463,16 +470,16 @@ export default function SearchTripPage() {
                         busTypes: prev.busTypes.filter(b => b !== busType)
                       }));
                     }}
-                    className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-3 py-1 rounded-full text-xs font-bold border border-orange-100 dark:border-orange-900/30 hover:bg-orange-100 transition-colors"
+                    className="flex items-center gap-1 bg-orange-50 dark:bg-orange-950/20 text-[#ea580c] dark:text-orange-400 px-2 py-1 rounded-full text-[10px] font-bold border border-orange-100 dark:border-orange-900/30 hover:bg-orange-100 transition-colors"
                   >
-                    {busType} <X size={12} />
+                    {busType} <X size={10} />
                   </button>
                 ))}
 
                 <button
                   type="button"
                   onClick={() => setActiveFilters({ times: [], busTypes: [] })}
-                  className="text-xs font-extrabold text-[#ea580c] hover:underline ml-2"
+                  className="text-[10px] font-extrabold text-[#ea580c] hover:underline ml-1"
                 >
                   {t('clearFilter') || 'Xóa lọc'}
                 </button>
