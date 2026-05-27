@@ -384,52 +384,86 @@
 
           {/* CỘT PHẢI: DANH SÁCH */}
           <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col h-fit">
-            <div className="flex border-b border-slate-100 px-2 bg-slate-50/50">
-              <button onClick={() => setActiveTab('PASSENGERS')} className={`flex items-center gap-2 px-6 py-4 text-[13px] font-bold transition-colors ${activeTab === 'PASSENGERS' ? 'text-[#EF5222] border-b-2 border-[#EF5222]' : 'text-slate-500 hover:text-slate-700'}`}>
-                <Users size={16} /> Hành khách
-              </button>
-              <button onClick={() => setActiveTab('LOGS')} className={`flex items-center gap-2 px-6 py-4 text-[13px] font-bold transition-colors ${activeTab === 'LOGS' ? 'text-[#EF5222] border-b-2 border-[#EF5222]' : 'text-slate-500 hover:text-slate-700'}`}>
-                <FileText size={16} /> Nhật ký chuyến
-              </button>
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-100 px-4 py-2 sm:py-0 bg-slate-50/50 gap-2">
+              <div className="flex gap-2">
+                <button onClick={() => setActiveTab('PASSENGERS')} className={`flex items-center gap-2 px-4 py-3 sm:py-4 text-[13px] font-bold transition-colors ${activeTab === 'PASSENGERS' ? 'text-[#EF5222] border-b-2 border-[#EF5222]' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <Users size={16} /> Hành khách
+                </button>
+                <button onClick={() => setActiveTab('LOGS')} className={`flex items-center gap-2 px-4 py-3 sm:py-4 text-[13px] font-bold transition-colors ${activeTab === 'LOGS' ? 'text-[#EF5222] border-b-2 border-[#EF5222]' : 'text-slate-500 hover:text-slate-700'}`}>
+                  <FileText size={16} /> Nhật ký chuyến
+                </button>
+              </div>
               {/* 🟢 NÚT XUẤT EXCEL HIỆN TẠI TAB HÀNH KHÁCH */}
-            {activeTab === 'PASSENGERS' && (
-              <button 
-                onClick={handleExportExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-500 border border-emerald-100 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-all shadow-sm"
-              >
-                📥 Xuất Excel
-              </button>
-            )}
+              {activeTab === 'PASSENGERS' && (
+                <button 
+                  onClick={handleExportExcel}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-500 border border-emerald-100 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-all shadow-sm cursor-pointer"
+                >
+                  📥 Xuất Excel
+                </button>
+              )}
             </div>
 
             {activeTab === 'PASSENGERS' && (
-              <div className="p-0 overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
-                      <th className="p-4">Ghế</th>
-                      <th className="p-4">Khách hàng</th>
-                      <th className="p-4">Liên hệ</th>
-                      <th className="p-4">Trạng thái</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-[13px] font-medium text-slate-700">
-                    {Object.keys(seatStatus).filter(k => seatStatus[k].status === 'BOOKED').map((seatId, idx) => (
-                      <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer">
-                        <td className="p-4"><span className="bg-orange-50 text-[#EF5222] font-bold px-2.5 py-1 rounded-md">{seatId}</span></td>
-                        <td className="p-4 flex items-center gap-2"><User size={14} className="text-slate-400" /> {seatStatus[seatId].passengerName}</td>
-                        <td className="p-4"><span className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400"/> {seatStatus[seatId].phone}</span></td>
-                        <td className="p-4"><span className="flex items-center gap-1 text-emerald-500"><CheckCircle2 size={14}/> Đã thanh toán</span></td>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[500px]">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+                        <th className="p-4">Ghế</th>
+                        <th className="p-4">Khách hàng</th>
+                        <th className="p-4">Liên hệ</th>
+                        <th className="p-4">Trạng thái</th>
                       </tr>
-                    ))}
-                    {Object.keys(seatStatus).filter(k => seatStatus[k].status === 'BOOKED').length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="p-8 text-center text-slate-400">Chưa có khách đặt vé</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="text-[13px] font-medium text-slate-700">
+                      {Object.keys(seatStatus).filter(k => seatStatus[k].status === 'BOOKED').map((seatId, idx) => (
+                        <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer">
+                          <td className="p-4"><span className="bg-orange-50 text-[#EF5222] font-bold px-2.5 py-1 rounded-md">{seatId}</span></td>
+                          <td className="p-4 flex items-center gap-2"><User size={14} className="text-slate-400" /> {seatStatus[seatId].passengerName}</td>
+                          <td className="p-4"><span className="flex items-center gap-1.5"><Phone size={12} className="text-slate-400"/> {seatStatus[seatId].phone}</span></td>
+                          <td className="p-4"><span className="flex items-center gap-1 text-emerald-500"><CheckCircle2 size={14}/> Đã thanh toán</span></td>
+                        </tr>
+                      ))}
+                      {Object.keys(seatStatus).filter(k => seatStatus[k].status === 'BOOKED').length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-slate-400">Chưa có khách đặt vé</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card List View */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {Object.keys(seatStatus).filter(k => seatStatus[k].status === 'BOOKED').map((seatId, idx) => (
+                    <div key={idx} className="p-4 flex items-center justify-between text-xs font-bold text-slate-700 bg-white">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-orange-50 text-[#EF5222] font-black px-2 py-0.5 rounded text-[10px]">{seatId}</span>
+                          <span className="text-slate-800 font-extrabold">{seatStatus[seatId].passengerName}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                          <Phone size={10} />
+                          <span>{seatStatus[seatId].phone}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center gap-0.5 text-emerald-500 text-[10px] bg-emerald-50 px-2 py-1 rounded-lg">
+                          <CheckCircle2 size={10}/>
+                          <span>Thành công</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {Object.keys(seatStatus).filter(k => seatStatus[k].status === 'BOOKED').length === 0 && (
+                    <div className="p-8 text-center text-xs font-bold text-slate-400 bg-white">
+                      Chưa có khách đặt vé
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {activeTab !== 'PASSENGERS' && (
@@ -445,38 +479,43 @@
         <AnimatePresence>
           {isSettingOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                  <h3 className="font-bold text-slate-800 uppercase tracking-tight">Cài đặt vận hành</h3>
-                  <button onClick={() => setIsSettingOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.95 }} 
+                className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden border border-slate-200"
+              >
+                <div className="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                  <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Cài đặt vận hành</h3>
+                  <button onClick={() => setIsSettingOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xs cursor-pointer">✕</button>
                 </div>
-                <div className="p-6 space-y-5">
+                <div className="p-5 space-y-4">
                   {/* Chọn Tài xế */}
-                  {/* 🟢 CUSTOM SEARCHABLE DROPDOWN: Chọn Tài xế (Tích hợp Cân bằng tải & Cảnh báo xung đột) */}
-                  <div className="space-y-2 relative">
+                  {/* 🟢 CUSTOM SEARCHABLE DROPDOWN: Chọn Tài xế */}
+                  <div className="space-y-1.5 relative">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Phân công Tài xế</label>
-                      <span className="text-[10px] font-extrabold text-[#EF5222] bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
-                        ⚡ AI Auto Workload Balancing
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Phân công Tài xế</label>
+                      <span className="text-[8px] font-extrabold text-[#EF5222] bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200">
+                        ⚡ AI Auto
                       </span>
                     </div>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors z-10">
-                        <BadgeCheck size={18} strokeWidth={2.5} />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors z-10">
+                        <BadgeCheck size={14} strokeWidth={2.5} />
                       </div>
                       
                       {/* Ô Input để Gõ tìm kiếm */}
                       <input 
                         type="text"
-                        placeholder="Gõ tên, SĐT hoặc mã để tìm..."
+                        placeholder="Gõ tên, SĐT hoặc mã..."
                         value={driverSearch}
                         onChange={(e) => {
                           setDriverSearch(e.target.value);
                           setShowDriverDropdown(true);
                         }}
                         onFocus={() => setShowDriverDropdown(true)}
-                        onBlur={() => setTimeout(() => setShowDriverDropdown(false), 200)} // Delay để kịp click chọn item
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[14px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all"
+                        onBlur={() => setTimeout(() => setShowDriverDropdown(false), 200)}
+                        className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all"
                       />
                       
                       {/* Nút Xóa (Clear) */}
@@ -486,12 +525,12 @@
                             setEditData({...editData, driverId: ''});
                             setDriverSearch('');
                           }}
-                          className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-red-500 z-10"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-red-500 z-10 text-xs font-bold"
                         >
                           ✕
                         </button>
                       )}
-
+ 
                       {/* Bảng Danh sách xổ xuống */}
                       <AnimatePresence>
                         {showDriverDropdown && (
@@ -499,14 +538,14 @@
                             initial={{ opacity: 0, y: -10 }} 
                             animate={{ opacity: 1, y: 0 }} 
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-64 overflow-y-auto custom-scrollbar divide-y divide-slate-50"
+                            className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto custom-scrollbar divide-y divide-slate-50"
                           >
                             {drivers.filter(d => 
                               d.name.toLowerCase().includes(driverSearch.toLowerCase()) || 
                               d.phone.includes(driverSearch) ||
                               d.driverCode.toLowerCase().includes(driverSearch.toLowerCase())
                             ).length === 0 ? (
-                              <div className="p-4 text-center text-sm text-slate-500 font-medium">Không tìm thấy tài xế nào</div>
+                              <div className="p-3 text-center text-xs text-slate-500 font-bold">Không tìm thấy tài xế</div>
                             ) : (
                               drivers.filter(d => 
                                 d.name.toLowerCase().includes(driverSearch.toLowerCase()) || 
@@ -519,7 +558,6 @@
                                     if (d.isConflicting) {
                                       if (!window.confirm(`⚠️ CẢNH BÁO XUNG ĐỘT: ${d.conflictReason}\nBác tài đang không khả dụng. Ngài vẫn muốn cưỡng chế phân công?`)) return;
                                     }
-                                    // 🟢 CẬP NHẬT GÁN ID TÀI XẾ VÀ ID XE (NẾU CÓ) VÀO FORM
                                     setEditData({
                                       ...editData, 
                                       driverId: d.id,
@@ -528,30 +566,25 @@
                                     setDriverSearch(`[${d.driverCode}] ${d.name} • ${d.phone}`);
                                     setShowDriverDropdown(false);
                                   }}
-                                  className={`px-4 py-3 cursor-pointer transition-colors flex flex-col ${d.isConflicting ? 'bg-rose-50/80 hover:bg-rose-100/90' : 'hover:bg-orange-50'}`}
+                                  className={`px-3 py-2 cursor-pointer transition-colors flex flex-col ${d.isConflicting ? 'bg-rose-50/80 hover:bg-rose-100/90' : 'hover:bg-orange-50'}`}
                                 >
-                                  <span className="text-[13px] font-bold text-slate-800 flex justify-between items-center">
-                                    <span className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-slate-800 flex justify-between items-center">
+                                    <span className="flex items-center gap-1.5">
                                       <span>{d.name}</span>
                                       {d.isConflicting ? (
-                                        <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase animate-pulse">Xung đột</span>
+                                        <span className="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.2 rounded shadow-2xs uppercase animate-pulse">Bận</span>
                                       ) : (
-                                        <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Sẵn sàng</span>
+                                        <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.2 rounded uppercase">Sẵn sàng</span>
                                       )}
                                     </span>
-                                    <span className="text-[#EF5222] font-mono font-black">[{d.driverCode}]</span>
+                                    <span className="text-[#EF5222] font-mono font-black text-[10px]">[{d.driverCode}]</span>
                                   </span>
-                                  <span className="text-[11px] font-medium text-slate-500 flex justify-between items-center mt-1.5">
-                                    <span>Khu vực: {d.baseLocation} • SĐT: {d.phone}</span>
-                                    <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-black border border-slate-200">
-                                      Số ca đã chạy: {d.workloadCount ?? 0}
+                                  <span className="text-[10px] font-medium text-slate-500 flex justify-between items-center mt-1">
+                                    <span>SĐT: {d.phone}</span>
+                                    <span className="bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded text-[9px] font-black border border-slate-200">
+                                      Số ca: {d.workloadCount ?? 0}
                                     </span>
                                   </span>
-                                  {d.isConflicting && (
-                                    <span className="text-[11px] text-rose-600 font-bold mt-1.5 bg-white px-2.5 py-1 rounded-lg border border-rose-200 shadow-2xs block">
-                                      ⚠️ {d.conflictReason}
-                                    </span>
-                                  )}
                                 </div>
                               ))
                             )}
@@ -560,62 +593,62 @@
                       </AnimatePresence>
                     </div>
                   </div>
-
+ 
                   {/* Chọn Xe */}
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Điều xe (Biển số)</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Điều xe (Biển số)</label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors">
-                        <CarFront size={18} strokeWidth={2.5} />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors">
+                        <CarFront size={14} strokeWidth={2.5} />
                       </div>
                       <select 
                         value={editData.busId} 
                         onChange={(e) => setEditData({...editData, busId: e.target.value})} 
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-[14px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all appearance-none cursor-pointer"
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="">-- Click để điều xe --</option>
+                        <option value="">-- Điều xe --</option>
                         {buses.map(b => (
                           <option key={b.id} value={b.id} disabled={b.isConflicting}>
-                            {b.plateNumber} • {b.busType} {b.isConflicting ? `(⚠️ ${b.conflictReason})` : '(🟢 Sẵn sàng tại bến)'}
+                            {b.plateNumber} {b.isConflicting ? `(⚠️ Bận)` : '(🟢 Rảnh)'}
                           </option>
                         ))}
                       </select>
-                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">▾</div>
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs">▾</div>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+ 
+                  <div className="grid grid-cols-2 gap-3">
                     {/* Giá vé */}
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Giá vé cơ bản</label>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Giá vé cơ bản</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors">
-                          <CircleDollarSign size={18} strokeWidth={2.5} />
+                          <CircleDollarSign size={14} strokeWidth={2.5} />
                         </div>
-                        <input type="number" value={editData.price} onChange={(e) => setEditData({...editData, price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-[14px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all" />
+                        <input type="number" value={editData.price} onChange={(e) => setEditData({...editData, price: Number(e.target.value)})} className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all" />
                       </div>
                     </div>
-
+ 
                     {/* Trạng thái */}
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Trạng thái</label>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Trạng thái</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#EF5222] transition-colors">
-                          <Activity size={18} strokeWidth={2.5} />
+                          <Activity size={14} strokeWidth={2.5} />
                         </div>
-                        <select value={editData.status} onChange={(e) => setEditData({...editData, status: e.target.value})} className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-[14px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all appearance-none cursor-pointer">
+                        <select value={editData.status} onChange={(e) => setEditData({...editData, status: e.target.value})} className="w-full pl-9 pr-4 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-[#EF5222]/10 transition-all appearance-none cursor-pointer">
                           <option value="PUBLISHED">🟢 Mở bán</option>
                           <option value="DRAFT">🟡 Tạm dừng</option>
                           <option value="CANCELLED">🔴 Đã hủy</option>
                         </select>
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">▾</div>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs">▾</div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
-                  <button onClick={() => setIsSettingOpen(false)} className="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700">Hủy bỏ</button>
-                  <button onClick={handleUpdateTrip} className="flex-1 py-2.5 bg-[#EF5222] text-white rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 hover:bg-[#D93814] transition-all">Lưu thay đổi</button>
+                <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex gap-2">
+                  <button onClick={() => setIsSettingOpen(false)} className="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer">Hủy bỏ</button>
+                  <button onClick={handleUpdateTrip} className="flex-1 py-2 bg-[#EF5222] text-white rounded-lg text-xs font-bold shadow-md hover:bg-[#D93814] transition-all cursor-pointer">Lưu thay đổi</button>
                 </div>
               </motion.div>
             </div>

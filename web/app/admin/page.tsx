@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
   const userId = (session?.user as any)?.id;
 
   const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   
   const [filterMode, setFilterMode] = useState<'preset' | 'custom'>('preset');
   const [timeRange, setTimeRange] = useState('7days'); 
@@ -535,10 +535,10 @@ export default function AdminDashboardPage() {
   const hourlyAreaPath = getSvgAreaPath(hourlyDataList, maxHourlyVal);
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative min-h-screen pb-10">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative min-h-screen pb-10">
       
       {isLoading && (
-        <div className="absolute inset-0 z-50 bg-slate-50/50 backdrop-blur-sm flex items-center justify-center rounded-[32px]">
+        <div className="absolute inset-0 z-50 bg-slate-50/50 backdrop-blur-sm flex items-center justify-center rounded-2xl md:rounded-[32px]">
           <div className="flex flex-col items-center gap-3">
              <div className="w-12 h-12 border-4 border-[#ea580c]/20 border-t-[#ea580c] rounded-full animate-spin"></div>
              <p className="text-sm font-bold text-slate-500 animate-pulse">Đang đồng bộ dữ liệu...</p>
@@ -546,41 +546,40 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* HEADER & BỘ LỌC */}
       {/* HEADER & BỘ LỌC NÂNG CẤP VIP (VIP COMMAND CENTER BAR) */}
-      <div className="bg-white/80 backdrop-blur-xl p-6 md:p-8 rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-white/80 flex flex-col xl:flex-row xl:items-center justify-between gap-6 relative overflow-visible z-30">
+      <div className="bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-6 rounded-2xl md:rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-white/80 flex flex-col xl:flex-row xl:items-center justify-between gap-3 md:gap-6 relative overflow-visible z-10">
         {/* HÀO QUANG ÁNH SÁNG NỀN */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 flex items-center gap-5">
-          <div className="w-14 h-14 bg-gradient-to-tr from-[#EF5222] via-[#ea580c] to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-[0_8px_25px_rgba(239,82,34,0.35)] transform rotate-3 hover:rotate-0 transition-transform duration-500 shrink-0 relative">
-            <Sparkles className="absolute top-1 right-1 w-3.5 h-3.5 text-amber-200 animate-ping opacity-80" />
-            <Bus className="w-7 h-7 animate-pulse" />
+        <div className="relative z-10 flex items-center gap-2.5 md:gap-5">
+          <div className="w-8 h-8 md:w-14 md:h-14 bg-gradient-to-tr from-[#EF5222] via-[#ea580c] to-amber-50 rounded-lg md:rounded-2xl flex items-center justify-center text-white shadow-[0_8px_25px_rgba(239,82,34,0.35)] transform rotate-3 hover:rotate-0 transition-transform duration-500 shrink-0 relative">
+            <Sparkles className="absolute top-0.5 right-0.5 w-1.5 h-1.5 md:w-3.5 md:h-3.5 text-amber-200 animate-ping opacity-80" />
+            <Bus className="w-4 h-4 md:w-7 md:h-7 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent tracking-tight">Trạm Điều Khiển</h1>
-            <p className="text-[13px] font-bold text-slate-500 mt-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Giám sát tổng quan hiệu suất kinh doanh
+            <h1 className="text-base md:text-2xl font-black bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent tracking-tight leading-tight">Trạm Điều Khiển</h1>
+            <p className="hidden sm:flex text-[10px] md:text-xs font-bold text-slate-500 mt-0.5 items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+              Giám sát hiệu suất kinh doanh
             </p>
           </div>
         </div>
         
-        <div className="relative z-10 flex flex-wrap items-center gap-3 xl:justify-end">
+        <div className="relative z-10 flex flex-wrap items-center gap-2 md:gap-3 xl:justify-end w-full xl:w-auto">
           {/* CỤM NÚT CHUYỂN CHẾ ĐỘ LỌC (VIP PILL SELECTOR) */}
-          <div className="flex items-center bg-gray-100/90 backdrop-blur p-1.5 rounded-full border border-gray-200/60 shadow-inner gap-1">
-            <button onClick={() => setFilterMode('preset')} className={`px-5 py-2.5 rounded-full text-sm font-extrabold transition-all duration-300 cursor-pointer ${filterMode === 'preset' ? 'bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] shadow-sm scale-105' : 'text-gray-500 hover:text-gray-800'}`}>Kỳ báo cáo</button>
-            <button onClick={() => setFilterMode('custom')} className={`px-5 py-2.5 rounded-full text-sm font-extrabold transition-all duration-300 cursor-pointer ${filterMode === 'custom' ? 'bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] shadow-sm scale-105' : 'text-gray-500 hover:text-gray-800'}`}>Tự chọn</button>
+          <div className="flex items-center bg-gray-100/90 backdrop-blur p-1 rounded-full border border-gray-200/60 shadow-inner gap-0.5 w-full sm:w-auto">
+            <button onClick={() => setFilterMode('preset')} className={`flex-1 sm:flex-none px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-300 cursor-pointer text-center ${filterMode === 'preset' ? 'bg-white text-[#ea580c] border border-orange-100 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-800'}`}>Kỳ báo cáo</button>
+            <button onClick={() => setFilterMode('custom')} className={`flex-1 sm:flex-none px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-300 cursor-pointer text-center ${filterMode === 'custom' ? 'bg-white text-[#ea580c] border border-orange-100 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-800'}`}>Tự chọn</button>
           </div>
 
           {filterMode === 'preset' ? (
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <button 
                 onClick={() => setIsOpenRangeDropdown(!isOpenRangeDropdown)}
-                className="flex items-center gap-3 bg-gray-50 hover:bg-orange-50 text-gray-800 hover:text-[#ea580c] text-sm font-extrabold pl-5 pr-4 py-2.5 rounded-full border border-gray-200 hover:border-[#ffedd5] shadow-sm transition-all outline-none cursor-pointer group/select min-w-[170px] justify-between"
+                className="flex items-center gap-2 bg-gray-50 hover:bg-orange-50 text-gray-800 hover:text-[#ea580c] text-xs sm:text-sm font-extrabold pl-4 pr-3 py-2 rounded-full border border-gray-200 hover:border-[#ffedd5] shadow-sm transition-all outline-none cursor-pointer group/select w-full sm:min-w-[170px] justify-between"
               >
-                <div className="flex items-center gap-2.5">
-                  <CalendarDays className="w-4 h-4 text-[#ea580c]" />
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-3.5 h-3.5 text-[#ea580c]" />
                   <span>
                     {timeRange === 'today' && 'Hôm nay'}
                     {timeRange === 'yesterday' && 'Hôm qua'}
@@ -588,8 +587,8 @@ export default function AdminDashboardPage() {
                     {timeRange === 'thisMonth' && 'Tháng này'}
                   </span>
                 </div>
-                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-xs text-gray-400 group-hover/select:text-[#ea580c] transition-colors">
-                  <span className="text-[10px] font-black">▼</span>
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-xs text-gray-400 group-hover/select:text-[#ea580c] transition-colors">
+                  <span className="text-[8px] font-black">▼</span>
                 </div>
               </button>
               
@@ -626,15 +625,15 @@ export default function AdminDashboardPage() {
               )}
             </div>
           ) : (
-            <div ref={dateContainerRef} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full p-1.5 shadow-sm">
-              <div className="relative">
+            <div ref={dateContainerRef} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-2xl p-1 shadow-sm w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
                 <button 
                   type="button"
                   onClick={() => setActiveDatePicker(activeDatePicker === 'start' ? null : 'start')}
-                  className={`flex items-center gap-2.5 pl-5 pr-4 py-2 rounded-full text-sm font-extrabold transition-all outline-none cursor-pointer ${activeDatePicker === 'start' ? 'bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] shadow-xs' : 'bg-white text-gray-800 border border-gray-100 hover:border-orange-200 shadow-xs'}`}
+                  className={`flex items-center justify-center sm:justify-start gap-2 w-full pl-4 pr-3 py-1.5 rounded-full text-xs font-extrabold transition-all outline-none cursor-pointer ${activeDatePicker === 'start' ? 'bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] shadow-xs' : 'bg-white text-gray-800 border border-gray-100 hover:border-orange-200 shadow-xs'}`}
                 >
-                  <CalendarDays className="w-4 h-4 text-[#ea580c] shrink-0" />
-                  <span>{startDate ? formatDateToVN(startDate) : 'Ngày bắt đầu'}</span>
+                  <CalendarDays className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+                  <span>{startDate ? formatDateToVN(startDate) : 'Bắt đầu'}</span>
                 </button>
                 {activeDatePicker === 'start' && (
                   <AdminCustomCalendar 
@@ -644,16 +643,16 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              <span className="text-gray-300 font-black">➔</span>
+              <span className="text-gray-300 font-black text-center hidden sm:inline">➔</span>
 
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <button 
                   type="button"
                   onClick={() => setActiveDatePicker(activeDatePicker === 'end' ? null : 'end')}
-                  className={`flex items-center gap-2.5 pl-5 pr-4 py-2 rounded-full text-sm font-extrabold transition-all outline-none cursor-pointer ${activeDatePicker === 'end' ? 'bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] shadow-xs' : 'bg-white text-gray-800 border border-gray-100 hover:border-orange-200 shadow-xs'}`}
+                  className={`flex items-center justify-center sm:justify-start gap-2 w-full pl-4 pr-3 py-1.5 rounded-full text-xs font-extrabold transition-all outline-none cursor-pointer ${activeDatePicker === 'end' ? 'bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] shadow-xs' : 'bg-white text-gray-800 border border-gray-100 hover:border-orange-200 shadow-xs'}`}
                 >
-                  <CalendarDays className="w-4 h-4 text-[#ea580c] shrink-0" />
-                  <span>{endDate ? formatDateToVN(endDate) : 'Ngày kết thúc'}</span>
+                  <CalendarDays className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+                  <span>{endDate ? formatDateToVN(endDate) : 'Kết thúc'}</span>
                 </button>
                 {activeDatePicker === 'end' && (
                   <AdminCustomCalendar 
@@ -668,157 +667,155 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={fetchDashboardData}
                 disabled={!startDate || !endDate}
-                className="bg-[#ea580c] text-white px-6 py-2.5 rounded-full text-sm font-extrabold hover:bg-[#d94e0a] disabled:bg-gray-200 disabled:text-gray-400 transition-colors shadow-sm cursor-pointer ml-1 active:scale-95"
+                className="bg-[#ea580c] text-white px-4 py-1.5 rounded-full text-xs font-extrabold hover:bg-[#d94e0a] disabled:bg-gray-200 disabled:text-gray-400 transition-colors shadow-sm cursor-pointer w-full sm:w-auto active:scale-95"
               >
                 Áp dụng
               </button>
             </div>
           )}
 
-          <div className="w-px h-8 bg-slate-200 mx-1 hidden sm:block"></div>
+          <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
 
-          {/* NÚT BẢO TRÌ HỆ THỐNG */}
-          <button 
-            disabled={isTogglingMaintenance}
-            onClick={handleToggleSystemMaintenance} 
-            className={`px-5 py-3 rounded-[18px] text-[13px] font-black shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-              isMaintenanceMode 
-                ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/30' 
-                : 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-800/30'
-            }`}
-          >
-            {isTogglingMaintenance ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Power className={`w-4 h-4 ${isMaintenanceMode ? 'animate-pulse' : ''}`} />
-            )}
-            {isMaintenanceMode ? 'ĐANG BẢO TRÌ' : 'Hoạt động'}
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* NÚT BẢO TRÌ HỆ THỐNG */}
+            <button 
+              disabled={isTogglingMaintenance}
+              onClick={handleToggleSystemMaintenance} 
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-black shadow-md hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                isMaintenanceMode 
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/30' 
+                  : 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-800/30'
+              }`}
+            >
+              {isTogglingMaintenance ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Power className={`w-3.5 h-3.5 ${isMaintenanceMode ? 'animate-pulse' : ''}`} />
+              )}
+              {isMaintenanceMode ? 'ĐANG BẢO TRÌ' : 'Hoạt động'}
+            </button>
 
-          <div className="w-px h-8 bg-slate-200 mx-1 hidden sm:block"></div>
-
-          {/* NÚT XUẤT BÁO CÁO VIP */}
-          <button onClick={handleExportExcel} className="bg-gradient-to-r from-[#ea580c] to-[#EF5222] hover:from-[#d94e0a] hover:to-[#ea580c] text-white px-6 py-3 rounded-[18px] text-[13px] font-black shadow-[0_8px_25px_rgba(234,88,12,0.3)] hover:shadow-[0_12px_30px_rgba(234,88,12,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center gap-2.5 cursor-pointer">
-            <Download className="w-4 h-4 animate-bounce" /> Xuất Báo cáo
-          </button>
+            {/* NÚT XUẤT BÁO CÁO VIP */}
+            <button onClick={handleExportExcel} className="flex-1 sm:flex-none bg-gradient-to-r from-[#ea580c] to-[#EF5222] hover:from-[#d94e0a] hover:to-[#ea580c] text-white px-4 py-2 rounded-xl text-xs font-black shadow-[0_8px_25px_rgba(234,88,12,0.3)] hover:shadow-[0_12px_30px_rgba(234,88,12,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+              <Download className="w-3.5 h-3.5 animate-bounce" /> Xuất Báo cáo
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* 🟢 ĐÃ ĐỔI GRID THÀNH xl:grid-cols-5 ĐỂ CHỨA VỪA 5 THẺ */}
       {/* 5 THẺ TỔNG QUAN NÂNG CẤP (ULTRA-PREMIUM METRIC CARDS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-5">
         
         {/* THẺ 1: DOANH THU */}
-        <div className="bg-white/90 backdrop-blur-md rounded-[24px] p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(234,88,12,0.12)] hover:border-orange-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
+        <div className="bg-white/90 backdrop-blur-md rounded-[24px] p-4 md:p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(234,179,8,0.12)] hover:border-orange-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transform group-hover:scale-125 transition-all duration-500 text-orange-500"><DollarSign size={90} /></div>
           <div className="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-orange-500 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2 group-hover:text-orange-500 transition-colors">Doanh thu thực</p>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">{data ? formatCurrency(data.stats.revenue) : '0đ'}</h3>
+              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-orange-500 transition-colors">Doanh thu thực</p>
+              <h3 className="text-base md:text-xl xl:text-2xl font-black text-slate-800 tracking-tight leading-none">{data ? formatCurrency(data.stats.revenue) : '0đ'}</h3>
               {/* Hiển thị thông tin hoàn tiền nếu có */}
               {data?.stats.totalRefunded > 0 && (
                 <div className="mt-1 flex flex-col gap-0.5">
-                  <span className="text-[10px] font-bold text-slate-400 line-through">{formatCurrency(data.stats.grossRevenue)} gộp</span>
-                  <span className="text-[10px] font-black text-rose-500 flex items-center gap-1">
+                  <span className="text-[9px] md:text-[10px] font-bold text-slate-400 line-through">{formatCurrency(data.stats.grossRevenue)} gộp</span>
+                  <span className="text-[9px] md:text-[10px] font-black text-rose-500 flex items-center gap-0.5">
                     <span>↩</span> Hoàn: -{formatCurrency(data.stats.totalRefunded)}
                   </span>
                 </div>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500">
-              <DollarSign className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 shrink-0">
+              <DollarSign className="w-4 h-4 md:w-6 md:h-6" strokeWidth={2.5} />
             </div>
           </div>
-          <div className="mt-5 flex items-center gap-2 relative z-10">
-            <div className={`flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl shadow-sm ${data?.stats.revenueGrowth >= 0 ? 'text-emerald-600 bg-emerald-50 border border-emerald-200' : 'text-rose-600 bg-rose-50 border border-rose-200'}`}>
-              {data?.stats.revenueGrowth >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+          <div className="mt-3 md:mt-5 flex items-center gap-1.5 relative z-10">
+            <div className={`flex items-center gap-0.5 text-[9px] md:text-[11px] font-black px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-lg md:rounded-xl shadow-sm ${data?.stats.revenueGrowth >= 0 ? 'text-emerald-600 bg-emerald-50 border border-emerald-200' : 'text-rose-600 bg-rose-50 border border-rose-200'}`}>
+              {data?.stats.revenueGrowth >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               <span>{data?.stats.revenueGrowth > 0 ? '+' : ''}{data?.stats.revenueGrowth || 0}%</span>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">so với kỳ trước</span>
+            <span className="text-[9px] md:text-[11px] font-bold text-slate-400 shrink-0">so với kỳ</span>
           </div>
         </div>
 
         {/* THẺ 2: VÉ ĐÃ CHỐT */}
-        <div className="bg-white/90 backdrop-blur-md rounded-[24px] p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(59,130,246,0.12)] hover:border-blue-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
+        <div className="bg-white/90 backdrop-blur-md rounded-[24px] p-4 md:p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(59,130,246,0.12)] hover:border-blue-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transform group-hover:scale-125 transition-all duration-500 text-blue-500"><Ticket size={90} /></div>
           <div className="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2 group-hover:text-blue-500 transition-colors">Vé đã chốt</p>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">{data?.stats.ticketsSold || 0} <span className="text-sm font-bold text-slate-400">vé</span></h3>
+              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-blue-500 transition-colors">Vé đã chốt</p>
+              <h3 className="text-base md:text-xl xl:text-2xl font-black text-slate-800 tracking-tight leading-none">{data?.stats.ticketsSold || 0} <span className="text-xs md:text-sm font-bold text-slate-400">vé</span></h3>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500">
-              <Ticket className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500 shrink-0">
+              <Ticket className="w-4 h-4 md:w-6 md:h-6" strokeWidth={2.5} />
             </div>
           </div>
-          <div className="mt-5 flex items-center gap-2 relative z-10">
-            <span className="text-[11px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 shadow-sm flex items-center gap-1.5">
+          <div className="mt-3 md:mt-5 flex items-center gap-1.5 relative z-10">
+            <span className="text-[9px] md:text-[11px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 md:px-3 md:py-1 rounded-lg md:rounded-xl border border-blue-100 shadow-sm flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>
-              Đã thanh toán
+              Đã chốt
             </span>
           </div>
         </div>
 
         {/* THẺ 3: ĐANG VẬN HÀNH */}
-        <div onClick={() => router.push('/admin/trips')} className="bg-white/90 backdrop-blur-md rounded-[24px] p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(168,85,247,0.12)] hover:border-purple-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
+        <div onClick={() => router.push('/admin/trips')} className="bg-white/90 backdrop-blur-md rounded-[24px] p-4 md:p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(168,85,247,0.12)] hover:border-purple-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transform group-hover:scale-125 transition-all duration-500 text-purple-500"><Bus size={90} /></div>
           <div className="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2 group-hover:text-purple-500 transition-colors">Đang vận hành</p>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">{data?.stats.activeTrips || 0} <span className="text-sm font-bold text-slate-400">chuyến</span></h3>
+              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-purple-500 transition-colors">Đang chạy</p>
+              <h3 className="text-base md:text-xl xl:text-2xl font-black text-slate-800 tracking-tight leading-none">{data?.stats.activeTrips || 0} <span className="text-xs md:text-sm font-bold text-slate-400">chuyến</span></h3>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 group-hover:translate-x-1 transition-transform duration-500">
-              <Bus className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 group-hover:translate-x-1 transition-transform duration-500 shrink-0">
+              <Bus className="w-4 h-4 md:w-6 md:h-6" strokeWidth={2.5} />
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between relative z-10 text-[12px] font-black text-purple-600 group-hover:text-purple-700 transition-colors">
-            <span>Quản lý chuyến xe</span>
-            <div className="w-6 h-6 bg-purple-50 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
-              <ArrowRight size={14} />
+          <div className="mt-3 md:mt-5 flex items-center justify-between relative z-10 text-[9px] md:text-[12px] font-black text-purple-600 group-hover:text-purple-700 transition-colors">
+            <span>Chi tiết chuyến</span>
+            <div className="w-5 h-5 md:w-6 md:h-6 bg-purple-50 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
+              <ArrowRight size={12} />
             </div>
           </div>
         </div>
 
         {/* THẺ 4: KHÁCH HÀNG MỚI */}
-        <div onClick={() => router.push('/admin/customers')} className="bg-white/90 backdrop-blur-md rounded-[24px] p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(20,184,166,0.12)] hover:border-teal-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
+        <div onClick={() => router.push('/admin/customers')} className="bg-white/90 backdrop-blur-md rounded-[24px] p-4 md:p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(20,184,166,0.12)] hover:border-teal-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transform group-hover:scale-125 transition-all duration-500 text-teal-500"><Users size={90} /></div>
           <div className="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2 group-hover:text-teal-500 transition-colors">Khách hàng mới</p>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">{data?.stats.newCustomers || 0} <span className="text-sm font-bold text-slate-400">người</span></h3>
+              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-teal-500 transition-colors">Khách mới</p>
+              <h3 className="text-base md:text-xl xl:text-2xl font-black text-slate-800 tracking-tight leading-none">{data?.stats.newCustomers || 0} <span className="text-xs md:text-sm font-bold text-slate-400">người</span></h3>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-              <Users className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-teal-500 to-emerald-600 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shrink-0">
+              <Users className="w-4 h-4 md:w-6 md:h-6" strokeWidth={2.5} />
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between relative z-10 text-[12px] font-black text-teal-600 group-hover:text-teal-700 transition-colors">
-            <span>Xem danh sách</span>
-            <div className="w-6 h-6 bg-teal-50 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
-              <ArrowRight size={14} />
+          <div className="mt-3 md:mt-5 flex items-center justify-between relative z-10 text-[9px] md:text-[12px] font-black text-teal-600 group-hover:text-teal-700 transition-colors">
+            <span>Danh sách</span>
+            <div className="w-5 h-5 md:w-6 md:h-6 bg-teal-50 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
+              <ArrowRight size={12} />
             </div>
           </div>
         </div>
 
         {/* THẺ 5: CT LOYALTY VOUCHER */}
-        <div onClick={() => router.push('/admin/loyalty')} className="bg-white/90 backdrop-blur-md rounded-[24px] p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(234,179,8,0.12)] hover:border-yellow-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
+        <div onClick={() => router.push('/admin/loyalty')} className="bg-white/90 backdrop-blur-md rounded-[24px] p-4 md:p-6 border border-slate-100 shadow-[0_4px_25px_rgb(0,0,0,0.04)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_12px_35px_rgb(234,179,8,0.12)] hover:border-yellow-200 transition-all duration-500 group relative overflow-hidden cursor-pointer">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transform group-hover:scale-125 transition-all duration-500 text-yellow-500"><Gift size={90} /></div>
           <div className="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-yellow-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="flex justify-between items-start relative z-10">
             <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2 group-hover:text-yellow-500 transition-colors">CT Loyalty</p>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">{data?.stats.activeVouchers || 0} <span className="text-sm font-bold text-slate-400">Voucher</span></h3>
+              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-yellow-500 transition-colors">CT Loyalty</p>
+              <h3 className="text-base md:text-xl xl:text-2xl font-black text-slate-800 tracking-tight leading-none">{data?.stats.activeVouchers || 0} <span className="text-xs md:text-sm font-bold text-slate-400">quà</span></h3>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/30 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-              <Gift className="w-6 h-6" strokeWidth={2.5} />
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-yellow-500 to-amber-600 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/30 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 shrink-0">
+              <Gift className="w-4 h-4 md:w-6 md:h-6" strokeWidth={2.5} />
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between relative z-10 text-[12px] font-black text-yellow-600 group-hover:text-yellow-700 transition-colors">
-            <span>Quản lý kho quà</span>
-            <div className="w-6 h-6 bg-yellow-50 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
-              <ArrowRight size={14} />
+          <div className="mt-3 md:mt-5 flex items-center justify-between relative z-10 text-[9px] md:text-[12px] font-black text-yellow-600 group-hover:text-yellow-700 transition-colors">
+            <span>Kho quà tặng</span>
+            <div className="w-5 h-5 md:w-6 md:h-6 bg-yellow-50 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
+              <ArrowRight size={12} />
             </div>
           </div>
         </div>
@@ -826,96 +823,98 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* =========================================================
-          🤖 TRẠM CỐ VẤN AI (AI DIRECTOR) - ĐÃ SỬA VỊ TRÍ
+          🤖 TRẠM CỐ VẤN AI (AI DIRECTOR)
           ========================================================= */}
-      <div className="bg-gradient-to-br from-orange-50 via-white to-orange-50/30 rounded-[24px] p-6 md:p-8 border border-orange-200 shadow-[0_8px_30px_rgb(239,82,34,0.06)] relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-gradient-to-bl from-[#EF5222]/20 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
-        
-        <div className="flex flex-col xl:flex-row gap-8 relative z-10">
-          <div className="xl:w-[280px] shrink-0 border-r border-orange-100/50 pr-6">
-            <div className="flex items-center justify-between gap-3 mb-3 pr-2">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#EF5222] to-[#D93814] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 relative shrink-0">
-                  <Sparkles className="text-white absolute w-4 h-4 animate-pulse top-2 right-2 opacity-60" />
-                  <Bot size={26} className="text-white" />
-                </div>
-                <h3 className="text-xl font-black text-slate-800 tracking-tight">AI Director</h3>
-              </div>
-              
-              {/* CỤM ĐIỀU KHIỂN AI UNIFIED (DYNAMIC PILL CONTAINER) */}
-              <div className="flex items-center bg-white/80 backdrop-blur-md p-1 rounded-2xl border border-orange-100 shadow-[0_2px_10px_rgba(239,82,34,0.08)] gap-1 shrink-0">
-                {/* NÚT BẬT/TẮT AI NGOẠI CẢNH */}
-                <button 
-                  onClick={handleToggleWeather}
-                  className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-500 cursor-pointer ${
-                    isWeatherEnabled 
-                      ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)] scale-105' 
-                      : 'hover:bg-slate-100 text-slate-400'
-                  }`}
-                  title={isWeatherEnabled ? "AI Ngoại cảnh: Đang BẬT (Tốn Quota)" : "AI Ngoại cảnh: Đang TẮT (Tiết kiệm Quota)"}
-                >
-                  <CloudSun size={18} className={isWeatherEnabled ? 'animate-pulse' : ''} />
-                </button>
+      <div className="bg-gradient-to-br from-orange-50 via-white to-orange-50/30 rounded-2xl border border-orange-200 shadow-[0_8px_30px_rgb(239,82,34,0.06)] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-gradient-to-bl from-[#EF5222]/20 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
-                {/* VÁCH NGĂN MỜ */}
-                <div className="w-[1px] h-5 bg-slate-200/60 my-auto"></div>
-
-                {/* NÚT DỰ BÁO LẠI */}
-                <button 
-                  onClick={() => fetchAiInsights(isWeatherEnabled)} 
-                  disabled={isAiLoading}
-                  className="w-9 h-9 flex items-center justify-center hover:bg-orange-50 text-[#EF5222] rounded-xl transition-all duration-300 group/refresh cursor-pointer"
-                  title="Tính toán và dự báo lại dữ liệu mới nhất"
-                >
-                  <RefreshCw size={18} className={`${isAiLoading ? 'animate-spin text-orange-600' : 'group-hover/refresh:rotate-180 transition-transform duration-500'}`} />
-                </button>
-              </div>
+        {/* HEADER AI DIRECTOR - luôn hiển thị */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-orange-100/60 relative z-10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#EF5222] to-[#D93814] rounded-xl flex items-center justify-center shadow-md shadow-orange-500/30 relative shrink-0">
+              <Sparkles className="text-white absolute w-2.5 h-2.5 top-1 right-1 opacity-60 animate-pulse" />
+              <Bot size={16} className="text-white" />
             </div>
-            <p className="text-[13px] font-bold text-slate-500 leading-relaxed">
-              Hệ thống tự động phân tích dữ liệu bán vé và đưa ra chiến lược tối ưu lợi nhuận cho nhà xe.
-            </p>
-            
-            {!isAiLoading && aiInsights?.metrics && (
-              <div className="mt-5 space-y-3">
-                <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-100">
-                  <span className="text-[11px] font-black text-slate-400 uppercase">Chuyến ế (48h)</span>
-                  <span className="text-sm font-black text-rose-500">{aiInsights.metrics.emptyTrips}</span>
-                </div>
-                <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-100">
-                  <span className="text-[11px] font-black text-slate-400 uppercase">Hủy vé (7 ngày)</span>
-                  <span className="text-sm font-black text-amber-500">{aiInsights.metrics.cancelRate}%</span>
-                </div>
-              </div>
-            )}
+            <div>
+              <h3 className="text-sm font-black text-slate-800 tracking-tight leading-none">AI Director</h3>
+              <p className="text-[9px] font-bold text-slate-400 mt-0.5">Phân tích &amp; cố vấn vận hành</p>
+            </div>
           </div>
 
-          <div className="flex-1 flex flex-col gap-4">
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white p-5 shadow-inner">
-              {isAiLoading ? (
-                <div className="flex items-center gap-3 h-full text-[#EF5222] font-bold text-sm animate-pulse">
-                  <Loader2 className="animate-spin" size={20} />
-                  Hệ thống đang xử lý dữ liệu hàng triệu chuyến xe...
-                </div>
-              ) : (
-                <div className="text-[14px] leading-loose text-slate-700 font-medium whitespace-pre-wrap">
-                  {aiInsights?.insightText}
+          {/* Nút điều khiển */}
+          <div className="flex items-center bg-white/80 p-1 rounded-xl border border-orange-100 shadow-sm gap-1 shrink-0">
+            <button
+              onClick={handleToggleWeather}
+              className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-300 cursor-pointer ${
+                isWeatherEnabled
+                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:bg-slate-100'
+              }`}
+              title={isWeatherEnabled ? "AI Ngoại cảnh: BẬT" : "AI Ngoại cảnh: TẮT"}
+            >
+              <CloudSun size={13} className={isWeatherEnabled ? 'animate-pulse' : ''} />
+            </button>
+            <div className="w-px h-3.5 bg-slate-200/70 my-auto"></div>
+            <button
+              onClick={() => fetchAiInsights(isWeatherEnabled)}
+              disabled={isAiLoading}
+              className="w-7 h-7 flex items-center justify-center text-[#EF5222] hover:bg-orange-50 rounded-lg transition-all cursor-pointer"
+              title="Dự báo lại"
+            >
+              <RefreshCw size={13} className={isAiLoading ? 'animate-spin' : ''} />
+            </button>
+          </div>
+        </div>
+
+        {/* NỘI DUNG - có thể scroll, giới hạn chiều cao */}
+        <div className="overflow-y-auto max-h-[220px] p-4 relative z-10 space-y-3">
+          {isAiLoading ? (
+            <div className="flex items-center gap-2 text-[#EF5222] font-bold text-xs animate-pulse py-2">
+              <Loader2 className="animate-spin w-4 h-4 shrink-0" />
+              Hệ thống đang xử lý dữ liệu...
+            </div>
+          ) : (
+            <>
+              {aiInsights?.metrics && (
+                <div className="flex gap-2">
+                  <div className="flex-1 flex justify-between items-center bg-white px-3 py-2 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">Chuyến ế (48h)</span>
+                    <span className="text-xs font-black text-rose-500">{aiInsights.metrics.emptyTrips}</span>
+                  </div>
+                  <div className="flex-1 flex justify-between items-center bg-white px-3 py-2 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">Hủy vé (7 ngày)</span>
+                    <span className="text-xs font-black text-amber-500">{aiInsights.metrics.cancelRate}%</span>
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* DỰ BÁO THỜI TIẾT & GIAO THÔNG TỪ GROQ AI thưa Admin */}
-            {!isAiLoading && aiInsights?.weatherTrafficText && (
-              <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-purple-50/80 rounded-2xl border border-blue-100 p-5 shadow-sm">
-                <div className="text-[11px] font-black text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-                  Bản tin Khí tượng & Giao thông AI
+              {aiInsights?.insightText && (
+                <div className="bg-white/70 rounded-xl border border-white p-3 shadow-inner">
+                  <div className="text-[11px] leading-relaxed text-slate-700 font-medium whitespace-pre-wrap">
+                    {aiInsights.insightText}
+                  </div>
                 </div>
-                <div className="text-[13px] leading-relaxed text-slate-700 font-medium whitespace-pre-wrap">
-                  {aiInsights.weatherTrafficText}
+              )}
+
+              {aiInsights?.weatherTrafficText && (
+                <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/50 rounded-xl border border-blue-100 p-3">
+                  <div className="text-[9px] font-black text-blue-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <span className="w-1 h-1 rounded-full bg-blue-500 animate-ping"></span>
+                    Bản tin Khí tượng &amp; Giao thông AI
+                  </div>
+                  <div className="text-[11px] leading-relaxed text-slate-700 font-medium whitespace-pre-wrap">
+                    {aiInsights.weatherTrafficText}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+
+              {!aiInsights && (
+                <p className="text-xs text-slate-400 font-medium py-1">
+                  Nhấn nút làm mới để AI phân tích dữ liệu vận hành.
+                </p>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -1499,60 +1498,60 @@ export default function AdminDashboardPage() {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
               transition={{ type: "spring", stiffness: 350, damping: 26 }}
-              className="relative bg-white/95 backdrop-blur-2xl rounded-[32px] border border-white shadow-[0_25px_60px_rgba(0,0,0,0.15)] w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col z-10"
+              className="relative bg-white/95 backdrop-blur-2xl rounded-2xl md:rounded-[32px] border border-white shadow-[0_25px_60px_rgba(0,0,0,0.15)] w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col z-10"
             >
               {/* Hào quang nền của Modal */}
               <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-tr from-blue-500/10 via-pink-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
               {/* Header */}
-              <div className="p-6 md:p-8 border-b border-slate-100 flex items-start justify-between relative z-10 bg-white/50 backdrop-blur-xs">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 shrink-0">
-                    <CreditCard className="w-6 h-6 animate-pulse" />
+              <div className="p-4 md:p-6 lg:p-8 border-b border-slate-100 flex items-start justify-between relative z-10 bg-white/50 backdrop-blur-xs">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 shrink-0">
+                    <CreditCard className="w-5 h-5 md:w-6 md:h-6 animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-slate-800 tracking-tight">Chi tiết Giao dịch Cổng thanh toán</h2>
-                    <p className="text-xs font-bold text-slate-400 mt-0.5">Quản lý và tra cứu lịch sử vé đã được thanh toán thành công</p>
+                    <h2 className="text-base md:text-xl font-black text-slate-800 tracking-tight">Chi tiết Giao dịch Cổng thanh toán</h2>
+                    <p className="text-[10px] md:text-xs font-bold text-slate-400 mt-0.5">Quản lý và tra cứu lịch sử vé đã thanh toán thành công</p>
                   </div>
                 </div>
                 
                 <button 
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all flex items-center justify-center cursor-pointer border border-transparent hover:border-rose-100 group"
+                  className="w-8.5 h-8.5 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all flex items-center justify-center cursor-pointer border border-transparent hover:border-rose-100 group shrink-0"
                 >
-                  <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+                  <X className="w-4 h-4 md:w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
                 </button>
               </div>
 
               {/* BỘ LỌC TÌM KIẾM & PHÂN LOẠI */}
-              <div className="px-6 md:px-8 py-4 bg-slate-50/60 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+              <div className="px-4 md:px-6 lg:px-8 py-3.5 bg-slate-50/60 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3 md:gap-4 relative z-10">
                 {/* Ô tìm kiếm */}
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
+                <div className="relative flex-1 max-w-md w-full">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Tìm theo Mã đơn, Tên khách, Tuyến đi..."
                     value={paymentSearchQuery}
                     onChange={(e) => setPaymentSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-inner-sm transition-all"
+                    className="w-full pl-10 pr-3 py-2 md:py-2.5 bg-white border border-slate-200 rounded-xl md:rounded-2xl text-xs md:text-sm font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-inner-sm transition-all"
                   />
                 </div>
 
                 {/* Tabs & Export Button Container */}
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full lg:w-auto">
                   {/* Tabs phương thức */}
-                  <div className="flex items-center bg-slate-200/50 p-1 rounded-2xl gap-1 relative">
+                  <div className="flex items-center bg-slate-200/50 p-0.5 rounded-xl md:rounded-2xl gap-0.5 md:gap-1 relative flex-1 sm:flex-none">
                     {[
                       { key: 'ALL', label: 'Tất cả' },
-                      { key: 'MOMO', label: 'Cổng MoMo' },
-                      { key: 'VNPAY', label: 'Cổng VNPAY' }
+                      { key: 'MOMO', label: 'MoMo' },
+                      { key: 'VNPAY', label: 'VNPAY' }
                     ].map((tab) => {
                       const isActive = paymentModalFilter === tab.key;
                       return (
                         <button
                           key={tab.key}
                           onClick={() => setPaymentModalFilter(tab.key as any)}
-                          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer relative z-10 ${
+                          className={`flex-1 sm:flex-none px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer relative z-10 ${
                             isActive ? 'text-white' : 'text-slate-500 hover:text-slate-800'
                           }`}
                         >
@@ -1560,7 +1559,7 @@ export default function AdminDashboardPage() {
                             <motion.div
                               layoutId="activePaymentTab"
                               transition={{ type: "spring", stiffness: 350, damping: 26 }}
-                              className={`absolute inset-0 rounded-xl -z-10 shadow-sm ${
+                              className={`absolute inset-0 rounded-lg md:rounded-xl -z-10 shadow-sm ${
                                 tab.key === 'MOMO'
                                   ? 'bg-pink-600 shadow-[0_4px_12px_rgba(219,39,119,0.25)]'
                                   : tab.key === 'VNPAY'
@@ -1590,16 +1589,16 @@ export default function AdminDashboardPage() {
                       });
                       handleExportPaymentExcel(filteredOrders);
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-md shadow-emerald-600/20 transition-all border border-emerald-500/10 cursor-pointer group"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 md:px-4 md:py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] md:text-xs uppercase tracking-wider rounded-xl md:rounded-2xl shadow-md shadow-emerald-600/20 transition-all border border-emerald-500/10 cursor-pointer group flex-1 sm:flex-none"
                   >
-                    <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                    <Download className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:translate-y-0.5 transition-transform" />
                     <span>Xuất Excel</span>
                   </button>
                 </div>
               </div>
 
               {/* DANH SÁCH LỊCH SỬ GIAO DỊCH */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar">
                 {(() => {
                   const paidOrders = data?.paidOrdersList || [];
                   const filteredOrders = paidOrders.filter((order: any) => {
@@ -1625,7 +1624,7 @@ export default function AdminDashboardPage() {
                   }
 
                   return (
-                    <div className="space-y-3.5 pr-2">
+                    <div className="space-y-2.5 md:space-y-3.5 pr-1 md:pr-2">
                       <AnimatePresence mode="popLayout">
                         {filteredOrders.map((order: any, idx: number) => {
                           const isMomo = order.paymentMethod === 'MOMO';
@@ -1637,14 +1636,14 @@ export default function AdminDashboardPage() {
                               exit={{ opacity: 0, scale: 0.98, y: -10 }}
                               transition={{ type: "spring", stiffness: 420, damping: 32 }}
                               key={order.orderCode || idx}
-                              className={`bg-white hover:bg-slate-50/85 rounded-2xl p-4 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden group/item ${
+                              className={`bg-white hover:bg-slate-50/85 rounded-xl md:rounded-2xl p-3 md:p-4 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 relative overflow-hidden group/item ${
                                 order.paymentStatus === 'REFUNDED' 
                                   ? 'border-rose-100 bg-rose-50/10 shadow-[0_2px_8px_rgba(244,63,94,0.02)]' 
                                   : 'border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.01)]'
                               }`}
                             >
                               {/* Dải màu hover */}
-                              <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-300 ${
+                              <div className={`absolute left-0 top-0 bottom-0 w-1 md:w-1.5 transition-all duration-300 ${
                                 order.paymentStatus === 'REFUNDED'
                                   ? 'bg-rose-500 animate-pulse'
                                   : isMomo 
@@ -1653,11 +1652,11 @@ export default function AdminDashboardPage() {
                               }`} />
 
                               {/* Left details */}
-                              <div className="flex items-center gap-4 pl-1.5">
+                              <div className="flex items-center gap-3 md:gap-4 pl-1 md:pl-1.5">
                                 {/* Logo Cổng chính thức */}
                                 {isMomo ? (
-                                  <div className="w-11 h-11 rounded-2xl bg-[#A50064] flex items-center justify-center shrink-0 shadow-lg shadow-pink-600/10 border border-[#b8006f] overflow-hidden relative group-hover/item:scale-105 transition-transform duration-300 select-none">
-                                    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 transition-transform duration-500 group-hover/item:scale-110">
+                                  <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-[#A50064] flex items-center justify-center shrink-0 shadow-lg shadow-pink-600/10 border border-[#b8006f] overflow-hidden relative group-hover/item:scale-105 transition-transform duration-300 select-none">
+                                    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6.5 h-6.5 md:w-8 md:h-8 transition-transform duration-500 group-hover/item:scale-110">
                                       <path d="M7 17V10L11 14L15 10V17" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                                       <circle cx="24" cy="13.5" r="3" stroke="white" strokeWidth="2.2"/>
                                       <path d="M7 28V21L11 25L15 21V28" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1665,8 +1664,8 @@ export default function AdminDashboardPage() {
                                     </svg>
                                   </div>
                                 ) : (
-                                  <div className="w-11 h-11 rounded-2xl bg-white flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-500/5 border border-slate-100 p-1 select-none group-hover/item:scale-105 transition-transform duration-300">
-                                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 transition-transform duration-500 group-hover/item:scale-110">
+                                  <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white flex flex-col items-center justify-center shrink-0 shadow-md shadow-blue-500/5 border border-slate-100 p-0.5 md:p-1 select-none group-hover/item:scale-105 transition-transform duration-300">
+                                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 md:w-9 md:h-9 transition-transform duration-500 group-hover/item:scale-110">
                                       <g transform="translate(4, 4)">
                                         <path d="M8 8 L18 32 L22 32 L12 8 Z" fill="#005BAA" />
                                         <path d="M16 8 L24 28 L28 28 L20 8 Z" fill="#00B14F" />
@@ -1678,11 +1677,11 @@ export default function AdminDashboardPage() {
                                 )}
 
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-2.5">
-                                    <span className="text-sm font-black text-slate-800 tracking-tight select-all">
+                                  <div className="flex items-center gap-1.5 md:gap-2.5 flex-wrap">
+                                    <span className="text-xs md:text-sm font-black text-slate-800 tracking-tight select-all">
                                       #{order.orderCode}
                                     </span>
-                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                                    <span className={`text-[8px] md:text-[9px] font-black px-1.5 py-0.2 md:px-2 md:py-0.5 rounded-full border uppercase tracking-wider ${
                                       isMomo 
                                         ? 'bg-pink-50 text-pink-600 border-pink-200' 
                                         : 'bg-blue-50 text-blue-600 border-blue-200'
@@ -1690,20 +1689,20 @@ export default function AdminDashboardPage() {
                                       {order.paymentMethod}
                                     </span>
                                     {order.paymentStatus === 'REFUNDED' && (
-                                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 uppercase tracking-wider flex items-center gap-1">
+                                      <span className="text-[8px] md:text-[9px] font-black px-1.5 py-0.2 md:px-2 md:py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 uppercase tracking-wider flex items-center gap-0.5">
                                         <RotateCcw className="w-2.5 h-2.5 animate-spin-reverse" />
                                         Hoàn tiền
                                       </span>
                                     )}
                                   </div>
                                   
-                                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-slate-500 font-bold">
-                                    <span className="flex items-center gap-1">
-                                      <User className="w-3.5 h-3.5 text-slate-400" />
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[10px] md:text-xs text-slate-500 font-bold">
+                                    <span className="flex items-center gap-0.5">
+                                      <User className="w-3 h-3 text-slate-400" />
                                       {order.customerName}
                                     </span>
-                                    <span className="flex items-center gap-1 min-w-0 truncate">
-                                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="flex items-center gap-0.5 min-w-0 truncate">
+                                      <MapPin className="w-3 h-3 text-slate-400" />
                                       {order.from} ➔ {order.to}
                                     </span>
                                   </div>
@@ -1711,23 +1710,23 @@ export default function AdminDashboardPage() {
                               </div>
 
                               {/* Right price & date */}
-                              <div className="text-right flex sm:flex-col items-end justify-between sm:justify-center gap-2 border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0 shrink-0">
-                                <div className="flex items-center gap-2">
+                              <div className="text-right flex sm:flex-col items-end justify-between sm:justify-center gap-1 sm:gap-2 border-t sm:border-t-0 border-slate-100 pt-2.5 sm:pt-0 shrink-0">
+                                <div className="flex items-center gap-1.5">
                                   {order.paymentStatus === 'REFUNDED' ? (
-                                    <span className="text-base font-black text-rose-600 tracking-tight">
+                                    <span className="text-sm md:text-base font-black text-rose-600 tracking-tight">
                                       -{formatCurrency(Math.abs(order.amount))}
                                     </span>
                                   ) : (
-                                    <span className="text-base font-black text-emerald-600 tracking-tight">
+                                    <span className="text-sm md:text-base font-black text-emerald-600 tracking-tight">
                                       +{formatCurrency(order.amount)}
                                     </span>
                                   )}
-                                  <span className="text-[9px] font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                  <span className="text-[8px] md:text-[9px] font-black text-slate-400 bg-slate-100 px-1 md:px-1.5 py-0.2 md:py-0.5 rounded">
                                     {order.tickets || 1} vé
                                   </span>
                                 </div>
-                                <span className="text-[10px] font-extrabold text-slate-400 flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
+                                <span className="text-[9px] md:text-[10px] font-extrabold text-slate-400 flex items-center gap-0.5">
+                                  <Calendar className="w-2.5 h-2.5" />
                                   {formatTime(order.createdAt)}
                                 </span>
                               </div>
@@ -1755,12 +1754,12 @@ export default function AdminDashboardPage() {
                 const filteredTotalSum = filteredOrders.reduce(function (sum: number, o: any) { return sum + o.amount; }, 0);
 
                 return (
-                  <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold text-slate-500 relative z-10 shrink-0">
+                  <div className="px-4 md:px-8 py-3.5 md:py-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] md:text-xs font-bold text-slate-500 relative z-10 shrink-0">
                     <span className="flex items-center gap-1.5">
-                      Hiển thị <strong className="text-slate-800 font-extrabold">{filteredOrders.length}</strong> / {paidOrders.length} giao dịch thanh toán thành công
+                      Hiển thị <strong className="text-slate-800 font-extrabold">{filteredOrders.length}</strong> / {paidOrders.length} giao dịch
                     </span>
-                    <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-2xl shadow-inner-xs">
-                      Tổng doanh số đã lọc: <strong className="text-emerald-800 text-sm font-black">{formatCurrency(filteredTotalSum)}</strong>
+                    <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-xl md:rounded-2xl shadow-inner-xs">
+                      Tổng đã lọc: <strong className="text-emerald-800 text-xs md:text-sm font-black">{formatCurrency(filteredTotalSum)}</strong>
                     </div>
                   </div>
                 );
@@ -1786,28 +1785,28 @@ export default function AdminDashboardPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-md bg-white rounded-2xl md:rounded-[32px] p-6 md:p-8 shadow-2xl overflow-hidden z-10"
             >
               {/* Background Glow */}
               <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-20 ${confirmModal.isTurningOn ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
               
               <div className="flex flex-col items-center text-center">
-                <div className={`w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-xl relative overflow-hidden ${confirmModal.isTurningOn ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/30' : 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/30'}`}>
+                <div className={`w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-[1.5rem] flex items-center justify-center mb-4 md:mb-6 shadow-xl relative overflow-hidden ${confirmModal.isTurningOn ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/30' : 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/30'}`}>
                    {confirmModal.isTurningOn ? (
                      <>
-                        <ShieldAlert size={36} className="text-white relative z-10" />
+                        <ShieldAlert className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10" />
                         <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
                      </>
                    ) : (
-                     <Power size={36} className="text-white relative z-10" />
+                     <Power className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10" />
                    )}
                 </div>
                 
-                <h3 className="text-2xl font-black text-slate-800 mb-2">
+                <h3 className="text-xl md:text-2xl font-black text-slate-800 mb-2">
                   {confirmModal.isTurningOn ? 'CẢNH BÁO ĐÓNG HỆ THỐNG!' : 'MỞ LẠI HỆ THỐNG'}
                 </h3>
                 
-                <p className="text-slate-500 text-[15px] font-medium leading-relaxed mb-8">
+                <p className="text-slate-500 text-xs md:text-[15px] font-medium leading-relaxed mb-6 md:mb-8">
                   {confirmModal.isTurningOn 
                     ? 'Bạn sắp ngắt kết nối toàn bộ website đối với khách hàng. Họ sẽ không thể xem chuyến hay đặt vé. Chắc chắn thực hiện?' 
                     : 'Khách hàng sẽ có thể truy cập, tra cứu và đặt vé xe bình thường trở lại. Bạn đã hoàn tất bảo trì chưa?'}

@@ -500,8 +500,8 @@ export default function DriverPayrollPage() {
           </div>
         </div>
 
-        {/* Bảng Dữ Liệu */}
-        <div className="overflow-x-auto">
+        {/* Bảng Dữ Liệu - Desktop */}
+        <div className="hidden md:block overflow-x-auto">
           {isLoading ? (
             <div className="py-20 flex flex-col items-center justify-center text-center">
               <div className="w-8 h-8 border-4 border-[#EF5222]/20 border-t-[#EF5222] rounded-full animate-spin mb-3" />
@@ -525,7 +525,7 @@ export default function DriverPayrollPage() {
               <p className="text-[10px] text-slate-400 font-medium mt-1">Lương thực lĩnh của các tài xế sẽ chỉ bao gồm Lương cứng cơ bản.</p>
             </div>
           ) : (
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200/60 text-slate-500 text-[10px] font-black uppercase tracking-wider text-left">
                   <th className="py-4 pl-6 pr-3">STT</th>
@@ -598,6 +598,82 @@ export default function DriverPayrollPage() {
             </table>
           )}
         </div>
+
+        {/* Mobile View */}
+        <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/20">
+          {isLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center text-center">
+              <div className="w-6 h-6 border-4 border-[#EF5222]/20 border-t-[#EF5222] rounded-full animate-spin mb-2" />
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đang tính toán bảng lương...</p>
+            </div>
+          ) : errorMsg ? (
+            <div className="py-12 text-center">
+              <ShieldAlert className="text-red-500 mx-auto mb-2" size={24} />
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-tight">{errorMsg}</h3>
+            </div>
+          ) : payrollData && payrollData.payroll.length === 0 ? (
+            <div className="py-12 flex flex-col items-center justify-center text-center">
+              <Calendar size={28} className="text-slate-300 mb-2" />
+              <h3 className="text-xs font-black text-slate-700 uppercase tracking-tight">Không có chuyến chạy nào</h3>
+            </div>
+          ) : (
+            sortedPayroll.map((d: any, idx: number) => (
+              <div key={d.driverId} className="p-4 bg-white hover:bg-slate-50/50 transition-colors space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black text-slate-400">#{idx + 1}</span>
+                    <span className="font-extrabold text-slate-800 text-xs">{d.name}</span>
+                    <span className="text-[8px] bg-slate-100 text-slate-500 px-1 py-0.2 rounded font-black border border-slate-200">{d.driverCode}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleOpenConfigModal(d)}
+                      className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-orange-600 bg-slate-100 rounded-md border border-slate-200 transition-colors cursor-pointer"
+                      title="Sửa định mức"
+                    >
+                      <Settings size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-600">
+                  <div className="flex flex-col bg-slate-50 p-2 rounded-lg border border-slate-100/65">
+                    <span className="text-[8px] text-slate-400 font-extrabold uppercase">Lương cơ bản</span>
+                    <span className="text-slate-800 font-black mt-0.5">{d.baseSalary.toLocaleString('vi-VN')}đ</span>
+                  </div>
+                  <div className="flex flex-col bg-slate-50 p-2 rounded-lg border border-slate-100/65">
+                    <span className="text-[8px] text-slate-400 font-extrabold uppercase">Định mức Km</span>
+                    <span className="text-slate-800 font-black mt-0.5">{d.salaryPerKm.toLocaleString('vi-VN')}đ/Km</span>
+                  </div>
+                  <div className="flex flex-col bg-slate-50 p-2 rounded-lg border border-slate-100/65">
+                    <span className="text-[8px] text-slate-400 font-extrabold uppercase">Tổng Km chạy</span>
+                    <span className="text-blue-600 font-black mt-0.5">{d.totalDistance.toLocaleString('vi-VN')} Km</span>
+                  </div>
+                  <div className="flex flex-col bg-slate-50 p-2 rounded-lg border border-slate-100/65">
+                    <span className="text-[8px] text-slate-400 font-extrabold uppercase">Lương chuyến</span>
+                    <span className="text-slate-800 font-black mt-0.5">{d.distanceSalary.toLocaleString('vi-VN')}đ</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-100/60">
+                  <button 
+                    onClick={() => handleOpenLogsModal(d)}
+                    className="inline-flex items-center gap-1 text-[9px] font-black text-[#EF5222] bg-orange-50 border border-orange-200/50 hover:bg-orange-100 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <span>Xem {d.tripCount} chuyến</span>
+                    <Clock size={10} />
+                  </button>
+
+                  <div className="text-right">
+                    <span className="text-[8px] text-slate-400 font-extrabold uppercase block">Thực lĩnh</span>
+                    <span className="text-emerald-600 font-black text-xs">{d.totalSalary.toLocaleString('vi-VN')}đ</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* 4. MODAL: SỬA ĐỊNH MỨC LƯƠNG TÀI XẾ (SALARY CONFIG MODAL) */}
@@ -609,71 +685,71 @@ export default function DriverPayrollPage() {
               animate={{ scale: 1, opacity: 1, y: 0 }} 
               exit={{ scale: 0.95, opacity: 0, y: 15 }} 
               transition={{ duration: 0.18 }}
-              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-slate-100"
+              className="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-slate-100"
             >
               {/* Header Modal */}
-              <div className="p-6 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-[#EF5222]/20 rounded-full blur-xl pointer-events-none"></div>
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[#EF5222]">
-                    <Settings size={20} />
+              <div className="px-5 py-4 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden">
+                <div className="absolute right-0 top-0 w-24 h-24 bg-[#EF5222]/20 rounded-full blur-xl pointer-events-none"></div>
+                <div className="flex items-center gap-2 relative z-10">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[#EF5222]">
+                    <Settings size={16} />
                   </div>
                   <div>
-                    <h2 className="text-base font-black uppercase tracking-tight">Cấu hình định mức lương</h2>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{activeDriverConfig.name} | {activeDriverConfig.driverCode}</p>
+                    <h2 className="text-xs font-black uppercase tracking-tight">Cấu hình lương</h2>
+                    <p className="text-[9px] text-slate-400 mt-0.5">{activeDriverConfig.name} | {activeDriverConfig.driverCode}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setIsConfigModalOpen(false)} 
-                  className="text-slate-400 hover:text-white transition-colors font-bold text-sm"
+                  className="text-slate-400 hover:text-white transition-colors font-bold text-xs cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Form Body */}
-              <div className="p-6 space-y-4 bg-slate-50/50">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Lương cứng cơ bản (VND/tháng)</label>
+              <div className="p-5 space-y-3.5 bg-slate-50/50">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Lương cứng cơ bản (VND/tháng)</label>
                   <input 
                     type="number"
                     value={configFormData.baseSalary}
                     onChange={(e) => setConfigFormData({ ...configFormData, baseSalary: Number(e.target.value) })}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-[#EF5222] focus:ring-4 focus:ring-orange-50 transition-all text-xs shadow-sm"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 outline-none focus:border-[#EF5222] focus:ring-4 focus:ring-orange-50 transition-all text-xs shadow-sm"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Đơn giá tiền công (VND / mỗi Km chạy)</label>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Đơn giá tiền công (VND / mỗi Km)</label>
                   <input 
                     type="number"
                     value={configFormData.salaryPerKm}
                     onChange={(e) => setConfigFormData({ ...configFormData, salaryPerKm: Number(e.target.value) })}
-                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-[#EF5222] focus:ring-4 focus:ring-orange-50 transition-all text-xs shadow-sm"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-800 outline-none focus:border-[#EF5222] focus:ring-4 focus:ring-orange-50 transition-all text-xs shadow-sm"
                   />
                 </div>
 
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/60 text-[10px] text-amber-700 font-semibold space-y-1">
-                  <p className="font-bold uppercase tracking-wider flex items-center gap-1">⚠️ LƯU Ý QUYẾT TOÁN DOANH THU:</p>
-                  <p>Mọi thay đổi về cấu hình định mức lương sẽ lập tức cập nhật lại toàn bộ bảng lương của tháng này và các tháng tiếp theo.</p>
+                <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200/60 text-[9px] text-amber-700 font-semibold leading-relaxed">
+                  <p className="font-bold uppercase tracking-wider flex items-center gap-1 mb-0.5">⚠️ LƯU Ý QUYẾT TOÁN:</p>
+                  <p>Mọi thay đổi định mức sẽ lập tức cập nhật bảng lương tháng này và các tháng sau.</p>
                 </div>
               </div>
 
               {/* Footer Modal */}
-              <div className="p-5 bg-white border-t border-slate-100 flex gap-3 shrink-0">
+              <div className="p-4 bg-white border-t border-slate-100 flex gap-2 shrink-0">
                 <button 
                   onClick={() => setIsConfigModalOpen(false)}
-                  className="flex-1 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all text-xs text-center cursor-pointer"
+                  className="flex-1 py-2 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all text-xs text-center cursor-pointer"
                 >
                   Đóng
                 </button>
                 <button 
                   onClick={handleSaveConfig}
                   disabled={isConfigSaving}
-                  className="flex-[2] py-3 bg-[#EF5222] text-white rounded-xl font-black shadow-lg shadow-orange-500/20 hover:bg-[#D93814] hover:shadow-orange-500/40 transition-all text-xs text-center cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-[2] py-2 bg-[#EF5222] text-white rounded-lg font-black shadow-md hover:bg-[#D93814] transition-all text-xs text-center cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   {isConfigSaving && <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>}
-                  <span>Lưu định mức mới</span>
+                  <span>Lưu định mức</span>
                 </button>
               </div>
             </motion.div>
@@ -690,78 +766,101 @@ export default function DriverPayrollPage() {
               animate={{ scale: 1, opacity: 1, y: 0 }} 
               exit={{ scale: 0.95, opacity: 0, y: 15 }} 
               transition={{ duration: 0.18 }}
-              className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-slate-100"
+              className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-slate-100"
             >
               {/* Header Modal */}
-              <div className="p-6 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-[#EF5222]/20 rounded-full blur-xl pointer-events-none"></div>
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[#EF5222]">
-                    <Clock size={20} />
+              <div className="px-5 py-4 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden shrink-0">
+                <div className="absolute right-0 top-0 w-24 h-24 bg-[#EF5222]/20 rounded-full blur-xl pointer-events-none"></div>
+                <div className="flex items-center gap-2 relative z-10">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[#EF5222]">
+                    <Clock size={16} />
                   </div>
                   <div>
-                    <h2 className="text-base font-black uppercase tracking-tight">Nhật ký hành trình thực chạy</h2>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{activeDriverLogs.name} | Quyết toán tháng: {selectedMonth}</p>
+                    <h2 className="text-xs font-black uppercase tracking-tight">Nhật ký hành trình</h2>
+                    <p className="text-[9px] text-slate-400 mt-0.5">{activeDriverLogs.name} | Quyết toán: {selectedMonth}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setIsLogsModalOpen(false)} 
-                  className="text-slate-400 hover:text-white transition-colors font-bold text-sm"
+                  className="text-slate-400 hover:text-white transition-colors font-bold text-xs cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Logs Table Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
-                <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-inner max-h-[50vh] overflow-y-auto">
-                  <table className="w-full border-collapse">
+              {/* Logs Body */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50 [scrollbar-gutter:stable] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-inner max-h-[45vh] overflow-y-auto p-1">
+                  {/* Desktop Table View */}
+                  <table className="hidden md:table w-full border-collapse min-w-[500px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-wider text-left sticky top-0">
-                        <th className="py-3 px-4">STT</th>
-                        <th className="py-3 px-3">Tuyến chạy</th>
-                        <th className="py-3 px-3 text-right">Khoảng cách</th>
-                        <th className="py-3 px-3 text-right">Thành tiền</th>
-                        <th className="py-3 px-4 text-center">Giờ xuất phát</th>
+                        <th className="py-2.5 px-4">STT</th>
+                        <th className="py-2.5 px-3">Tuyến chạy</th>
+                        <th className="py-2.5 px-3 text-right">Khoảng cách</th>
+                        <th className="py-2.5 px-3 text-right">Thành tiền</th>
+                        <th className="py-2.5 px-4 text-center">Giờ xuất phát</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs text-slate-600 font-bold">
                       {activeDriverLogs.tripsLog.map((log: any, i: number) => (
                         <tr key={log.assignmentId} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-3.5 px-4 text-slate-400">{i + 1}</td>
-                          <td className="py-3.5 px-3">
+                          <td className="py-3 px-4 text-slate-400">{i + 1}</td>
+                          <td className="py-3 px-3">
                             <span className="text-slate-800">{log.from}</span>
                             <span className="text-slate-400 mx-1">➔</span>
                             <span className="text-slate-800">{log.to}</span>
                           </td>
-                          <td className="py-3.5 px-3 text-right text-blue-600 font-extrabold">{log.distanceKm} Km</td>
-                          <td className="py-3.5 px-3 text-right text-emerald-600 font-extrabold">{log.earnedAmount.toLocaleString('vi-VN')}đ</td>
-                          <td className="py-3.5 px-4 text-center text-[10px] text-slate-400">
+                          <td className="py-3 px-3 text-right text-blue-600 font-extrabold">{log.distanceKm} Km</td>
+                          <td className="py-3 px-3 text-right text-emerald-600 font-extrabold">{log.earnedAmount.toLocaleString('vi-VN')}đ</td>
+                          <td className="py-3 px-4 text-center text-[10px] text-slate-400">
                             {log.departDate ? new Date(log.departDate).toLocaleDateString('vi-VN') : 'Chưa chạy'}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Mobile Simple List View */}
+                  <div className="block md:hidden divide-y divide-slate-100">
+                    {activeDriverLogs.tripsLog.map((log: any, i: number) => (
+                      <div key={log.assignmentId} className="p-3 flex items-center justify-between text-xs font-bold text-slate-700 bg-white">
+                        <div>
+                          <div className="flex items-center gap-1 text-slate-800">
+                            <span>{log.from}</span>
+                            <span className="text-slate-400 text-[10px]">➔</span>
+                            <span>{log.to}</span>
+                          </div>
+                          <div className="text-[9px] text-slate-400 font-medium mt-0.5">
+                            {log.departDate ? new Date(log.departDate).toLocaleDateString('vi-VN') : 'Chưa chạy'}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-blue-600 font-extrabold text-[11px]">{log.distanceKm} Km</div>
+                          <div className="text-emerald-600 font-extrabold text-[11px]">{log.earnedAmount.toLocaleString('vi-VN')}đ</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex flex-col justify-center">
-                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Tổng Km thực chạy</span>
-                    <strong className="text-lg text-blue-600 font-black mt-0.5">{activeDriverLogs.totalDistance.toLocaleString('vi-VN')} Km</strong>
+                <div className="grid grid-cols-2 gap-3 shrink-0">
+                  <div className="bg-white border border-slate-200/80 p-3.5 rounded-xl flex flex-col justify-center shadow-xs">
+                    <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider">Tổng Km thực chạy</span>
+                    <strong className="text-base text-blue-600 font-black mt-0.5">{activeDriverLogs.totalDistance.toLocaleString('vi-VN')} Km</strong>
                   </div>
-                  <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex flex-col justify-center">
-                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Lương chuyến cộng thêm</span>
-                    <strong className="text-lg text-emerald-600 font-black mt-0.5">{activeDriverLogs.distanceSalary.toLocaleString('vi-VN')}đ</strong>
+                  <div className="bg-white border border-slate-200/80 p-3.5 rounded-xl flex flex-col justify-center shadow-xs">
+                    <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider">Lương chuyến cộng thêm</span>
+                    <strong className="text-base text-emerald-600 font-black mt-0.5">{activeDriverLogs.distanceSalary.toLocaleString('vi-VN')}đ</strong>
                   </div>
                 </div>
               </div>
 
               {/* Footer Modal */}
-              <div className="p-5 bg-white border-t border-slate-100 text-center shrink-0">
+              <div className="p-4 bg-white border-t border-slate-100 text-center shrink-0">
                 <button 
                   onClick={() => setIsLogsModalOpen(false)}
-                  className="w-full py-3.5 font-black text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all text-xs text-center cursor-pointer"
+                  className="w-full py-2.5 font-black text-white bg-slate-900 hover:bg-slate-800 rounded-lg text-xs text-center cursor-pointer"
                 >
                   Xác nhận đối soát hoàn tất
                 </button>

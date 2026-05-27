@@ -251,220 +251,100 @@ export default function AdminTripsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {/* Header VIP Ambient Banner */}
-      <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6 mt-1 bg-gradient-to-r from-slate-900 via-orange-950 to-slate-900 border border-orange-500/20">
-        <div className="absolute top-0 right-1/4 w-72 h-72 bg-[#ea580c]/15 rounded-full blur-2xl pointer-events-none animate-pulse"></div>
-        <div className="absolute bottom-0 left-1/3 w-60 h-60 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]"></div>
-        
-        <div className="relative p-6 lg:px-8 lg:py-6 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+
+      {/* ═══ MOBILE ONLY: Header compact + Bộ lọc gọn ═══ */}
+      <div className="md:hidden space-y-3">
+      {/* Header mobile */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-4 flex flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-tr from-[#EF5222] to-[#F59E0B] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20 shrink-0">
+            <Bus className="w-5 h-5" strokeWidth={2.5} />
+          </div>
           <div>
-            <div className="flex items-center gap-3 mb-1.5">
-              <div className="bg-gradient-to-tr from-[#ea580c] to-[#EF5222] p-2.5 rounded-xl shadow-[0_4px_12px_rgba(234,88,12,0.3)] border border-orange-400/30">
-                <Bus className="w-6 h-6 text-white animate-pulse" strokeWidth={2.5} />
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight flex items-center gap-3 flex-wrap">
-                <span>Điều phối Chuyến xe</span>
-                <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent text-[11px] uppercase tracking-widest font-black px-2.5 py-0.5 rounded-full border border-orange-500/30 bg-orange-500/10 shadow-inner">DISPATCH HUD</span>
-              </h1>
-            </div>
-            <p className="text-slate-300 font-medium text-sm max-w-2xl leading-relaxed">
-              Quản lý lộ trình, giám sát phân công tài xế và phương tiện theo thời gian thực.
+            <h1 className="text-base font-black text-slate-800 tracking-tight leading-none">Điều phối Chuyến xe</h1>
+            <p className="text-[10px] font-bold text-slate-400 mt-0.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              {filteredTrips.length} chuyến khả dụng · Giám sát thời gian thực
             </p>
           </div>
         </div>
+
+        {/* Nút thêm chuyến */}
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 bg-gradient-to-r from-[#EF5222] to-[#F59E0B] hover:brightness-105 text-white px-4 py-2.5 rounded-xl text-xs font-black shadow-md shadow-orange-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
+        >
+          <Plus size={15} strokeWidth={3} />
+          Thêm chuyến mới
+        </button>
       </div>
 
-      {/* KHU VỰC BỘ LỌC ĐA NĂNG */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] space-y-6 overflow-visible">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-gradient-to-b from-[#ea580c] to-amber-500 rounded-full"></div>
-            <div>
-              <h2 className="text-lg font-black text-slate-800 uppercase tracking-wide">Bộ Lọc & Tra Cứu Nhanh</h2>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Khả dụng: <strong className="text-[#ea580c] font-black">{filteredTrips.length}</strong> chuyến xe
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* CÁC NÚT CHỌN NGÀY NHANH CỰC KỲ TIỆN LỢI */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1 shadow-inner">
-              {[
-                { label: 'Hôm qua', val: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
-                { label: 'Hôm nay', val: today },
-                { label: 'Ngày mai', val: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-              ].map(item => (
-                <button
-                  key={item.label}
-                  onClick={() => setSelectedDate(item.val)}
-                  className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer ${selectedDate === item.val ? 'bg-white text-[#ea580c] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+      {/* Bộ lọc mobile */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] overflow-visible">
 
-            {/* BỘ LỊCH TÙY BIẾN CAO CẤP (CUSTOM CALENDAR HUD - KHÔNG XÀI TRUYỀN THỐNG) */}
-            <div className="relative" ref={calendarRef}>
-              <button 
-                onClick={() => setIsCustomCalendarOpen(!isCustomCalendarOpen)}
-                className={`flex items-center bg-white border rounded-xl px-4 py-2 text-sm font-black transition-all cursor-pointer shadow-2xs active:scale-95 ${isCustomCalendarOpen ? 'border-[#ea580c] ring-2 ring-orange-50 text-[#ea580c]' : 'border-slate-200 hover:border-orange-400 text-slate-800'}`}
-              >
-                <CalendarIcon size={16} className="text-[#ea580c] mr-2" />
-                <span>{formatDisplayDate(selectedDate)}</span>
-              </button>
-
-              <AnimatePresence>
-                {isCustomCalendarOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                    className="absolute right-0 top-full mt-2 w-72 bg-white/95 backdrop-blur-2xl border border-slate-100 rounded-2xl shadow-2xl p-4 z-50"
-                  >
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <button onClick={prevCalMonth} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer">
-                        <ChevronLeft size={18} strokeWidth={2.5} />
-                      </button>
-                      <span className="font-black text-sm text-slate-800 capitalize tracking-wide">
-                        Tháng {currentCalMonth.getMonth() + 1} / {currentCalMonth.getFullYear()}
-                      </span>
-                      <button onClick={nextCalMonth} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer">
-                        <ChevronRight size={18} strokeWidth={2.5} />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1 text-center font-extrabold text-[11px] text-slate-400 py-2">
-                      {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(d => <span key={d}>{d}</span>)}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1 text-center">
-                      {generateCalendarDays().map((cell, idx) => {
-                        const isSelected = cell.dateStr === selectedDate;
-                        const isToday = cell.dateStr === today;
-                        return (
-                          <button
-                            key={idx}
-                            disabled={!cell.isCurrentMonth}
-                            onClick={() => {
-                              setSelectedDate(cell.dateStr);
-                              setIsCustomCalendarOpen(false);
-                            }}
-                            className={`h-8 w-8 mx-auto flex items-center justify-center rounded-lg text-xs font-black transition-all ${
-                              !cell.isCurrentMonth ? 'text-slate-200 cursor-not-allowed' :
-                              isSelected ? 'bg-gradient-to-r from-[#ea580c] to-amber-500 text-white shadow-md shadow-orange-500/20 scale-105' :
-                              isToday ? 'bg-orange-50 text-[#ea580c] border border-orange-200' :
-                              'text-slate-700 hover:bg-slate-100 cursor-pointer'
-                            }`}
-                          >
-                            {cell.day}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <button 
-              onClick={() => setIsAddModalOpen(true)} 
-              className="bg-gradient-to-r from-[#ea580c] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white p-3 rounded-xl shadow-[0_4px_15px_rgba(234,88,12,0.3)] active:scale-95 transition-all cursor-pointer ml-1"
-              title="Thêm chuyến xe mới"
-            >
-              <Plus size={20} strokeWidth={3} />
-            </button>
-          </div>
-        </div>
-
-        {/* Tìm Kiếm & Lọc */}
-        <div className="flex flex-col lg:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#ea580c] transition-colors">
-              <MapPin size={18} strokeWidth={2.5} />
-            </div>
-            <input 
+        {/* ROW 1: Tìm kiếm địa điểm + Ngày + Thành phố */}
+        <div className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 border-b border-slate-100">
+          {/* Từ */}
+          <div className="relative flex-1 group">
+            <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#EF5222] transition-colors pointer-events-none" />
+            <input
               type="text"
               placeholder="Điểm khởi hành..."
               value={searchFrom}
               onChange={(e) => setSearchFrom(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 shadow-inner transition-all placeholder:text-slate-400"
+              className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-[#EF5222] focus:bg-white focus:ring-2 focus:ring-orange-50 transition-all placeholder:text-slate-400"
             />
           </div>
-          
-          <button 
+
+          {/* Đảo chiều */}
+          <button
             onClick={handleSwapLocation}
-            className="w-10 h-10 shrink-0 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-[#ea580c] hover:border-[#ea580c] hover:bg-orange-50 hover:rotate-180 active:scale-90 transition-all duration-300 z-10 shadow-2xs hover:shadow-md cursor-pointer"
+            className="w-8 h-8 mx-auto sm:mx-0 shrink-0 bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-full flex items-center justify-center text-slate-500 hover:text-[#EF5222] hover:rotate-180 active:scale-90 transition-all duration-300 cursor-pointer"
             title="Đảo chiều tuyến"
           >
-            <ArrowRightLeft size={16} strokeWidth={2.5} />
+            <ArrowRightLeft size={13} strokeWidth={2.5} />
           </button>
 
-          <div className="relative flex-1 w-full group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#ea580c] transition-colors">
-              <Navigation size={18} strokeWidth={2.5} />
-            </div>
-            <input 
+          {/* Đến */}
+          <div className="relative flex-1 group">
+            <Navigation size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#EF5222] transition-colors pointer-events-none" />
+            <input
               type="text"
               placeholder="Điểm đến..."
               value={searchTo}
               onChange={(e) => setSearchTo(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 shadow-inner transition-all placeholder:text-slate-400"
+              className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-[#EF5222] focus:bg-white focus:ring-2 focus:ring-orange-50 transition-all placeholder:text-slate-400"
             />
           </div>
 
-          <div className="relative w-full lg:w-[220px] shrink-0 city-dropdown-container">
-            <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none z-10 ${isDropdownOpen ? 'text-[#ea580c]' : 'text-slate-400'}`}>
-              <Filter size={18} strokeWidth={2.5} />
-            </div>
-            
+          {/* Chọn thành phố */}
+          <div className="relative sm:w-[180px] shrink-0 city-dropdown-container">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-full pl-11 pr-10 py-3 text-left text-sm font-black rounded-xl outline-none border transition-all duration-200 flex items-center justify-between shadow-sm cursor-pointer ${isDropdownOpen ? 'bg-white border-[#ea580c] ring-2 ring-orange-50 text-[#ea580c]' : 'bg-slate-50 border-slate-200 hover:border-orange-400 text-slate-700'}`}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${isDropdownOpen ? 'bg-orange-50 border-[#EF5222] text-[#EF5222]' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-orange-300'}`}
             >
-              <span className="truncate">
-                {filterFromCity === 'ALL' ? 'Tất cả điểm đi' : filterFromCity}
-              </span>
-              <ChevronRight size={16} className={`text-slate-400 transition-transform duration-300 shrink-0 ${isDropdownOpen ? 'rotate-90' : 'rotate-0'}`} />
+              <Filter size={13} className="shrink-0" />
+              <span className="flex-1 truncate text-left">{filterFromCity === 'ALL' ? 'Tất cả điểm đi' : filterFromCity}</span>
+              <ChevronRight size={12} className={`shrink-0 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-90' : ''}`} />
             </button>
-
             <AnimatePresence>
               {isDropdownOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                  transition={{ duration: 0.15, ease: 'easeOut' }}
-                  className="absolute left-0 lg:right-0 top-full mt-2 w-full bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-2xl py-2 z-50 max-h-[300px] overflow-y-auto"
+                  exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                  transition={{ duration: 0.13 }}
+                  className="absolute right-0 top-full mt-1.5 w-full bg-white border border-slate-100 rounded-2xl shadow-xl py-1.5 z-50 max-h-[260px] overflow-y-auto"
                 >
-                  <button
-                    onClick={() => {
-                      setFilterFromCity('ALL');
-                      setIsDropdownOpen(false);
-                    }}
-                    className={`flex items-center justify-between w-full px-5 py-2.5 text-left text-[13.5px] font-black transition-colors cursor-pointer ${filterFromCity === 'ALL' ? 'bg-orange-50 text-[#ea580c]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
-                  >
-                    <span>Tất cả điểm đi</span>
-                    {filterFromCity === 'ALL' && <CheckCircle2 size={16} className="text-[#ea580c]" />}
-                  </button>
-                  
-                  <div className="h-px bg-slate-100 my-1 mx-2"></div>
-
-                  {CITIES.map((city) => (
+                  {[{ val: 'ALL', label: 'Tất cả điểm đi' }, ...CITIES.map(c => ({ val: c, label: c }))].map(({ val, label }) => (
                     <button
-                      key={city}
-                      onClick={() => {
-                        setFilterFromCity(city);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`flex items-center justify-between w-full px-5 py-2.5 text-left text-[13.5px] font-black transition-colors cursor-pointer ${filterFromCity === city ? 'bg-orange-50 text-[#ea580c]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                      key={val}
+                      onClick={() => { setFilterFromCity(val); setIsDropdownOpen(false); }}
+                      className={`flex items-center justify-between w-full px-4 py-2 text-xs font-bold transition-colors cursor-pointer ${filterFromCity === val ? 'text-[#EF5222] bg-orange-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                     >
-                      <span>{city}</span>
-                      {filterFromCity === city && <CheckCircle2 size={16} className="text-[#ea580c]" />}
+                      <span>{label}</span>
+                      {filterFromCity === val && <CheckCircle2 size={13} className="text-[#EF5222]" />}
                     </button>
                   ))}
                 </motion.div>
@@ -473,111 +353,313 @@ export default function AdminTripsPage() {
           </div>
         </div>
 
-        <div className="pt-5 mt-2 border-t border-slate-100 space-y-4 w-full">
-          {/* Dòng 1: Lọc Trạng Thái Vận Hành */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span className="w-[110px] text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-              <Clock size={14} className="text-slate-400" /> Vận hành:
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button 
-                onClick={() => setOperationalFilter('ALL')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${operationalFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow-md scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}
-              >
-                Tất cả chuyến
-              </button>
-              <button 
-                onClick={() => setOperationalFilter('UPCOMING_6H')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${operationalFilter === 'UPCOMING_6H' ? 'bg-orange-50 text-[#ea580c] border-[#ea580c] ring-2 ring-orange-100 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-orange-200 hover:bg-orange-50/50'}`}
-              >
-                Sắp chạy (6h tới)
-              </button>
-              <button 
-                onClick={() => setOperationalFilter('RUNNING')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${operationalFilter === 'RUNNING' ? 'bg-blue-50 text-blue-600 border-blue-500 ring-2 ring-blue-100 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-blue-200 hover:bg-blue-50/50'}`}
-              >
-                Đang trên đường
-              </button>
-              <button 
-                onClick={() => setOperationalFilter('COMPLETED')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${operationalFilter === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-500 ring-2 ring-emerald-100 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/50'}`}
-              >
-                Đã cập bến
-              </button>
-            </div>
-          </div>
-
-          {/* Dòng 2: Lọc Trạng Thái Tài Xế */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span className="w-[110px] text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-              <User size={14} className="text-slate-400" /> Tài xế:
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button 
-                onClick={() => setDriverFilter('ALL')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${driverFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow-md scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}
-              >
-                Tất cả tài xế
-              </button>
-              <button 
-                onClick={() => setDriverFilter('NO_DRIVER')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${driverFilter === 'NO_DRIVER' ? 'bg-rose-50 text-rose-600 border-rose-500 ring-2 ring-rose-100 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-rose-200 hover:bg-rose-50/50'}`}
-              >
-                Chưa có tài xế
-              </button>
-              <button 
-                onClick={() => setDriverFilter('HAS_DRIVER')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${driverFilter === 'HAS_DRIVER' ? 'bg-indigo-50 text-indigo-600 border-indigo-500 ring-2 ring-indigo-100 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/50'}`}
-              >
-                Đã xếp tài xế
-              </button>
-            </div>
-          </div>
-
-          {/* Dòng 3: Lọc Trạng Thái Vé Đặt */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span className="w-[110px] text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-              <Filter size={14} className="text-slate-400" /> Vé đặt:
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button 
-                onClick={() => setBookingFilter('ALL')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${bookingFilter === 'ALL' ? 'bg-slate-800 text-white border-slate-800 shadow-md scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}
-              >
-                Tất cả lượng vé
-              </button>
-              <button 
-                onClick={() => setBookingFilter('HAS_BOOKINGS')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${bookingFilter === 'HAS_BOOKINGS' ? 'bg-amber-50 text-amber-600 border-amber-500 ring-2 ring-amber-100 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-amber-200 hover:bg-amber-50/50'}`}
-              >
-                Đã có khách đặt
-              </button>
-              <button 
-                onClick={() => setBookingFilter('NO_BOOKINGS')}
-                className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${bookingFilter === 'NO_BOOKINGS' ? 'bg-slate-100 text-slate-600 border-slate-400 ring-2 ring-slate-200 shadow-sm scale-105' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}
-              >
-                Chưa có khách
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-slate-100 mt-1 gap-2">
-            <div className="text-xs font-extrabold text-slate-400 flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 text-[#ea580c]" />
-              <span>* Mẹo: Kết hợp các bộ lọc hàng ngang trên để tra cứu chính xác lộ trình Ngài mong muốn.</span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mr-1">Sắp xếp:</span>
+        {/* ROW 2: Ngày + Quick-date pills */}
+        <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-slate-100">
+          {/* Quick pills */}
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg gap-0.5">
+            {[
+              { label: 'Hôm qua', val: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
+              { label: 'Hôm nay', val: today },
+              { label: 'Ngày mai', val: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+            ].map(item => (
               <button
-                onClick={() => setSortBy(prev => prev === 'TIME' ? 'PASSENGERS_DESC' : 'TIME')}
-                className={`flex items-center gap-1.5 px-5 py-2 text-xs font-black rounded-xl border transition-all shadow-2xs hover:shadow-md cursor-pointer active:scale-95 ${sortBy === 'PASSENGERS_DESC' ? 'bg-gradient-to-r from-[#ea580c] to-amber-500 text-white border-orange-500' : 'bg-white text-slate-700 border-slate-200 hover:border-orange-400 hover:bg-orange-50/20'}`}
+                key={item.label}
+                onClick={() => setSelectedDate(item.val)}
+                className={`px-3 py-1.5 text-[11px] font-black rounded-md transition-all cursor-pointer ${selectedDate === item.val ? 'bg-white text-[#EF5222] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
-                {sortBy === 'PASSENGERS_DESC' ? '🔥 Khách đặt nhiều nhất' : '🕒 Giờ chạy (Lộ trình)'}
+                {item.label}
               </button>
-            </div>
+            ))}
+          </div>
+
+          {/* Custom calendar picker */}
+          <div className="relative" ref={calendarRef}>
+            <button
+              onClick={() => setIsCustomCalendarOpen(!isCustomCalendarOpen)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-black transition-all cursor-pointer ${isCustomCalendarOpen ? 'border-[#EF5222] text-[#EF5222] bg-orange-50' : 'border-slate-200 text-slate-700 bg-white hover:border-orange-300'}`}
+            >
+              <CalendarIcon size={13} className="text-[#EF5222]" />
+              {formatDisplayDate(selectedDate)}
+            </button>
+            <AnimatePresence>
+              {isCustomCalendarOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                  transition={{ duration: 0.14 }}
+                  className="absolute left-0 top-full mt-2 w-72 bg-white border border-slate-100 rounded-2xl shadow-2xl p-4 z-50"
+                >
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-2">
+                    <button onClick={prevCalMonth} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer"><ChevronLeft size={16} strokeWidth={2.5} /></button>
+                    <span className="font-black text-xs text-slate-800">Tháng {currentCalMonth.getMonth() + 1} / {currentCalMonth.getFullYear()}</span>
+                    <button onClick={nextCalMonth} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer"><ChevronRight size={16} strokeWidth={2.5} /></button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 text-center font-black text-[9px] text-slate-400 mb-1">
+                    {['CN','T2','T3','T4','T5','T6','T7'].map(d => <span key={d}>{d}</span>)}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 text-center">
+                    {generateCalendarDays().map((cell, idx) => {
+                      const isSelected = cell.dateStr === selectedDate;
+                      const isToday = cell.dateStr === today;
+                      return (
+                        <button
+                          key={idx}
+                          disabled={!cell.isCurrentMonth}
+                          onClick={() => { setSelectedDate(cell.dateStr); setIsCustomCalendarOpen(false); }}
+                          className={`h-8 w-8 mx-auto flex items-center justify-center rounded-lg text-[11px] font-black transition-all ${
+                            !cell.isCurrentMonth ? 'text-slate-200 cursor-not-allowed' :
+                            isSelected ? 'bg-gradient-to-r from-[#EF5222] to-amber-500 text-white shadow-md shadow-orange-500/20 scale-105' :
+                            isToday ? 'bg-orange-50 text-[#EF5222] border border-orange-200' :
+                            'text-slate-700 hover:bg-slate-100 cursor-pointer'
+                          }`}
+                        >{cell.day}</button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Sort toggle */}
+          <button
+            onClick={() => setSortBy(prev => prev === 'TIME' ? 'PASSENGERS_DESC' : 'TIME')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black rounded-lg border transition-all cursor-pointer active:scale-95 ml-auto ${sortBy === 'PASSENGERS_DESC' ? 'bg-gradient-to-r from-[#EF5222] to-amber-500 text-white border-transparent shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:border-orange-300 hover:text-[#EF5222]'}`}
+          >
+            {sortBy === 'PASSENGERS_DESC' ? '🔥 Đông khách nhất' : '🕒 Theo giờ chạy'}
+          </button>
+        </div>
+
+        {/* ROW 3: Chip filters — Vận hành / Tài xế / Vé */}
+        <div className="px-4 py-3 space-y-2.5">
+          {/* Vận hành */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest w-16 shrink-0">Vận hành</span>
+            {[
+              { val: 'ALL',          label: 'Tất cả',        activeClass: 'bg-slate-800 text-white border-slate-800' },
+              { val: 'UPCOMING_6H',  label: '🟡 Sắp chạy',   activeClass: 'bg-orange-50 text-[#EF5222] border-[#EF5222]' },
+              { val: 'RUNNING',      label: '🔵 Đang chạy',  activeClass: 'bg-blue-50 text-blue-600 border-blue-500' },
+              { val: 'COMPLETED',    label: '🟢 Đã cập bến', activeClass: 'bg-emerald-50 text-emerald-600 border-emerald-500' },
+            ].map(({ val, label, activeClass }) => (
+              <button
+                key={val}
+                onClick={() => setOperationalFilter(val as any)}
+                className={`px-3 py-1 text-[11px] font-black rounded-full border transition-all cursor-pointer ${operationalFilter === val ? `${activeClass} shadow-sm` : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'}`}
+              >{label}</button>
+            ))}
+          </div>
+
+          {/* Tài xế */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest w-16 shrink-0">Tài xế</span>
+            {[
+              { val: 'ALL',        label: 'Tất cả',        activeClass: 'bg-slate-800 text-white border-slate-800' },
+              { val: 'NO_DRIVER',  label: '🔴 Chưa xếp',  activeClass: 'bg-rose-50 text-rose-600 border-rose-500' },
+              { val: 'HAS_DRIVER', label: '🟣 Đã xếp',    activeClass: 'bg-indigo-50 text-indigo-600 border-indigo-500' },
+            ].map(({ val, label, activeClass }) => (
+              <button
+                key={val}
+                onClick={() => setDriverFilter(val as any)}
+                className={`px-3 py-1 text-[11px] font-black rounded-full border transition-all cursor-pointer ${driverFilter === val ? `${activeClass} shadow-sm` : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'}`}
+              >{label}</button>
+            ))}
+          </div>
+
+          {/* Vé đặt */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest w-16 shrink-0">Vé đặt</span>
+            {[
+              { val: 'ALL',          label: 'Tất cả',       activeClass: 'bg-slate-800 text-white border-slate-800' },
+              { val: 'HAS_BOOKINGS', label: '🟠 Có khách',  activeClass: 'bg-amber-50 text-amber-600 border-amber-500' },
+              { val: 'NO_BOOKINGS',  label: '⚪ Chưa có',   activeClass: 'bg-slate-100 text-slate-600 border-slate-400' },
+            ].map(({ val, label, activeClass }) => (
+              <button
+                key={val}
+                onClick={() => setBookingFilter(val as any)}
+                className={`px-3 py-1 text-[11px] font-black rounded-full border transition-all cursor-pointer ${bookingFilter === val ? `${activeClass} shadow-sm` : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'}`}
+              >{label}</button>
+            ))}
           </div>
         </div>
       </div>
+      </div>{/* end md:hidden */}
+
+      {/* ═══ DESKTOP ONLY: Header tối + Bộ lọc gốc ═══ */}
+      <div className="hidden md:block space-y-6">
+        {/* Header VIP Ambient Banner */}
+        <div className="relative rounded-2xl overflow-hidden shadow-lg mt-1 bg-gradient-to-r from-slate-900 via-orange-950 to-slate-900 border border-orange-500/20">
+          <div className="absolute top-0 right-1/4 w-72 h-72 bg-[#ea580c]/15 rounded-full blur-2xl pointer-events-none animate-pulse" />
+          <div className="absolute bottom-0 left-1/3 w-60 h-60 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]" />
+          <div className="relative p-6 lg:px-8 lg:py-6 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-1.5">
+                <div className="bg-gradient-to-tr from-[#ea580c] to-[#EF5222] p-2.5 rounded-xl shadow-[0_4px_12px_rgba(234,88,12,0.3)] border border-orange-400/30">
+                  <Bus className="w-6 h-6 text-white animate-pulse" strokeWidth={2.5} />
+                </div>
+                <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight flex items-center gap-3 flex-wrap">
+                  <span>Điều phối Chuyến xe</span>
+                  <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent text-[11px] uppercase tracking-widest font-black px-2.5 py-0.5 rounded-full border border-orange-500/30 bg-orange-500/10 shadow-inner">DISPATCH HUD</span>
+                </h1>
+              </div>
+              <p className="text-slate-300 font-medium text-sm max-w-2xl leading-relaxed">
+                Quản lý lộ trình, giám sát phân công tài xế và phương tiện theo thời gian thực.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bộ lọc gốc desktop */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] space-y-6 overflow-visible">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-gradient-to-b from-[#ea580c] to-amber-500 rounded-full" />
+              <div>
+                <h2 className="text-lg font-black text-slate-800 uppercase tracking-wide">Bộ Lọc &amp; Tra Cứu Nhanh</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Khả dụng: <strong className="text-[#ea580c] font-black">{filteredTrips.length}</strong> chuyến xe</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1 shadow-inner">
+                {[
+                  { label: 'Hôm qua', val: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
+                  { label: 'Hôm nay', val: today },
+                  { label: 'Ngày mai', val: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
+                ].map(item => (
+                  <button key={item.label} onClick={() => setSelectedDate(item.val)}
+                    className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer ${selectedDate === item.val ? 'bg-white text-[#ea580c] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <div className="relative" ref={calendarRef}>
+                <button onClick={() => setIsCustomCalendarOpen(!isCustomCalendarOpen)}
+                  className={`flex items-center bg-white border rounded-xl px-4 py-2 text-sm font-black transition-all cursor-pointer shadow-sm active:scale-95 ${isCustomCalendarOpen ? 'border-[#ea580c] ring-2 ring-orange-50 text-[#ea580c]' : 'border-slate-200 hover:border-orange-400 text-slate-800'}`}>
+                  <CalendarIcon size={16} className="text-[#ea580c] mr-2" />
+                  <span>{formatDisplayDate(selectedDate)}</span>
+                </button>
+                <AnimatePresence>
+                  {isCustomCalendarOpen && (
+                    <motion.div initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.98 }} transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-full mt-2 w-72 bg-white/95 backdrop-blur-2xl border border-slate-100 rounded-2xl shadow-2xl p-4 z-50">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <button onClick={prevCalMonth} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer"><ChevronLeft size={18} strokeWidth={2.5} /></button>
+                        <span className="font-black text-sm text-slate-800">Tháng {currentCalMonth.getMonth() + 1} / {currentCalMonth.getFullYear()}</span>
+                        <button onClick={nextCalMonth} className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 cursor-pointer"><ChevronRight size={18} strokeWidth={2.5} /></button>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-center font-extrabold text-[11px] text-slate-400 py-2">
+                        {['CN','T2','T3','T4','T5','T6','T7'].map(d => <span key={d}>{d}</span>)}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-center">
+                        {generateCalendarDays().map((cell, idx) => {
+                          const isSel = cell.dateStr === selectedDate;
+                          const isTod = cell.dateStr === today;
+                          return (
+                            <button key={idx} disabled={!cell.isCurrentMonth}
+                              onClick={() => { setSelectedDate(cell.dateStr); setIsCustomCalendarOpen(false); }}
+                              className={`h-8 w-8 mx-auto flex items-center justify-center rounded-lg text-xs font-black transition-all ${
+                                !cell.isCurrentMonth ? 'text-slate-200 cursor-not-allowed' :
+                                isSel ? 'bg-gradient-to-r from-[#ea580c] to-amber-500 text-white shadow-md scale-105' :
+                                isTod ? 'bg-orange-50 text-[#ea580c] border border-orange-200' :
+                                'text-slate-700 hover:bg-slate-100 cursor-pointer'
+                              }`}>{cell.day}</button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <button onClick={() => setIsAddModalOpen(true)}
+                className="bg-gradient-to-r from-[#ea580c] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white p-3 rounded-xl shadow-[0_4px_15px_rgba(234,88,12,0.3)] active:scale-95 transition-all cursor-pointer ml-1"
+                title="Thêm chuyến xe mới"><Plus size={20} strokeWidth={3} /></button>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#ea580c] transition-colors"><MapPin size={18} strokeWidth={2.5} /></div>
+              <input type="text" placeholder="Điểm khởi hành..." value={searchFrom} onChange={(e) => setSearchFrom(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 shadow-inner transition-all placeholder:text-slate-400" />
+            </div>
+            <button onClick={handleSwapLocation}
+              className="w-10 h-10 shrink-0 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-[#ea580c] hover:border-[#ea580c] hover:bg-orange-50 hover:rotate-180 active:scale-90 transition-all duration-300 z-10 shadow-sm hover:shadow-md cursor-pointer">
+              <ArrowRightLeft size={16} strokeWidth={2.5} />
+            </button>
+            <div className="relative flex-1 w-full group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#ea580c] transition-colors"><Navigation size={18} strokeWidth={2.5} /></div>
+              <input type="text" placeholder="Điểm đến..." value={searchTo} onChange={(e) => setSearchTo(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 shadow-inner transition-all placeholder:text-slate-400" />
+            </div>
+            <div className="relative w-full lg:w-[220px] shrink-0 city-dropdown-container">
+              <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none z-10 ${isDropdownOpen ? 'text-[#ea580c]' : 'text-slate-400'}`}><Filter size={18} strokeWidth={2.5} /></div>
+              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full pl-11 pr-10 py-3 text-left text-sm font-black rounded-xl outline-none border transition-all duration-200 flex items-center justify-between shadow-sm cursor-pointer ${isDropdownOpen ? 'bg-white border-[#ea580c] ring-2 ring-orange-50 text-[#ea580c]' : 'bg-slate-50 border-slate-200 hover:border-orange-400 text-slate-700'}`}>
+                <span className="truncate">{filterFromCity === 'ALL' ? 'Tất cả điểm đi' : filterFromCity}</span>
+                <ChevronRight size={16} className={`text-slate-400 transition-transform duration-300 shrink-0 ${isDropdownOpen ? 'rotate-90' : 'rotate-0'}`} />
+              </button>
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.98 }} transition={{ duration: 0.15 }}
+                    className="absolute left-0 lg:right-0 top-full mt-2 w-full bg-white/95 backdrop-blur-md border border-slate-100 rounded-2xl shadow-2xl py-2 z-50 max-h-[300px] overflow-y-auto">
+                    {[{ val: 'ALL', label: 'Tất cả điểm đi' }, ...CITIES.map(c => ({ val: c, label: c }))].map(({ val, label }) => (
+                      <button key={val} onClick={() => { setFilterFromCity(val); setIsDropdownOpen(false); }}
+                        className={`flex items-center justify-between w-full px-5 py-2.5 text-left text-[13.5px] font-black transition-colors cursor-pointer ${filterFromCity === val ? 'bg-orange-50 text-[#ea580c]' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+                        <span>{label}</span>
+                        {filterFromCity === val && <CheckCircle2 size={16} className="text-[#ea580c]" />}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <div className="pt-5 mt-2 border-t border-slate-100 space-y-4 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="w-[110px] text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> Vận hành:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {[{val:'ALL',label:'Tất cả chuyến',c:'bg-slate-800 text-white border-slate-800'},{val:'UPCOMING_6H',label:'Sắp chạy (6h tới)',c:'bg-orange-50 text-[#ea580c] border-[#ea580c] ring-2 ring-orange-100'},{val:'RUNNING',label:'Đang trên đường',c:'bg-blue-50 text-blue-600 border-blue-500 ring-2 ring-blue-100'},{val:'COMPLETED',label:'Đã cập bến',c:'bg-emerald-50 text-emerald-600 border-emerald-500 ring-2 ring-emerald-100'}].map(({val,label,c}) => (
+                  <button key={val} onClick={() => setOperationalFilter(val as any)}
+                    className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${operationalFilter === val ? `${c} shadow-sm scale-105` : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>{label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="w-[110px] text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5"><User size={14} className="text-slate-400" /> Tài xế:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {[{val:'ALL',label:'Tất cả tài xế',c:'bg-slate-800 text-white border-slate-800'},{val:'NO_DRIVER',label:'Chưa có tài xế',c:'bg-rose-50 text-rose-600 border-rose-500 ring-2 ring-rose-100'},{val:'HAS_DRIVER',label:'Đã xếp tài xế',c:'bg-indigo-50 text-indigo-600 border-indigo-500 ring-2 ring-indigo-100'}].map(({val,label,c}) => (
+                  <button key={val} onClick={() => setDriverFilter(val as any)}
+                    className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${driverFilter === val ? `${c} shadow-sm scale-105` : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>{label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="w-[110px] text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5"><Filter size={14} className="text-slate-400" /> Vé đặt:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {[{val:'ALL',label:'Tất cả lượng vé',c:'bg-slate-800 text-white border-slate-800'},{val:'HAS_BOOKINGS',label:'Đã có khách đặt',c:'bg-amber-50 text-amber-600 border-amber-500 ring-2 ring-amber-100'},{val:'NO_BOOKINGS',label:'Chưa có khách',c:'bg-slate-100 text-slate-600 border-slate-400 ring-2 ring-slate-200'}].map(({val,label,c}) => (
+                  <button key={val} onClick={() => setBookingFilter(val as any)}
+                    className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${bookingFilter === val ? `${c} shadow-sm scale-105` : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-100'}`}>{label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-slate-100 mt-1 gap-2">
+              <div className="text-xs font-extrabold text-slate-400 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-[#ea580c]" />
+                <span>* Kết hợp các bộ lọc để tra cứu chính xác lộ trình mong muốn.</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mr-1">Sắp xếp:</span>
+                <button onClick={() => setSortBy(prev => prev === 'TIME' ? 'PASSENGERS_DESC' : 'TIME')}
+                  className={`flex items-center gap-1.5 px-5 py-2 text-xs font-black rounded-xl border transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-95 ${sortBy === 'PASSENGERS_DESC' ? 'bg-gradient-to-r from-[#ea580c] to-amber-500 text-white border-orange-500' : 'bg-white text-slate-700 border-slate-200 hover:border-orange-400 hover:bg-orange-50/20'}`}>
+                  {sortBy === 'PASSENGERS_DESC' ? '🔥 Khách đặt nhiều nhất' : '🕒 Giờ chạy (Lộ trình)'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>{/* end hidden md:block */}
 
       {/* DANH SÁCH CHUYẾN XE */}
       <div className="grid grid-cols-1 gap-4 relative">
@@ -604,24 +686,24 @@ export default function AdminTripsPage() {
 
           return (
             <div key={trip.id} className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-orange-500/40 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-lg group flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-6 min-w-[380px]">
-                <div className="text-center w-[70px] bg-slate-50 group-hover:bg-orange-50/60 p-3 rounded-2xl border border-slate-100 group-hover:border-orange-200 transition-colors">
+              <div className="flex items-center gap-4 sm:gap-6 w-full lg:min-w-[380px] lg:w-auto">
+                <div className="text-center w-[70px] bg-slate-50 group-hover:bg-orange-50/60 p-3 rounded-2xl border border-slate-100 group-hover:border-orange-200 transition-colors shrink-0">
                   <p className="text-xl font-black text-slate-800 group-hover:text-[#ea580c] transition-colors">
                     {new Date(trip.departDate).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
                   </p>
                 </div>
                 
-                <div>
-                  <div className="flex items-center gap-2 font-black text-slate-800 text-base tracking-tight">
-                    <span className="hover:text-[#ea580c] transition-colors">{trip.from}</span>
-                    <ChevronRight size={16} className="text-[#ea580c]" />
-                    <span className="hover:text-[#ea580c] transition-colors">{trip.to}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 font-black text-slate-800 text-base tracking-tight flex-wrap">
+                    <span className="hover:text-[#ea580c] transition-colors truncate">{trip.from}</span>
+                    <ChevronRight size={16} className="text-[#ea580c] shrink-0" />
+                    <span className="hover:text-[#ea580c] transition-colors truncate">{trip.to}</span>
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shadow-2xs">
                       {trip.busType}
                     </span>
-                    <span className="text-xs font-bold text-slate-500">
+                    <span className="text-xs font-bold text-slate-500 truncate">
                       {trip.pickupPoint}
                     </span>
                   </div>
@@ -639,46 +721,48 @@ export default function AdminTripsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center justify-center min-w-[140px] px-4 py-2 bg-slate-50/80 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Tình trạng vé</p>
-                <div className="flex items-center gap-3 w-full">
-                  <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+              <div className="flex flex-row sm:flex-col items-center justify-between sm:justify-center w-full lg:min-w-[140px] lg:w-auto px-4 py-3 sm:py-2 bg-slate-50/80 rounded-2xl border border-slate-100 gap-3">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider sm:mb-1.5 shrink-0">Tình trạng vé</p>
+                <div className="flex items-center gap-3 w-full sm:w-auto flex-1 justify-end sm:justify-start">
+                  <div className="flex-1 sm:w-20 h-2 bg-slate-200 rounded-full overflow-hidden shadow-inner">
                     <div className="h-full bg-gradient-to-r from-[#ea580c] to-amber-500 transition-all duration-500" style={{ width: `${fillPercentage}%` }} />
                   </div>
-                  <span className="text-xs font-black text-slate-800">{bookedSeats}/{totalSeats}</span>
+                  <span className="text-xs font-black text-slate-800 shrink-0">{bookedSeats}/{totalSeats}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 min-w-[200px] justify-end">
-                 <div className="text-right mr-2">
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full lg:min-w-[200px] lg:w-auto pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                 <div className="text-left sm:text-right mr-2">
                     <p className="text-xl font-black text-[#ea580c] tracking-tight">{new Intl.NumberFormat('vi-VN').format(trip.price)}đ</p>
                     <p className={`text-[10px] font-black mt-0.5 uppercase tracking-widest ${trip.status === 'PUBLISHED' ? 'text-emerald-500' : 'text-blue-600'}`}>
                       ● {trip.status}
                     </p>
                  </div>
                  
-                 {canDelete && (
-                   <button 
-                     onClick={() => handleDeleteTrip(trip.id)}
-                     className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-2xs hover:shadow-md cursor-pointer active:scale-95"
-                     title="Xóa chuyến xe"
-                   >
-                     <Trash2 size={18} strokeWidth={2.5} />
-                   </button>
-                 )}
+                 <div className="flex items-center gap-2">
+                   {canDelete && (
+                     <button 
+                       onClick={() => handleDeleteTrip(trip.id)}
+                       className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-2xs hover:shadow-md cursor-pointer active:scale-95 shrink-0"
+                       title="Xóa chuyến xe"
+                     >
+                       <Trash2 size={18} strokeWidth={2.5} />
+                     </button>
+                   )}
 
-                 <button 
-                   onClick={() => router.push(`/admin/trips/${trip.id}`)} 
-                   disabled={trip.status === 'COMPLETED'} 
-                   className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs hover:shadow-md ${
-                     trip.status === 'RUNNING' 
-                     ? 'bg-blue-50 text-blue-500 border-blue-200 hover:bg-blue-600 hover:text-white' 
-                     : 'bg-white text-slate-600 border-slate-200 hover:bg-gradient-to-r hover:from-[#ea580c] hover:to-amber-500 hover:text-white hover:border-transparent'
-                   }`}
-                   title="Quản lý chi tiết / Xếp tài xế"
-                 >
-                   <ChevronRight size={20} strokeWidth={3} />
-                 </button>
+                   <button 
+                     onClick={() => router.push(`/admin/trips/${trip.id}`)} 
+                     disabled={trip.status === 'COMPLETED'} 
+                     className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs hover:shadow-md shrink-0 ${
+                       trip.status === 'RUNNING' 
+                       ? 'bg-blue-50 text-blue-500 border-blue-200 hover:bg-blue-600 hover:text-white' 
+                       : 'bg-white text-slate-600 border-slate-200 hover:bg-gradient-to-r hover:from-[#ea580c] hover:to-amber-500 hover:text-white hover:border-transparent'
+                     }`}
+                     title="Quản lý chi tiết / Xếp tài xế"
+                   >
+                     <ChevronRight size={20} strokeWidth={3} />
+                   </button>
+                 </div>
               </div>
             </div>
           );

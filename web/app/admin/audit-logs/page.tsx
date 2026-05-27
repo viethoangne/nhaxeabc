@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { 
-  ShieldAlert, User, Database, Activity, 
+  ShieldAlert, User, Database, Activity, Clock,
   Search, Filter, ChevronDown, Check, Mail, Loader2, FileText
 } from 'lucide-react';
 
@@ -179,27 +179,27 @@ export default function AuditLogsPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] overflow-visible">
-        <div className="p-5 border-b border-slate-100 bg-slate-50/80 flex gap-4 items-center justify-between flex-wrap">
+        <div className="p-3.5 sm:p-5 border-b border-slate-100 bg-slate-50/80 flex gap-3 items-center justify-between flex-wrap">
           <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 max-w-2xl w-full">
             {/* CUSTOM DROPDOWN BỘ LỌC */}
             <div className="relative w-full sm:w-64 shrink-0" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`w-full flex items-center justify-between pl-4 pr-3 py-3 border rounded-xl text-sm font-bold transition-all focus:outline-none bg-white shadow-inner cursor-pointer
-                  ${isFilterOpen ? 'border-[#ea580c] ring-4 ring-orange-50' : 'border-slate-200 hover:border-[#ea580c]/50'}
+                className={`w-full flex items-center justify-between pl-3 pr-2 py-2 border rounded-lg text-xs font-bold transition-all focus:outline-none bg-white shadow-inner cursor-pointer
+                  ${isFilterOpen ? 'border-[#ea580c] ring-2 ring-orange-50' : 'border-slate-200 hover:border-[#ea580c]/50'}
                 `}
               >
-                <div className="flex items-center gap-2.5 truncate">
-                  <Filter className={`w-4 h-4 transition-colors ${isFilterOpen || filterAction !== 'ALL' ? 'text-[#ea580c]' : 'text-slate-400'}`} />
+                <div className="flex items-center gap-2 truncate">
+                  <Filter className={`w-3.5 h-3.5 transition-colors ${isFilterOpen || filterAction !== 'ALL' ? 'text-[#ea580c]' : 'text-slate-400'}`} />
                   <span className={`truncate ${filterAction !== 'ALL' ? 'text-slate-800' : 'text-slate-500'}`}>
                     {actionOptions.find(opt => opt.value === filterAction)?.label || 'Chọn bộ lọc'}
                   </span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 ease-in-out ${isFilterOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-300 ease-in-out ${isFilterOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isFilterOpen && (
-                <div className="absolute z-50 mt-2 w-full bg-white border border-slate-100 rounded-[14px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-1.5 animate-in fade-in zoom-in-95 duration-200 origin-top">
+                <div className="absolute z-50 mt-1 w-full bg-white border border-slate-100 rounded-lg shadow-lg py-1 animate-in fade-in zoom-in-95 duration-200 origin-top">
                   {actionOptions.map((option) => (
                     <button
                       key={option.value}
@@ -207,11 +207,11 @@ export default function AuditLogsPage() {
                         setFilterAction(option.value);
                         setIsFilterOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors hover:bg-slate-50 group cursor-pointer
+                      className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs transition-colors hover:bg-slate-50 group cursor-pointer
                         ${filterAction === option.value ? 'bg-orange-50/50' : ''}
                       `}
                     >
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${option.dotColor} ${filterAction === option.value ? 'ring-2 ring-offset-1 ring-orange-200' : ''}`} />
                         <span className={`font-semibold transition-colors
                           ${filterAction === option.value ? 'text-[#ea580c]' : 'text-slate-600 group-hover:text-slate-900'}
@@ -219,7 +219,7 @@ export default function AuditLogsPage() {
                           {option.label}
                         </span>
                       </div>
-                      {filterAction === option.value && <Check className="w-4 h-4 text-[#ea580c] animate-in zoom-in" />}
+                      {filterAction === option.value && <Check className="w-3.5 h-3.5 text-[#ea580c] animate-in zoom-in" />}
                     </button>
                   ))}
                 </div>
@@ -228,148 +228,238 @@ export default function AuditLogsPage() {
 
             {/* Ô Tìm Kiếm Text */}
             <div className="relative flex-1 w-full sm:w-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <input 
                 type="text" 
                 placeholder="Tìm theo ID, nhân viên..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 outline-none transition-all shadow-inner" 
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 outline-none transition-all shadow-inner" 
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleExportCsv}
-              className="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 rounded-xl font-black text-xs border border-emerald-200/50 transition-all cursor-pointer active:scale-95 shadow-2xs hover:shadow-md"
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 rounded-lg font-extrabold text-[11px] border border-emerald-200/50 transition-all cursor-pointer active:scale-95 shadow-3xs hover:shadow-sm"
               title="Xuất danh sách nhật ký hiển thị ra file CSV / Excel"
             >
-              <FileText className="w-4 h-4 text-emerald-600" />
-              <span>📥 Xuất Nhật Ký (CSV)</span>
+              <FileText className="w-3.5 h-3.5 text-emerald-600" />
+              <span>📥 Xuất Nhật Ký</span>
             </button>
 
-            <div className="text-xs font-black text-slate-400 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs">
+            <div className="text-[11px] font-extrabold text-slate-400 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-3xs">
               Hiển thị: <span className="text-[#ea580c]">{filteredLogs.length}</span> log
             </div>
           </div>
         </div>
 
-        {/* BẢNG DỮ LIỆU */}
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-100">
-              <th className="p-5 w-48">Thời gian</th>
-              <th className="p-5">Người thao tác</th>
-              <th className="p-5">Hành động</th>
-              <th className="p-5">Đối tượng (ID)</th>
-              <th className="p-5 text-right">Chi tiết</th>
-            </tr>
-          </thead>
-        
-          <tbody className="text-sm divide-y divide-slate-100">
-            {isLoading ? (
-              <tr>
-                <td colSpan={5} className="p-12 text-center text-slate-400 font-extrabold">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#ea580c] mb-3" />
-                  Đang tải nhật ký hệ thống...
-                </td>
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+              <tr className="bg-slate-50/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                <th className="p-5 w-48">Thời gian</th>
+                <th className="p-5">Người thao tác</th>
+                <th className="p-5">Hành động</th>
+                <th className="p-5">Đối tượng (ID)</th>
+                <th className="p-5 text-right">Chi tiết</th>
               </tr>
-            ) : filteredLogs.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-12 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 mb-3">
-                    <Filter className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <h3 className="text-sm font-black text-slate-700">Không tìm thấy dữ liệu nhật ký</h3>
-                  <p className="text-xs text-slate-500 mt-1">Vui lòng thử bộ lọc hoặc từ khóa khác.</p>
-                </td>
-              </tr>
-            ) : (
-              filteredLogs.map(log => {
-                const isSystem = log.adminId === 'SYSTEM' || !log.admin; 
-                
-                return (
-                  <React.Fragment key={log.id}>
-                    <tr className={`transition-all duration-300 group hover:-translate-y-0.5 ${isSystem ? 'bg-indigo-50/20 hover:bg-indigo-50/50' : 'hover:bg-orange-50/60'}`}>
-                      <td className="p-5">
-                        <div className="text-xs font-black text-slate-500 group-hover:text-[#ea580c] transition-colors">
-                          {formatTime(log.createdAt)}
-                        </div>
-                      </td>
-                      <td className="p-5">
-                        <div className="flex items-center gap-3">
-                          {isSystem ? (
-                            <>
-                              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 text-white font-black flex items-center justify-center shrink-0 shadow-[0_4px_10px_rgba(168,85,247,0.3)] border border-purple-400/20">
-                                <Activity className="w-5 h-5 animate-pulse" />
-                              </div>
-                              <div>
-                                <div className="font-black text-purple-700 text-base tracking-tight">HỆ THỐNG (BOT)</div>
-                                <div className="text-[11px] font-bold text-slate-400">Tự động hóa AI</div>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-black flex items-center justify-center shrink-0 shadow-[0_4px_10px_rgba(234,88,12,0.3)] border border-orange-400/20">
-                                <User className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <div className="font-black text-slate-800 text-base tracking-tight group-hover:text-[#ea580c] transition-colors">{log.admin?.name || 'Nhân sự Ẩn danh'}</div>
-                                <div className="text-[11px] font-bold text-slate-400 italic">Quản trị vận hành</div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-5">
-                        <ActionBadge action={log.action} />
-                      </td>
-                      <td className="p-5">
-                        <div className="flex flex-col gap-1.5 max-w-md">
-                           <div className="font-black text-slate-700 text-xs flex items-center gap-2">
-                              <Database className="w-3.5 h-3.5 text-[#ea580c]" /> 
-                              <span>{log.entityType}</span>
-                              <span className="text-slate-300">|</span> 
-                              <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono text-[11px]">#{log.entityId}</span>
-                           </div>
-                           {log.details?.reason && (
-                             <p className="text-xs text-slate-500 font-medium italic bg-slate-50/80 p-2 rounded-xl border border-slate-100 leading-relaxed">
-                               💡 {log.details.reason}
-                             </p>
-                           )}
-                        </div>
-                      </td>
-                      <td className="p-5 text-right">
-                        <button 
-                          onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
-                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-[#ea580c] bg-orange-50 hover:bg-gradient-to-r hover:from-[#ea580c] hover:to-amber-500 hover:text-white transition-all duration-300 border border-orange-200/60 hover:border-transparent shadow-2xs hover:shadow-md cursor-pointer active:scale-95"
-                        >
-                          {expandedLog === log.id ? 'Đóng' : 'Chi tiết'}
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* Hiển thị JSON chi tiết */}
-                    {expandedLog === log.id && (
-                      <tr className="bg-slate-900 text-emerald-400 animate-in fade-in duration-300">
-                        <td colSpan={5} className="p-6 border-t-0 shadow-inner">
-                          <div className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            Payload / Cấu trúc dữ liệu ghi nhận
+            </thead>
+          
+            <tbody className="text-sm divide-y divide-slate-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center text-slate-400 font-extrabold">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#ea580c] mb-3" />
+                    Đang tải nhật ký hệ thống...
+                  </td>
+                </tr>
+              ) : filteredLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 mb-3">
+                      <Filter className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <h3 className="text-sm font-black text-slate-700">Không tìm thấy dữ liệu nhật ký</h3>
+                    <p className="text-xs text-slate-500 mt-1">Vui lòng thử bộ lọc hoặc từ khóa khác.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredLogs.map(log => {
+                  const isSystem = log.adminId === 'SYSTEM' || !log.admin; 
+                  
+                  return (
+                    <React.Fragment key={log.id}>
+                      <tr className={`transition-all duration-300 group hover:-translate-y-0.5 ${isSystem ? 'bg-indigo-50/20 hover:bg-indigo-50/50' : 'hover:bg-orange-50/60'}`}>
+                        <td className="p-5">
+                          <div className="text-xs font-black text-slate-500 group-hover:text-[#ea580c] transition-colors">
+                            {formatTime(log.createdAt)}
                           </div>
-                          <pre className="text-xs font-mono whitespace-pre-wrap break-all bg-black/50 p-5 rounded-2xl border border-slate-800 max-h-72 overflow-y-auto leading-relaxed shadow-2xl">
-                            {JSON.stringify(log.details || log, null, 2)}
-                          </pre>
+                        </td>
+                        <td className="p-5">
+                          <div className="flex items-center gap-3">
+                            {isSystem ? (
+                              <>
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 text-white font-black flex items-center justify-center shrink-0 shadow-[0_4px_10px_rgba(168,85,247,0.3)] border border-purple-400/20">
+                                  <Activity className="w-5 h-5 animate-pulse" />
+                                </div>
+                                <div>
+                                  <div className="font-black text-purple-700 text-base tracking-tight">HỆ THỐNG (BOT)</div>
+                                  <div className="text-[11px] font-bold text-slate-400">Tự động hóa AI</div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-black flex items-center justify-center shrink-0 shadow-[0_4px_10px_rgba(234,88,12,0.3)] border border-orange-400/20">
+                                  <User className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <div className="font-black text-slate-800 text-base tracking-tight group-hover:text-[#ea580c] transition-colors">{log.admin?.name || 'Nhân sự Ẩn danh'}</div>
+                                  <div className="text-[11px] font-bold text-slate-400 italic">Quản trị vận hành</div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-5">
+                          <ActionBadge action={log.action} />
+                        </td>
+                        <td className="p-5">
+                          <div className="flex flex-col gap-1.5 max-w-md">
+                             <div className="font-black text-slate-700 text-xs flex items-center gap-2">
+                                <Database className="w-3.5 h-3.5 text-[#ea580c]" /> 
+                                <span>{log.entityType}</span>
+                                <span className="text-slate-300">|</span> 
+                                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono text-[11px]">#{log.entityId}</span>
+                             </div>
+                             {log.details?.reason && (
+                               <p className="text-xs text-slate-500 font-medium italic bg-slate-50/80 p-2 rounded-xl border border-slate-100/80 leading-relaxed">
+                                 💡 {log.details.reason}
+                               </p>
+                             )}
+                          </div>
+                        </td>
+                        <td className="p-5 text-right">
+                          <button 
+                            onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
+                            className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-[#ea580c] bg-orange-50 hover:bg-gradient-to-r hover:from-[#ea580c] hover:to-amber-500 hover:text-white transition-all duration-300 border border-orange-200/60 hover:border-transparent shadow-2xs hover:shadow-md cursor-pointer active:scale-95"
+                          >
+                            {expandedLog === log.id ? 'Đóng' : 'Chi tiết'}
+                          </button>
                         </td>
                       </tr>
+
+                      {/* Hiển thị JSON chi tiết */}
+                      {expandedLog === log.id && (
+                        <tr className="bg-slate-900 text-emerald-400 animate-in fade-in duration-300">
+                          <td colSpan={5} className="p-6 border-t-0 shadow-inner">
+                            <div className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                              Payload / Cấu trúc dữ liệu ghi nhận
+                            </div>
+                            <pre className="text-xs font-mono whitespace-pre-wrap break-all bg-black/50 p-5 rounded-2xl border border-slate-800 max-h-72 overflow-y-auto leading-relaxed shadow-2xl">
+                              {JSON.stringify(log.details || log, null, 2)}
+                            </pre>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/20">
+          {isLoading ? (
+            <div className="p-8 text-center text-slate-400 font-extrabold">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#ea580c] mb-2" />
+              Đang tải nhật ký hệ thống...
+            </div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 font-bold">
+              Không tìm thấy dữ liệu nhật ký.
+            </div>
+          ) : (
+            filteredLogs.map(log => {
+              const isSystem = log.adminId === 'SYSTEM' || !log.admin;
+              return (
+                <div key={log.id} className="p-4 bg-white hover:bg-slate-50/50 transition-colors space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      {isSystem ? (
+                        <>
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-500 text-white font-black flex items-center justify-center shrink-0 shadow-sm border border-purple-400/20">
+                            <Activity className="w-4 h-4 animate-pulse" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-purple-700 text-xs">HỆ THỐNG</div>
+                            <div className="text-[10px] font-bold text-slate-400">Tự động hóa AI</div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-black flex items-center justify-center shrink-0 shadow-sm border border-orange-400/20">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-slate-800 text-xs">{log.admin?.name || 'Nhân sự'}</div>
+                            <div className="text-[10px] font-bold text-slate-400">Quản trị viên</div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <ActionBadge action={log.action} />
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-[11px] font-bold text-slate-600 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100/60">
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <Clock className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+                      <span>{formatTime(log.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-700">
+                      <Database className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+                      <span>{log.entityType}</span>
+                      <span className="text-slate-300">|</span>
+                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-mono text-[10px]">#{log.entityId}</span>
+                    </div>
+                    {log.details?.reason && (
+                      <p className="text-[10px] text-slate-500 font-medium italic bg-white p-2 rounded-lg border border-slate-100 leading-normal">
+                        💡 {log.details.reason}
+                      </p>
                     )}
-                  </React.Fragment>
-                )
-              })
-            )}
-          </tbody>
-        </table>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-1">
+                    <div></div>
+                    <button 
+                      onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-[#ea580c] bg-orange-50 hover:bg-gradient-to-r hover:from-[#ea580c] hover:to-amber-500 hover:text-white transition-all border border-orange-200/50 hover:border-transparent cursor-pointer active:scale-95"
+                    >
+                      {expandedLog === log.id ? 'Đóng chi tiết' : 'Xem Chi tiết'}
+                    </button>
+                  </div>
+
+                  {expandedLog === log.id && (
+                    <div className="bg-slate-900 text-emerald-400 p-4 rounded-xl border border-slate-800 space-y-2 mt-2 animate-in fade-in duration-200">
+                      <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        Payload dữ liệu
+                      </div>
+                      <pre className="text-[10px] font-mono whitespace-pre-wrap break-all bg-black/50 p-3 rounded-lg border border-slate-800/80 max-h-48 overflow-y-auto leading-relaxed shadow-inner">
+                        {JSON.stringify(log.details || log, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

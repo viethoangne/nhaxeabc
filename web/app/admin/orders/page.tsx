@@ -387,26 +387,26 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] relative mb-6 z-20">
-        <div className="p-5 md:p-6 relative z-10 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] relative mb-4 z-20">
+        <div className="p-4 md:p-5 relative z-10 space-y-3.5">
           
           {/* Hàng 1: Tìm kiếm rộng rãi & Bộ Tabs Trạng thái chuyến đi */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div className="w-full lg:max-w-md relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="text-slate-400 group-focus-within:text-[#EF5222] transition-colors duration-300" size={18} />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="text-slate-400 group-focus-within:text-[#EF5222] transition-colors duration-300" size={14} />
               </div>
               <input
                 type="text"
                 placeholder="Nhập mã đơn, sđt, tên..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl text-[13px] font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-orange-50 transition-all duration-300 hover:border-orange-200 placeholder:font-medium"
+                className="w-full pl-9 pr-3 py-2 bg-slate-50/70 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-[#EF5222] focus:ring-4 focus:ring-orange-50 transition-all duration-300 hover:border-orange-200 placeholder:font-medium"
               />
             </div>
 
             {/* TABS TRẠNG THÁI */}
-            <div className="flex bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto hide-scrollbar w-full lg:w-auto">
+            <div className="flex bg-slate-50/80 p-1 rounded-lg border border-slate-200 overflow-x-auto hide-scrollbar w-full lg:w-auto">
               {[
                 { id: 'ALL', label: 'Tất cả', icon: ListFilter, color: 'text-slate-500' },
                 { id: 'UPCOMING', label: 'Sắp đi', icon: Calendar, color: 'text-blue-500' },
@@ -422,12 +422,12 @@ export default function AdminOrdersPage() {
                     key={st.id}
                     type="button"
                     onClick={() => setActiveStatus(st.id)}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] font-bold rounded-xl transition-all duration-300 whitespace-nowrap flex-1 lg:flex-none ${isActive
-                        ? 'bg-white text-[#EF5222] shadow-[0_2px_10px_rgb(0,0,0,0.06)] border border-slate-100 scale-[1.02]'
+                    className={`flex items-center justify-center gap-1 px-2.5 py-1.5 text-[11px] font-bold rounded-lg transition-all duration-300 whitespace-nowrap flex-1 lg:flex-none cursor-pointer ${isActive
+                        ? 'bg-white text-[#EF5222] shadow-[0_2px_10px_rgb(0,0,0,0.06)] border border-slate-100 scale-[1.01]'
                         : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 border border-transparent'
                       }`}
                   >
-                    <Icon size={14} className={isActive ? 'text-[#EF5222]' : st.color} strokeWidth={isActive ? 3 : 2} />
+                    <Icon size={12} className={isActive ? 'text-[#EF5222]' : st.color} strokeWidth={isActive ? 3 : 2} />
                     {st.label}
                   </button>
                 );
@@ -439,26 +439,26 @@ export default function AdminOrdersPage() {
           <div className="h-px bg-slate-100"></div>
 
           {/* Hàng 2: Bộ ba Dropdown Lọc nâng cao */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             
             {/* DROPDOWN LỌC THỜI GIAN */}
-            <div className="relative group w-full sm:w-[180px] shrink-0" ref={dateFilterRef}>
+            <div className="relative group w-full sm:w-[150px] shrink-0" ref={dateFilterRef}>
               <button
                 type="button"
                 onClick={() => setIsDateFilterOpen(!isDateFilterOpen)}
-                className={`w-full flex items-center justify-between pl-11 pr-4 py-3.5 bg-slate-50/70 border rounded-2xl text-[13px] font-bold outline-none transition-all duration-300 ${isDateFilterOpen ? 'bg-white border-[#EF5222] ring-4 ring-orange-50 text-[#EF5222]' : 'border-slate-200 text-slate-700 hover:border-orange-200'
+                className={`w-full flex items-center justify-between pl-8 pr-3 py-2 bg-slate-50/70 border rounded-lg text-xs font-bold outline-none transition-all duration-300 cursor-pointer ${isDateFilterOpen ? 'bg-white border-[#EF5222] ring-4 ring-orange-50 text-[#EF5222]' : 'border-slate-200 text-slate-700 hover:border-orange-200'
                   }`}
               >
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <CalendarDays className={`transition-colors duration-300 ${isDateFilterOpen ? 'text-[#EF5222]' : 'text-slate-400 group-hover:text-[#EF5222]'}`} size={16} />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <CalendarDays className={`transition-colors duration-300 ${isDateFilterOpen ? 'text-[#EF5222]' : 'text-slate-400 group-hover:text-[#EF5222]'}`} size={14} />
                 </div>
                 <span>{dateFilterOptions.find(opt => opt.value === activeDateFilter)?.label}</span>
-                <ChevronRight className={`text-slate-400 transition-transform duration-300 ${isDateFilterOpen ? '-rotate-90' : 'rotate-90'}`} size={16} />
+                <ChevronRight className={`text-slate-400 transition-transform duration-300 ${isDateFilterOpen ? '-rotate-90' : 'rotate-90'}`} size={12} />
               </button>
 
-              <div className={`absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.08)] overflow-hidden transition-all duration-200 origin-top ${isDateFilterOpen ? 'opacity-100 scale-y-100 translate-y-0' : 'opacity-0 scale-y-95 -translate-y-2 pointer-events-none'
+              <div className={`absolute z-50 w-full mt-1.5 bg-white rounded-xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.08)] overflow-hidden transition-all duration-200 origin-top ${isDateFilterOpen ? 'opacity-100 scale-y-100 translate-y-0' : 'opacity-0 scale-y-95 -translate-y-2 pointer-events-none'
                 }`}>
-                <div className="p-1.5 flex flex-col gap-0.5 max-h-[250px] overflow-y-auto custom-scrollbar">
+                <div className="p-1 flex flex-col gap-0.5 max-h-[220px] overflow-y-auto custom-scrollbar">
                   {dateFilterOptions.map(opt => (
                     <button
                       key={opt.value}
@@ -467,13 +467,13 @@ export default function AdminOrdersPage() {
                         setActiveDateFilter(opt.value);
                         setIsDateFilterOpen(false);
                       }}
-                      className={`flex items-center justify-between w-full px-3 py-3 text-[13px] font-bold rounded-xl transition-all ${activeDateFilter === opt.value
+                      className={`flex items-center justify-between w-full px-2.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeDateFilter === opt.value
                           ? 'bg-orange-50 text-[#EF5222]'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                     >
                       {opt.label}
-                      {activeDateFilter === opt.value && <CheckCircle2 size={16} className="text-[#EF5222]" />}
+                      {activeDateFilter === opt.value && <CheckCircle2 size={14} className="text-[#EF5222]" />}
                     </button>
                   ))}
                 </div>
@@ -481,23 +481,23 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* BỘ LỌC LOẠI VÉ */}
-            <div className="relative group w-full sm:w-[180px] shrink-0" ref={tripTypeRef}>
+            <div className="relative group w-full sm:w-[150px] shrink-0" ref={tripTypeRef}>
               <button
                 type="button"
                 onClick={() => setIsTripTypeOpen(!isTripTypeOpen)}
-                className={`w-full flex items-center justify-between pl-11 pr-4 py-3.5 bg-slate-50/70 border rounded-2xl text-[13px] font-bold outline-none transition-all duration-300 ${isTripTypeOpen ? 'bg-white border-[#EF5222] ring-4 ring-orange-50 text-[#EF5222]' : 'border-slate-200 text-slate-700 hover:border-orange-200'
+                className={`w-full flex items-center justify-between pl-8 pr-3 py-2 bg-slate-50/70 border rounded-lg text-xs font-bold outline-none transition-all duration-300 cursor-pointer ${isTripTypeOpen ? 'bg-white border-[#EF5222] ring-4 ring-orange-50 text-[#EF5222]' : 'border-slate-200 text-slate-700 hover:border-orange-200'
                   }`}
               >
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <ArrowRightLeft className={`transition-colors duration-300 ${isTripTypeOpen ? 'text-[#EF5222]' : 'text-slate-400 group-hover:text-[#EF5222]'}`} size={16} />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <ArrowRightLeft className={`transition-colors duration-300 ${isTripTypeOpen ? 'text-[#EF5222]' : 'text-slate-400 group-hover:text-[#EF5222]'}`} size={14} />
                 </div>
                 <span>{tripTypeOptions.find(opt => opt.value === activeTripType)?.label}</span>
-                <ChevronRight className={`text-slate-400 transition-transform duration-300 ${isTripTypeOpen ? '-rotate-90' : 'rotate-90'}`} size={16} />
+                <ChevronRight className={`text-slate-400 transition-transform duration-300 ${isTripTypeOpen ? '-rotate-90' : 'rotate-90'}`} size={12} />
               </button>
 
-              <div className={`absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.08)] overflow-hidden transition-all duration-200 origin-top ${isTripTypeOpen ? 'opacity-100 scale-y-100 translate-y-0' : 'opacity-0 scale-y-95 -translate-y-2 pointer-events-none'
+              <div className={`absolute z-50 w-full mt-1.5 bg-white rounded-xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.08)] overflow-hidden transition-all duration-200 origin-top ${isTripTypeOpen ? 'opacity-100 scale-y-100 translate-y-0' : 'opacity-0 scale-y-95 -translate-y-2 pointer-events-none'
                 }`}>
-                <div className="p-1.5 flex flex-col gap-0.5">
+                <div className="p-1 flex flex-col gap-0.5">
                   {tripTypeOptions.map(opt => (
                     <button
                       key={opt.value}
@@ -506,13 +506,13 @@ export default function AdminOrdersPage() {
                         setActiveTripType(opt.value);
                         setIsTripTypeOpen(false);
                       }}
-                      className={`flex items-center justify-between w-full px-3 py-3 text-[13px] font-bold rounded-xl transition-all ${activeTripType === opt.value
+                      className={`flex items-center justify-between w-full px-2.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTripType === opt.value
                           ? 'bg-orange-50 text-[#EF5222]'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                     >
                       {opt.label}
-                      {activeTripType === opt.value && <CheckCircle2 size={16} className="text-[#EF5222]" />}
+                      {activeTripType === opt.value && <CheckCircle2 size={14} className="text-[#EF5222]" />}
                     </button>
                   ))}
                 </div>
@@ -520,23 +520,23 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* BỘ LỌC LOẠI KHÁCH HÀNG */}
-            <div className="relative group w-full sm:w-[180px] shrink-0" ref={userTypeRef}>
+            <div className="relative group w-full sm:w-[150px] shrink-0" ref={userTypeRef}>
               <button
                 type="button"
                 onClick={() => setIsUserTypeOpen(!isUserTypeOpen)}
-                className={`w-full flex items-center justify-between pl-11 pr-4 py-3.5 bg-slate-50/70 border rounded-2xl text-[13px] font-bold outline-none transition-all duration-300 ${isUserTypeOpen ? 'bg-white border-[#EF5222] ring-4 ring-orange-50 text-[#EF5222]' : 'border-slate-200 text-slate-700 hover:border-orange-200'
+                className={`w-full flex items-center justify-between pl-8 pr-3 py-2 bg-slate-50/70 border rounded-lg text-xs font-bold outline-none transition-all duration-300 cursor-pointer ${isUserTypeOpen ? 'bg-white border-[#EF5222] ring-4 ring-orange-50 text-[#EF5222]' : 'border-slate-200 text-slate-700 hover:border-orange-200'
                   }`}
               >
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User className={`transition-colors duration-300 ${isUserTypeOpen ? 'text-[#EF5222]' : 'text-slate-400 group-hover:text-[#EF5222]'}`} size={16} />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className={`transition-colors duration-300 ${isUserTypeOpen ? 'text-[#EF5222]' : 'text-slate-400 group-hover:text-[#EF5222]'}`} size={14} />
                 </div>
                 <span>{userTypeOptions.find(opt => opt.value === activeUserType)?.label}</span>
-                <ChevronRight className={`text-slate-400 transition-transform duration-300 ${isUserTypeOpen ? '-rotate-90' : 'rotate-90'}`} size={16} />
+                <ChevronRight className={`text-slate-400 transition-transform duration-300 ${isUserTypeOpen ? '-rotate-90' : 'rotate-90'}`} size={12} />
               </button>
 
-              <div className={`absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.08)] overflow-hidden transition-all duration-200 origin-top ${isUserTypeOpen ? 'opacity-100 scale-y-100 translate-y-0' : 'opacity-0 scale-y-95 -translate-y-2 pointer-events-none'
+              <div className={`absolute z-50 w-full mt-1.5 bg-white rounded-xl border border-slate-100 shadow-[0_10px_40px_rgb(0,0,0,0.08)] overflow-hidden transition-all duration-200 origin-top ${isUserTypeOpen ? 'opacity-100 scale-y-100 translate-y-0' : 'opacity-0 scale-y-95 -translate-y-2 pointer-events-none'
                 }`}>
-                <div className="p-1.5 flex flex-col gap-0.5">
+                <div className="p-1 flex flex-col gap-0.5">
                   {userTypeOptions.map(opt => (
                     <button
                       key={opt.value}
@@ -545,13 +545,13 @@ export default function AdminOrdersPage() {
                         setActiveUserType(opt.value);
                         setIsUserTypeOpen(false);
                       }}
-                      className={`flex items-center justify-between w-full px-3 py-3 text-[13px] font-bold rounded-xl transition-all ${activeUserType === opt.value
+                      className={`flex items-center justify-between w-full px-2.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeUserType === opt.value
                           ? 'bg-orange-50 text-[#EF5222]'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                     >
                       {opt.label}
-                      {activeUserType === opt.value && <CheckCircle2 size={16} className="text-[#EF5222]" />}
+                      {activeUserType === opt.value && <CheckCircle2 size={14} className="text-[#EF5222]" />}
                     </button>
                   ))}
                 </div>
@@ -562,24 +562,24 @@ export default function AdminOrdersPage() {
 
           {/* 🟢 KHU VỰC CHỌN NGÀY TÙY CHỈNH KHI CHỌN "TUỲ CHỌN NGÀY..." */}
           {activeDateFilter === 'CUSTOM' && (
-            <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl mt-4 animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-orange-50/50 border border-orange-100 rounded-xl mt-3 animate-in zoom-in-95 duration-300">
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-[13px] font-bold text-slate-600">Từ ngày:</span>
+                <span className="text-xs font-bold text-slate-600">Từ:</span>
                 <input
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 outline-none focus:border-[#EF5222] focus:ring-2 focus:ring-orange-50"
+                  className="flex-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-700 outline-none focus:border-[#EF5222] focus:ring-2 focus:ring-orange-50"
                 />
               </div>
               <div className="hidden sm:block text-slate-300">➔</div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-[13px] font-bold text-slate-600">Đến ngày:</span>
+                <span className="text-xs font-bold text-slate-600">Đến:</span>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 outline-none focus:border-[#EF5222] focus:ring-2 focus:ring-orange-50"
+                  className="flex-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-700 outline-none focus:border-[#EF5222] focus:ring-2 focus:ring-orange-50"
                 />
               </div>
             </div>
@@ -610,41 +610,41 @@ export default function AdminOrdersPage() {
           if (order.seatSwapCount > 0) aiTags.push(`💺 Đã đổi ghế ${order.seatSwapCount} lần`);
 
           return (
-            <div key={order.id} className={`bg-white border rounded-2xl p-5 flex flex-col xl:flex-row xl:items-center justify-between gap-6 transition-all group ${isHighRisk ? 'border-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.1)] hover:border-rose-400' : 'border-slate-200 hover:border-orange-200 hover:shadow-sm'}`}>
+            <div key={order.id} className={`bg-white border rounded-xl p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-all group ${isHighRisk ? 'border-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.1)] hover:border-rose-400' : 'border-slate-200 hover:border-orange-200 hover:shadow-sm'}`}>
 
-              <div className="flex flex-col gap-3 min-w-[280px] w-full xl:w-auto border-b xl:border-b-0 border-slate-100 pb-4 xl:pb-0">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border ${isHighRisk ? 'bg-rose-50 text-rose-500 border-rose-200 animate-pulse shadow-sm' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                    {isHighRisk ? <AlertTriangle size={20} /> : <Ticket size={20} />}
+              <div className="flex flex-col gap-2 min-w-0 sm:min-w-[280px] w-full xl:w-auto border-b xl:border-b-0 border-slate-100 pb-3 xl:pb-0">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border ${isHighRisk ? 'bg-rose-50 text-rose-500 border-rose-200 animate-pulse shadow-sm' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+                    {isHighRisk ? <AlertTriangle size={16} /> : <Ticket size={16} />}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="font-black text-slate-800 text-[15px]">#{order.id}</div>
-                      {isHighRisk && <span className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest shadow-[0_2px_8px_rgba(225,29,72,0.4)] animate-pulse">⚠️ NGUY CƠ BOM HÀNG</span>}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="font-extrabold text-slate-800 text-sm">#{order.id}</div>
+                      {isHighRisk && <span className="bg-gradient-to-r from-rose-500 to-red-600 text-white text-[8px] px-1.5 py-0.2 rounded font-black uppercase tracking-widest animate-pulse">Bom hàng</span>}
                     </div>
-                    <div className="text-[12px] font-medium text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-slate-700 flex items-center gap-1"><User size={12} />{order.customerName}</span>
+                    <div className="text-[11px] font-medium text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap min-w-0">
+                      <span className="font-bold text-slate-700 flex items-center gap-1 truncate max-w-[100px] sm:max-w-none" title={order.customerName}><User size={10} className="shrink-0" />{order.customerName}</span>
                       {!order.userId ? (
-                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-1 shadow-2xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                          Khách vãng lai
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-extrabold px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-0.5 shadow-2xs shrink-0">
+                          <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+                          Khách
                         </span>
                       ) : (
-                        <span className="bg-amber-500/10 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-amber-500/20 dark:border-amber-900/30 flex items-center gap-1 shadow-2xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                          Thành viên VIP
+                        <span className="bg-amber-500/10 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 text-[9px] font-extrabold px-1 py-0.2 rounded border border-amber-500/20 dark:border-amber-900/30 flex items-center gap-0.5 shadow-2xs shrink-0">
+                          <span className="w-1 h-1 bg-amber-500 rounded-full animate-pulse"></span>
+                          VIP
                         </span>
                       )}
                       <span className="hidden sm:inline">•</span>
-                      <span className="flex items-center gap-1"><Phone size={12} />{order.customerPhone}</span>
+                      <span className="flex items-center gap-1 truncate"><Phone size={10} className="shrink-0" />{order.customerPhone}</span>
                     </div>
                   </div>
                 </div>
                 {/* AI Tags */}
                 {aiTags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pl-[64px]">
+                  <div className="flex flex-wrap gap-1 pl-0 sm:pl-[48px]">
                     {aiTags.map((tag, idx) => (
-                       <span key={idx} className="bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200/60 text-[#EF5222] text-[10px] px-2 py-0.5 rounded-md font-extrabold shadow-sm flex items-center gap-1">
+                       <span key={idx} className="bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200/60 text-[#EF5222] text-[9px] px-1.5 py-0.2 rounded font-extrabold shadow-sm flex items-center gap-0.5">
                          {tag}
                        </span>
                     ))}
@@ -652,23 +652,23 @@ export default function AdminOrdersPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-2.5 min-w-[300px]">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2 text-[13px] font-black text-[#EF5222]">
-                    <MapPin size={15} className="shrink-0" />
+              <div className="flex flex-col gap-2 min-w-0 sm:min-w-[300px] w-full xl:w-auto">
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#EF5222] flex-wrap">
+                    <MapPin size={13} className="shrink-0" />
                     {order.route}
                     {order.tripType === 'round' ? (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-purple-100 text-purple-600 border border-purple-200 ml-1">
+                      <span className="px-1 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-purple-100 text-purple-600 border border-purple-200 ml-1">
                         Khứ hồi
                       </span>
                     ) : (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200 ml-1">
+                      <span className="px-1 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 ml-1">
                         1 Chiều
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-[12px] font-bold text-slate-600 pl-6">
-                    <Clock size={13} className="text-blue-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 pl-0 sm:pl-5 flex-wrap">
+                    <Clock size={11} className="text-blue-500 shrink-0" />
                     <span className="text-slate-800">{formatTime(order.outboundDepart)} ➔ {formatTime(order.outboundArrival)}</span>
                     <span className="text-slate-300">•</span>
                     {formatDate(order.outboundDepart)}
@@ -676,13 +676,13 @@ export default function AdminOrdersPage() {
                 </div>
 
                 {order.tripType === 'round' && (
-                  <div className="flex flex-col gap-1 pt-2.5 border-t border-slate-100 border-dashed">
-                    <div className="flex items-center gap-2 text-[13px] font-black text-purple-600">
-                      <ArrowRightLeft size={14} className="shrink-0" />
+                  <div className="flex flex-col gap-0.5 pt-1.5 border-t border-slate-100 border-dashed">
+                    <div className="flex items-center gap-1.5 text-xs font-extrabold text-purple-600 flex-wrap">
+                      <ArrowRightLeft size={12} className="shrink-0" />
                       {order.returnRoute}
                     </div>
-                    <div className="flex items-center gap-2 text-[12px] font-bold text-slate-500 pl-6">
-                      <Clock size={13} className="text-blue-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 pl-0 sm:pl-5 flex-wrap">
+                      <Clock size={11} className="text-blue-400 shrink-0" />
                       <span className="text-slate-700">{formatTime(order.returnDepart)} ➔ {formatTime(order.returnArrival)}</span>
                       <span className="text-slate-300">•</span>
                       {formatDate(order.returnDepart)}
@@ -691,20 +691,20 @@ export default function AdminOrdersPage() {
                 )}
               </div>
 
-              <div className="flex flex-col items-start min-w-[150px]">
-                <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                  Số ghế:
+              <div className="flex flex-row xl:flex-col justify-between xl:items-start gap-2 min-w-0 sm:min-w-[150px] w-full xl:w-auto pb-3 xl:pb-0 border-b xl:border-b-0 border-slate-100">
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  Ghế:
                   {order.seats && order.seats.length > 0 ? (
-                    <span className="text-[#EF5222] bg-orange-50 px-2 py-0.5 rounded ml-1 truncate max-w-[100px]">
+                    <span className="text-[#EF5222] bg-orange-50 px-1.5 py-0.2 rounded ml-1 truncate max-w-[100px] font-extrabold">
                       {order.seats.join(', ')}
                     </span>
                   ) : (
-                    <span className="text-slate-400 bg-slate-100 px-2 py-0.5 rounded ml-1">Chưa xếp</span>
+                    <span className="text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded ml-1 font-extrabold">Chưa</span>
                   )}
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5 text-[14px] font-black text-slate-800">
-                    <CreditCard size={15} className="text-emerald-500" />
+                <div className="flex flex-col items-end xl:items-start">
+                  <div className="flex items-center gap-1 text-[13px] font-black text-slate-800">
+                    <CreditCard size={13} className="text-emerald-500 animate-pulse" />
                     {realStatus === 'REFUNDED' ? (
                       <span className="text-slate-400 line-through">{formatCurrency(order.amount)}</span>
                     ) : (
@@ -712,20 +712,20 @@ export default function AdminOrdersPage() {
                     )}
                   </div>
                   {realStatus === 'REFUNDED' && order.refundAmount > 0 && (
-                    <div className="text-[11px] font-black text-rose-500 mt-1 flex items-center gap-1">
+                    <div className="text-[10px] font-bold text-rose-500 mt-0.5 flex items-center gap-0.5">
                       <span>↩</span> Hoàn: -{formatCurrency(order.refundAmount)}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between xl:justify-end gap-4 min-w-[200px] mt-4 xl:mt-0 pt-4 xl:pt-0 border-t xl:border-transparent border-slate-100">
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md border text-[11px] font-black uppercase tracking-wider ${getBookingStatusStyle(realStatus)}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full bg-current`}></div>
+              <div className="flex flex-wrap items-center justify-between xl:justify-end gap-3 min-w-0 xl:min-w-[200px] w-full xl:w-auto mt-3 xl:mt-0 pt-3 xl:pt-0 border-t xl:border-transparent border-slate-100">
+                <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md border text-[9px] font-bold uppercase tracking-wider ${getBookingStatusStyle(realStatus)} shrink-0`}>
+                  <div className={`w-1 h-1 rounded-full bg-current`}></div>
                   {getBookingStatusText(realStatus)}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {userRole === 'ADMIN' && realStatus === 'UPCOMING' && (
                     <>
                       <button
@@ -742,41 +742,41 @@ export default function AdminOrdersPage() {
                             loadSeatsForTrip(order.outboundTripId);
                           }
                         }}
-                        className="px-3 py-2 text-[12px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-100 transition-all flex items-center gap-1.5 active:scale-95"
+                        className="px-2 py-1.5 text-[10px] font-extrabold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-100 transition-all flex items-center gap-1 active:scale-95 cursor-pointer"
                         title="Thay đổi ghế ngồi"
                       >
-                        <RefreshCw size={14} /> Đổi ghế
+                        <RefreshCw size={11} /> Đổi ghế
                       </button>
                       <button
                         onClick={() => handleCancelOrder(order.id, realStatus)}
-                        className="px-3 py-2 text-[12px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-100 transition-all flex items-center gap-1.5 active:scale-95"
+                        className="px-2 py-1.5 text-[10px] font-extrabold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-md border border-rose-100 transition-all flex items-center gap-1 active:scale-95 cursor-pointer"
                         title="Huỷ đơn & Nhả ghế"
                       >
-                        <AlertTriangle size={14} /> Huỷ vé
+                        <AlertTriangle size={11} /> Huỷ vé
                       </button>
                     </>
                   )}
                   {userRole === 'ADMIN' && realStatus === 'CANCELLED' && (
                     <button
                       onClick={() => handlePreviewRefund(order.id)}
-                      className="px-3 py-2 text-[12px] font-bold text-cyan-600 bg-cyan-50 hover:bg-cyan-600 hover:text-white rounded-lg border border-cyan-200 hover:border-cyan-600 transition-all flex items-center gap-1.5 shadow-sm"
+                      className="px-2 py-1.5 text-[10px] font-extrabold text-cyan-600 bg-cyan-50 hover:bg-cyan-600 hover:text-white rounded-md border border-cyan-200 hover:border-cyan-600 transition-all flex items-center gap-1 shadow-xs cursor-pointer"
                       title="Tính toán và Hoàn tiền"
                     >
-                      <ArrowRightLeft size={14} /> Hoàn tiền
+                      <ArrowRightLeft size={11} /> Hoàn tiền
                     </button>
                   )}
                   {userRole === 'ADMIN' && (realStatus === 'COMPLETED' || realStatus === 'CANCELLED' || realStatus === 'REFUNDED') && (
                     <button
                       onClick={() => handleDeleteOrder(order.id)}
-                      className="px-3 py-2 text-[12px] font-bold text-slate-400 bg-slate-50 hover:bg-rose-500 hover:text-white rounded-lg border border-slate-200 hover:border-rose-600 transition-all flex items-center gap-1.5 shadow-sm"
+                      className="px-2 py-1.5 text-[10px] font-extrabold text-slate-400 bg-slate-50 hover:bg-rose-500 hover:text-white rounded-md border border-slate-200 hover:border-rose-600 transition-all flex items-center gap-1 shadow-xs cursor-pointer"
                       title="Xoá vĩnh viễn khỏi CSDL"
                     >
-                      <Trash2 size={14} /> Xoá
+                      <Trash2 size={11} /> Xoá
                     </button>
                   )}
                   <button
                     onClick={() => setSelectedOrder(order)}
-                    className="px-4 py-2 text-[12px] font-bold text-slate-500 bg-slate-50 hover:text-blue-600 hover:bg-blue-50 rounded-lg border border-slate-200 transition-all"
+                    className="px-2.5 py-1.5 text-[10px] font-extrabold text-slate-500 bg-slate-50 hover:text-blue-600 hover:bg-blue-50 rounded-md border border-slate-200 transition-all cursor-pointer"
                   >
                     Chi tiết
                   </button>

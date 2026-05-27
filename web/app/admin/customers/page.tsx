@@ -200,42 +200,41 @@ export default function AdminCustomersPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] overflow-hidden">
-        <div className="p-5 border-b border-slate-100 bg-slate-50/80 flex gap-4 items-center justify-between flex-wrap">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="p-3.5 sm:p-5 border-b border-slate-100 bg-slate-50/80 flex gap-3 items-center justify-between flex-wrap">
+          <div className="relative flex-1 min-w-[240px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input 
               type="text" 
               placeholder="Tìm theo tên, email, số điện thoại..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 outline-none transition-all shadow-inner" 
+              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#ea580c] focus:ring-2 focus:ring-orange-50 outline-none transition-all shadow-inner" 
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end">
             <button
               onClick={handleToggleAi}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-black text-xs transition-all duration-300 cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-extrabold text-[11px] transition-all duration-300 cursor-pointer flex-1 sm:flex-none ${
                 isAiMode 
-                  ? 'bg-gradient-to-r from-amber-500 to-[#ea580c] text-white shadow-[0_4px_15px_rgba(234,88,12,0.4)] scale-105' 
+                  ? 'bg-gradient-to-r from-amber-500 to-[#ea580c] text-white shadow-[0_3px_10px_rgba(234,88,12,0.3)] scale-102' 
                   : 'bg-orange-50 text-[#ea580c] hover:bg-orange-100/80 border border-orange-200/50'
               }`}
             >
-              <Loader2 className={`w-4 h-4 ${isLoading && isAiMode ? 'animate-spin' : 'hidden'}`} />
-              <Star className={`w-4 h-4 ${isAiMode ? 'fill-white animate-spin' : 'fill-amber-500 text-amber-500'}`} />
-              <span>{isAiMode ? 'Đang bật AI Phân Lớp' : 'AI Phân Lớp Khách Hàng'}</span>
+              <Loader2 className={`w-3.5 h-3.5 ${isLoading && isAiMode ? 'animate-spin' : 'hidden'}`} />
+              <Star className={`w-3.5 h-3.5 ${isAiMode ? 'fill-white animate-spin' : 'fill-amber-500 text-amber-500'}`} />
+              <span>{isAiMode ? 'Đang bật AI Phân Lớp' : 'AI Phân Lớp'}</span>
             </button>
 
             <button
               onClick={handleExportExcel}
-              className="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 rounded-xl font-black text-xs border border-emerald-200/50 transition-all cursor-pointer active:scale-95 shadow-2xs hover:shadow-md"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 rounded-lg font-extrabold text-[11px] border border-emerald-200/50 transition-all cursor-pointer active:scale-95 shadow-3xs hover:shadow-sm flex-1 sm:flex-none"
               title="Xuất danh sách hiển thị ra file CSV / Excel"
             >
-              <Mail className="w-4 h-4 text-emerald-600 hidden" />
               <span>📥 Xuất Excel</span>
             </button>
 
-            <div className="text-xs font-black text-slate-400 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs">
-              Tổng cộng: <span className="text-[#ea580c]">{filteredCustomers.length}</span> tài khoản
+            <div className="text-[11px] font-extrabold text-slate-400 bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-3xs text-center w-full sm:w-auto shrink-0">
+              Tổng: <span className="text-[#ea580c]">{filteredCustomers.length}</span>
             </div>
           </div>
         </div>
@@ -309,7 +308,9 @@ export default function AdminCustomersPage() {
           </div>
         )}
         
-        <table className="w-full text-left border-collapse">
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-slate-50/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-100">
               <th className="p-5">Khách hàng</th>
@@ -396,14 +397,88 @@ export default function AdminCustomersPage() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
+
+        {/* Mobile View */}
+        <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/20">
+          {isLoading ? (
+            <div className="p-8 text-center text-slate-400 font-extrabold">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#ea580c] mb-2" />
+              Đang tải dữ liệu khách hàng...
+            </div>
+          ) : filteredCustomers.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 font-bold">
+              Không tìm thấy tài khoản nào khớp với bộ lọc.
+            </div>
+          ) : (
+            filteredCustomers.map(user => (
+              <div key={user.id} className="p-4 bg-white hover:bg-orange-50/20 transition-all duration-300 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-sm overflow-hidden border border-orange-400/20">
+                      {user.avatar ? <img src={user.avatar} alt="avt" className="w-full h-full object-cover" /> : (user.name ? user.name.charAt(0).toUpperCase() : '?')}
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-slate-900 text-sm tracking-tight">{user.name || 'Người dùng Ẩn danh'}</div>
+                      <div className="text-[10px] font-bold text-slate-400 mt-0.5">Thành viên ABC</div>
+                    </div>
+                  </div>
+                  {user.role === 'ADMIN' ? (
+                     <span className="inline-flex items-center gap-1 text-[9px] font-black text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 shadow-2xs animate-pulse"><ShieldCheck className="w-3 h-3"/> ADMIN</span>
+                  ) : (
+                     <span className="inline-flex items-center gap-1 text-[9px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">CUSTOMER</span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] font-bold text-slate-600">
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100/50 truncate">
+                    <Mail className="w-3.5 h-3.5 text-[#ea580c] shrink-0" />
+                    <span className="truncate">{user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100/50 truncate">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">{user.phone || 'Chưa có SĐT'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <button 
+                    onClick={() => handleViewTrips(user)}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-extrabold text-[#ea580c] bg-orange-50 hover:bg-gradient-to-r hover:from-[#ea580c] hover:to-amber-500 hover:text-white border border-orange-200/50 hover:border-transparent transition-all duration-300 inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs"
+                  >
+                    <Ticket className="w-3.5 h-3.5 text-[#ea580c] group-hover:text-white" />
+                    <span>{user.trips} chuyến</span>
+                    <ChevronRight size={12} />
+                  </button>
+
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-[#ea580c] font-black border border-amber-500/20 text-xs shadow-3xs">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-500" /> 
+                    <span>{user.points}đ</span>
+                  </div>
+                </div>
+
+                {isAiMode && user.segment && (
+                  <div className="bg-slate-900/95 border border-purple-500/25 p-2.5 rounded-xl text-white space-y-1 mt-1">
+                    <div className="flex items-center gap-1">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black tracking-wider border ${user.segmentStyle}`}>
+                        <Star className="w-2.5 h-2.5 fill-current" /> {user.segment}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-300 leading-normal">{user.aiNote}</p>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* =========================================================
           ⭐ POPUP MODAL DANH SÁCH CHUYÊN ĐI CHI TIẾT
           ========================================================= */}
       {selectedUserForTrips && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
           {/* Backdrop mờ nền */}
           <div 
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
@@ -411,12 +486,12 @@ export default function AdminCustomersPage() {
           ></div>
 
           {/* Khung Modal */}
-          <div className="relative w-full max-w-3xl bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-300">
+          <div className="relative w-full max-w-3xl bg-white rounded-[20px] sm:rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-300">
             
             {/* Header */}
-            <div className="flex items-center justify-between p-5 md:p-6 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-orange-100 text-[#ea580c] font-black flex items-center justify-center shrink-0 border border-orange-200/50">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-100 text-[#ea580c] font-black flex items-center justify-center shrink-0 border border-orange-200/50">
                   {selectedUserForTrips.avatar ? (
                     <img src={selectedUserForTrips.avatar} alt="avatar" className="w-full h-full rounded-full object-cover" />
                   ) : (
@@ -424,20 +499,20 @@ export default function AdminCustomersPage() {
                   )}
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-slate-800 tracking-tight">Chi tiết hành trình khách hàng</h2>
-                  <p className="text-sm font-bold text-[#ea580c] mt-0.5">{selectedUserForTrips.name || 'Người dùng Ẩn danh'}</p>
+                  <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight">Chi tiết hành trình khách hàng</h2>
+                  <p className="text-xs sm:text-sm font-bold text-[#ea580c] mt-0.5">{selectedUserForTrips.name || 'Người dùng Ẩn danh'}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setSelectedUserForTrips(null)}
-                className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-full text-slate-500 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-all shadow-sm"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white border border-slate-200 rounded-full text-slate-500 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-all shadow-sm"
               >
-                <XCircle size={20} />
+                <XCircle size={16} />
               </button>
             </div>
 
             {/* Vùng nội dung cuộn được */}
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-[300px] bg-slate-50/30">
+            <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 min-h-[300px] bg-slate-50/30">
               {isLoadingTrips ? (
                 <div className="flex flex-col items-center justify-center py-24 text-gray-500">
                   <Loader2 className="w-8 h-8 animate-spin text-[#ea580c] mb-3" />
@@ -458,7 +533,7 @@ export default function AdminCustomersPage() {
                     const statusText = getBookingStatusText(order.bookingStatus, order.paymentStatus);
 
                     return (
-                      <div key={order.id} className="bg-white border border-slate-200/80 hover:border-orange-200 rounded-2xl p-5 flex flex-col md:flex-row justify-between gap-4 transition-all hover:shadow-[0_4px_20px_rgb(0,0,0,0.02)] group">
+                      <div key={order.id} className="bg-white border border-slate-200/80 hover:border-orange-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between gap-4 transition-all hover:shadow-[0_4px_20px_rgb(0,0,0,0.02)] group">
                         
                         <div className="space-y-3 flex-1">
                           {/* Mã đơn & Loại vé */}

@@ -173,7 +173,7 @@ export default function AdminChatAI() {
       className={`flex flex-col bg-[#0B0F19]/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-800/80 overflow-hidden ring-1 ring-white/5 antialiased relative z-50 transition-all duration-300 ${
         isExpanded 
         ? 'w-[90vw] h-[85vh] max-w-[1200px]' 
-        : 'w-[360px] h-[520px]'
+        : 'w-[calc(100vw-32px)] sm:w-[360px] h-[70vh] sm:h-[520px] max-h-[520px]'
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -400,17 +400,17 @@ export default function AdminChatAI() {
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[9998] bg-slate-950/60 flex items-center justify-center p-4 md:p-10"
+            className="fixed inset-0 z-[44] bg-slate-950/60 flex items-center justify-center p-4 md:p-10"
             onClick={() => setIsExpanded(false)}
           />
         )}
       </AnimatePresence>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+      <div className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[90] flex flex-col items-end">
         <AnimatePresence>
           {isOpen && (
-            <div className={isExpanded ? "fixed inset-0 flex items-center justify-center pointer-events-none" : "mb-6 origin-bottom-right pointer-events-auto"}>
+            <div className={isExpanded ? "fixed inset-0 flex items-center justify-center pointer-events-none" : "mb-6 origin-bottom-right pointer-events-auto -mr-2 sm:mr-0"}>
               <div className={isExpanded ? "pointer-events-auto" : ""}>
                 {ChatWindow}
               </div>
