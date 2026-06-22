@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "9e2de3fd-17a2-4078-9a2b-eff8c45de76f"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.zhoang.backend",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

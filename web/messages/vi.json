@@ -53,7 +53,8 @@
     "depart_from": "Khởi hành từ",
     "updating": "Cập nhật",
     "book_now": "Đặt ngay",
-    "updating_routes": "Đang cập nhật chuyến xe..."
+    "updating_routes": "Đang cập nhật chuyến xe...",
+    "reviewsCount": "{count} đánh giá"
   },
   "SearchTrip": {
     "searchResultTitle": "Kết quả tìm chuyến",

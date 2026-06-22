@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
+import { NotificationService } from '../notification/notification.service';
 import { BookingStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class CancelService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async cancelTicket(orderCode: string, phone: string, email: string) {
@@ -86,6 +88,19 @@ export class CancelService {
 
       return updatedOrder;
     });
+
+    if (order.userId) {
+      try {
+        await this.notificationService.createNotification(
+          order.userId,
+          'Hủy vé thành công 💸',
+          `Vé xe mã #${order.orderCode} đi ${order.to} đã được hủy thành công. Số tiền hoàn lại dự kiến: ${refundAmount.toLocaleString('vi-VN')}đ.`,
+          'TRANSACTION'
+        );
+      } catch (err) {
+        console.error('Failed to create cancellation notification:', err);
+      }
+    }
 
     // 7. GỬI EMAIL THÔNG BÁO
     // Định dạng danh sách ghế để hiển thị trong mail

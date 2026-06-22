@@ -53,7 +53,8 @@
     "depart_from": "Depart from",
     "updating": "Updating",
     "book_now": "Book now",
-    "updating_routes": "Updating bus routes..."
+    "updating_routes": "Updating bus routes...",
+    "reviewsCount": "{count} review(s)"
   },
   "SearchTrip": {
     "searchResultTitle": "Search Results",

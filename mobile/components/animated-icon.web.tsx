@@ -1,0 +1,74 @@
+import { Image } from 'expo-image';
+import { View } from 'react-native';
+import Animated, { Keyframe, Easing } from 'react-native-reanimated';
+import classes from './animated-icon.module.css';
+import tw from 'twrnc';
+
+const DURATION = 300;
+
+export function AnimatedSplashOverlay() {
+  return null;
+}
+
+const keyframe = new Keyframe({
+  0: {
+    transform: [{ scale: 0 }],
+  },
+  60: {
+    transform: [{ scale: 1.2 }],
+    easing: Easing.elastic(1.2),
+  },
+  100: {
+    transform: [{ scale: 1 }],
+    easing: Easing.elastic(1.2),
+  },
+});
+
+const logoKeyframe = new Keyframe({
+  0: {
+    opacity: 0,
+  },
+  60: {
+    transform: [{ scale: 1.2 }],
+    opacity: 0,
+    easing: Easing.elastic(1.2),
+  },
+  100: {
+    transform: [{ scale: 1 }],
+    opacity: 1,
+    easing: Easing.elastic(1.2),
+  },
+});
+
+const glowKeyframe = new Keyframe({
+  0: {
+    transform: [{ rotateZ: '-180deg' }, { scale: 0.8 }],
+    opacity: 0,
+  },
+  [DURATION / 1000]: {
+    transform: [{ rotateZ: '0deg' }, { scale: 1 }],
+    opacity: 1,
+    easing: Easing.elastic(0.7),
+  },
+  100: {
+    transform: [{ rotateZ: '7200deg' }],
+  },
+});
+
+export function AnimatedIcon() {
+  return (
+    <View style={tw`justify-center items-center w-32 h-32`}>
+      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={tw`absolute w-[201px] h-[201px]`}>
+        <Image style={tw`absolute w-[201px] h-[201px]`} source={require('@/assets/images/logo-glow.png')} />
+      </Animated.View>
+
+      <Animated.View style={tw`absolute w-32 h-32`} entering={keyframe.duration(DURATION)}>
+        <div className={classes.expoLogoBackground} />
+      </Animated.View>
+
+      <Animated.View style={tw`justify-center items-center`} entering={logoKeyframe.duration(DURATION)}>
+        <Image style={tw`absolute w-[76px] h-[71px]`} source={require('@/assets/images/expo-logo.png')} />
+      </Animated.View>
+    </View>
+  );
+}

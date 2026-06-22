@@ -212,8 +212,8 @@ export default function ChatAI() {
       transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
       className={`flex flex-col bg-white/95 backdrop-blur-xl rounded-[24px] shadow-[0_20px_50px_rgba(239,82,34,0.15)] border border-gray-100 overflow-hidden ring-1 ring-black/[0.03] antialiased relative z-50 transition-all duration-300 ${
         isExpanded 
-        ? 'w-[90vw] h-[85vh] max-w-[1200px]' 
-        : 'w-[360px] h-[520px]'
+        ? 'w-[95vw] sm:w-[90vw] h-[85vh] max-w-[1200px]' 
+        : 'w-[calc(100vw-32px)] sm:w-[350px] h-[70vh] sm:h-[500px] max-h-[550px]'
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -411,7 +411,7 @@ export default function ChatAI() {
       </AnimatePresence>
 
       {/* Khung chat góc phải - ẩn trên mobile khi modal đang mở */}
-      <div className={`fixed bottom-6 right-6 z-[9999] flex flex-col items-end transition-all duration-300 ${isModalOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100 pointer-events-auto'}`}>
+      <div className={`fixed bottom-4 right-4 sm:fixed sm:bottom-6 sm:right-6 z-[9999] flex flex-col items-end transition-all duration-300 ${isModalOpen ? 'opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100 pointer-events-auto'}`}>
         <AnimatePresence>
           {isOpen && (
             <div className={isExpanded ? "fixed inset-0 flex items-center justify-center pointer-events-none" : "mb-6 origin-bottom-right pointer-events-auto"}>

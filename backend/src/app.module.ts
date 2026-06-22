@@ -23,6 +23,8 @@ import { AdminLoyaltyModule } from './admin-loyalty/admin-loyalty.module';
 import { AdminChatModule } from './admin-chat/admin-chat.module';
 import { AdminPayrollModule } from './admin-payroll/admin-payroll.module';
 import { EmailModule } from './email/email.module';
+import { NotificationModule } from './notification/notification.module';
+import { ReviewModule } from './review/review.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -50,7 +52,9 @@ import { AppService } from './app.service';
     AdminLoyaltyModule,
     AdminChatModule,
     AdminPayrollModule,
-    EmailModule
+    EmailModule,
+    NotificationModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

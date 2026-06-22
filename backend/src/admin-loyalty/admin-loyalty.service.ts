@@ -34,6 +34,17 @@ export class AdminLoyaltyService {
       data: { points: { increment: pointsToAdd } },
     });
 
+    // Tạo thông báo điều chỉnh điểm cho khách hàng
+    await this.prisma.notification.create({
+      data: {
+        userId,
+        title: pointsToAdd >= 0 ? 'Điều chỉnh điểm tích lũy 🪙' : 'Khấu trừ điểm tích lũy 🪙',
+        content: `Tài khoản của bạn đã được admin điều chỉnh ${pointsToAdd >= 0 ? `+${pointsToAdd}` : `${pointsToAdd}`} điểm tích lũy. Lý do: ${reason}.`,
+        type: 'MARKETING',
+        isRead: false
+      }
+    });
+
     // Ghi log
     await this.prisma.adminLog.create({
       data: {

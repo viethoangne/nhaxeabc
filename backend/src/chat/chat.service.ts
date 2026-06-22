@@ -765,7 +765,8 @@ export class ChatService {
       'today', 'tomorrow', 'tonight',
       'khứ hồi', 'một chiều', '1 chiều', '2 chiều', 'đi về', 'đi và về', 'roundtrip', 'round trip', 'oneway', 'one way',
       'giá rẻ', 'giá', 'vé', 'chuyến', 'lịch trình', 'giờ', 'mấy giờ',
-      'sáng', 'trưa', 'chiều', 'tối', 'đêm', 'khuya', 'tìm', 'cho', 'hỏi', 'có', 'không'
+      'sáng', 'trưa', 'chiều', 'tối', 'đêm', 'khuya', 'tìm', 'cho', 'hỏi', 'có', 'không',
+      'từ', 'đi từ', 'đến', 'tới', 'sang', 'xe'
     ];
     
     let changed = true;
@@ -1231,10 +1232,12 @@ export class ChatService {
       'say xe', 'ói', 'mệt', 'buồn nôn', 'chóng mặt', 'nhức đầu', 
       'kẹt xe', 'tắc đường', 'đông khách', 'ồn ào', 'nóng',
       'tư vấn', 'nên ngồi', 'ngồi đâu', 'chọn ghế nào', 'khuyên', 'trẻ em', 'người già', 'bà bầu',
-      'sợ', 'lo lắng', 'bực', 'cáu', 'tệ', 'chán', 'thái độ'
+      'sợ', 'lo lắng', 'bực', 'cáu', 'tệ', 'chán', 'thái độ',
+      'thai', 'có bầu', 'mang bầu', 'bầu bí', 'thoải mái', 'dễ chịu', 'thuận tiện'
     ];
     return keywords.some(kw => msg.includes(kw));
   }
+
   private extractDate(msg: string): string | null {
     const now = new Date();
     const currentYear = now.getFullYear(); // Lấy năm hiện tại của hệ thống

@@ -1,0 +1,42 @@
+{
+  "cli": {
+    "version": ">= 10.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "229973636250-5keobubagt18q2a3d25cqse8bjeh1921.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "229973636250-l2lg99p71rdhmnjg2vef9egaithnlc8h.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "229973636250-rcl0o7mvuvsdm7k7l9vmqdma6r3nnvlr.apps.googleusercontent.com",
+        "EXPO_PUBLIC_API_BASE_URL": "https://hoang-nhaxe-api.loca.lt/api",
+        "EXPO_PUBLIC_WEB_URL": "https://tender-zebras-strive.loca.lt"
+      }
+    },
+    "production": {},
+    "simulator": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "229973636250-5keobubagt18q2a3d25cqse8bjeh1921.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "229973636250-l2lg99p71rdhmnjg2vef9egaithnlc8h.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "229973636250-rcl0o7mvuvsdm7k7l9vmqdma6r3nnvlr.apps.googleusercontent.com",
+        "EXPO_PUBLIC_API_BASE_URL": "https://hoang-nhaxe-api.loca.lt/api",
+        "EXPO_PUBLIC_WEB_URL": "https://tender-zebras-strive.loca.lt"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

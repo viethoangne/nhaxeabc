@@ -16,4 +16,10 @@ export class LoyaltyController {
   async redeem(@Body() body: { userId: string; voucherId: string }) {
     return this.loyaltyService.redeemVoucher(body.userId, body.voucherId);
   }
+
+  // Xử lý game vòng quay may mắn (Trừ 50 điểm, nhận phần thưởng ngẫu nhiên)
+  @Post('spin')
+  async spin(@Body() body: { userId: string }) {
+    return this.loyaltyService.spinGame(body.userId);
+  }
 }

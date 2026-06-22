@@ -59,6 +59,8 @@ model User {
   chatMessages ChatMessage[] 
   
   adminLogs    AdminLog[]
+  pushToken    String?
+  notifications Notification[]
 }
 
 model ChatMessage {
@@ -375,4 +377,33 @@ model AdminLog {
   admin       User?    @relation(fields: [adminId], references: [id], onDelete: SetNull) // 🟢 THÊM DẤU ? VÀ ĐỔI ONDELETE
   
   @@index([adminId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  content   String   @db.Text
+  type      String   @default("SYSTEM") // TRANSACTION, TRIP, MARKETING, SYSTEM
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model TripReview {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique
+  userId    String?
+  rating    Int      // 1-5
+  tags      String[] @default([])
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([rating])
 }

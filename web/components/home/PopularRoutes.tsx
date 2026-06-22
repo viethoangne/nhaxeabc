@@ -15,6 +15,8 @@ interface RouteData {
   distanceKm: number;
   durationMinutes: number;
   price: number;
+  reviewsCount?: number;
+  averageRating?: number;
 }
 
 function ImageSlideshow({ images, alt }: { images: string[], alt: string }) {
@@ -224,15 +226,23 @@ export default function PopularRoutes() {
                               {route.to}
                             </h4>
                             
-                            {/* Premium colorized tags */}
-                            <div className="flex items-center gap-1.5">
-                              <span className="flex items-center gap-1 text-[11px] text-orange-600 dark:text-orange-400 font-bold bg-orange-50 dark:bg-orange-950/30 px-2.5 py-0.5 rounded-md border border-orange-100/30">
-                                <svg className="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                {route.distanceKm}km
+                            {/* Icon-first emoji pills */}
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              {/* Distance */}
+                              <span className="inline-flex items-center gap-1 text-[11px] text-[#EF5222] font-black bg-[#fff4ee] px-2.5 py-0.5 rounded-full border border-[#fcd8c4]">
+                                ⚡ {route.distanceKm}km
                               </span>
-                              <span className="flex items-center gap-1 text-[11px] text-teal-600 dark:text-teal-400 font-bold bg-teal-50 dark:bg-teal-950/30 px-2.5 py-0.5 rounded-md border border-teal-100/30">
-                                <svg className="w-3 h-3 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                {`${Math.floor(route.durationMinutes / 60)}h${route.durationMinutes % 60 !== 0 ? (route.durationMinutes % 60) + 'p' : ''}`}
+                              {/* Duration */}
+                              <span className="inline-flex items-center gap-1 text-[11px] text-teal-600 dark:text-teal-400 font-black bg-teal-50 dark:bg-teal-950/30 px-2.5 py-0.5 rounded-full border border-teal-200/60">
+                                ⏱ {`${Math.floor(route.durationMinutes / 60)}h${route.durationMinutes % 60 !== 0 ? (route.durationMinutes % 60) + 'p' : ''}`}
+                              </span>
+                              {/* Reviews */}
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-full border ${
+                                route.reviewsCount && route.reviewsCount > 0
+                                  ? 'text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200/60'
+                                  : 'text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-900/30 border-slate-200/60'
+                              }`}>
+                                💬 {t('reviewsCount', { count: route.reviewsCount || 0 })}
                               </span>
                             </div>
                           </div>

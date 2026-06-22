@@ -68,9 +68,30 @@ export class PaymentController {
   async vnpayReturn(@Query() query: any, @Res() res: any) {
     try {
       const result = await this.paymentService.handleVnpayReturn(query);
+      if (result.redirect.startsWith('nhaxeabc://') || result.redirect.startsWith('exp://')) {
+        const status = result.redirect.includes('status=success') ? 'success' : 'cancel';
+        return res.type('html').send(this.paymentService.getDeepLinkHtml(result.redirect, query.vnp_TxnRef || '', status));
+      }
       return res.redirect(302, result.redirect);
     } catch (error) {
       console.error('VNPAY Return Error:', error);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      return res.redirect(302, `${frontendUrl}/payment-cancel?reason=server_error`);
+    }
+  }
+
+  // 3d. Nhận redirect từ MoMo về trình duyệt
+  @Get('momo-return')
+  async momoReturn(@Query() query: any, @Res() res: any) {
+    try {
+      const result = await this.paymentService.handleMomoReturn(query);
+      if (result.redirect.startsWith('nhaxeabc://') || result.redirect.startsWith('exp://')) {
+        const status = result.redirect.includes('status=success') ? 'success' : 'cancel';
+        return res.type('html').send(this.paymentService.getDeepLinkHtml(result.redirect, query.orderCode || '', status));
+      }
+      return res.redirect(302, result.redirect);
+    } catch (error) {
+      console.error('MoMo Return Error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       return res.redirect(302, `${frontendUrl}/payment-cancel?reason=server_error`);
     }

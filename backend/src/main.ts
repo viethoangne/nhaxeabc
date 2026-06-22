@@ -25,6 +25,8 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3002',
+    'http://localhost:8081',   // Expo web dev server
+    'http://localhost:19006',  // Expo web (cổng cũ)
     process.env.FRONTEND_URL,
     'https://nhaxeabc.vercel.app',
   ].filter((v): v is string => Boolean(v));

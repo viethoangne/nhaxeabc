@@ -1,0 +1,838 @@
+📄 File: \app\(tabs)\account.tsx
+  Line 38: Alert.alert('Lỗi', 'Chức năng đăng nhập Google chưa sẵn sàng, vui lòng thử lại.');
+  Line 61: Tiếp tục với Google
+  Line 80: Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ Số điện thoại và Họ tên');
+  Line 85: Alert.alert('Lỗi', 'Số điện thoại không hợp lệ');
+  Line 94: Alert.alert('Thành công', `Chào mừng ${name} đã quay trở lại!`);
+  Line 96: Alert.alert('Thất bại', 'Đăng nhập không thành công, vui lòng thử lại');
+  Line 101: Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn đăng xuất tài khoản?', [
+  Line 102: { text: 'Hủy', style: 'cancel' },
+  Line 104: text: 'Đồng ý',
+  Line 107: Alert.alert('Thông báo', 'Đã đăng xuất thành công');
+  Line 117: {/* NẾU CHƯA ĐĂNG NHẬP */}
+  Line 123: <Text style={tw`text-lg font-black text-[#0f172a]`}>Đăng nhập thành viên</Text>
+  Line 125: Tận hưởng ưu đãi LotusMiles VIP và đồng bộ vé xe
+  Line 129: <Text style={tw`text-[9px] font-bold text-[#94a3b8] mb-1.5 tracking-wider`}>HỌ VÀ TÊN</Text>
+  Line 132: placeholder="Nhập họ và tên của bạn..."
+  Line 139: <Text style={tw`text-[9px] font-bold text-[#94a3b8] mb-1.5 tracking-wider`}>SỐ ĐIỆN THOẠI</Text>
+  Line 142: placeholder="Nhập số điện thoại di động..."
+  Line 157: <Text style={tw`text-white text-sm font-bold`}>ĐĂNG NHẬP</Text>
+  Line 161: {/* ── Divider HOẶC ── */}
+  Line 164: <Text style={tw`text-[10px] font-bold text-[#94a3b8] mx-3 tracking-widest`}>HOẶC</Text>
+  Line 168: {/* ── Nút Google Sign-In ── */}
+  Line 171: {/* ── Badges tin cậy ── */}
+  Line 175: <Text style={tw`text-[10px] font-bold text-[#64748b] mt-1`}>Bảo mật</Text>
+  Line 179: <Text style={tw`text-[10px] font-bold text-[#64748b] mt-1`}>Nhanh chóng</Text>
+  Line 183: <Text style={tw`text-[10px] font-bold text-[#64748b] mt-1`}>Tiện ích</Text>
+  Line 190: {/* Header thông tin cá nhân */}
+  Line 204: Thành viên {auth.user?.tier || 'BRONZE'}
+  Line 209: {/* Thao tác nhanh */}
+  Line 211: <Text style={tw`text-[9px] font-bold text-[#94a3b8] mb-3 tracking-wider`}>THAO TÁC NHANH</Text>
+  Line 219: <Text style={tw`text-xs font-bold text-[#1e293b] ml-2.5`}>Lịch sử vé đã đặt</Text>
+  Line 230: <Text style={tw`text-xs font-bold text-[#1e293b] ml-2.5`}>Đổi quà LotusMiles VIP</Text>
+  Line 236: {/* Thông tin hỗ trợ */}
+  Line 238: <Text style={tw`text-[9px] font-bold text-[#94a3b8] mb-3 tracking-wider`}>THÔNG TIN HỖ TRỢ</Text>
+  Line 241: <Text style={tw`text-xs font-medium text-[#475569]`}>Tổng đài đặt vé: 1900 1234 (24/7)</Text>
+  Line 245: <Text style={tw`text-xs font-medium text-[#475569]`}>Phiên bản ứng dụng: 1.0.0 (Expo SDK 56)</Text>
+  Line 249: {/* Nút Đăng xuất */}
+  Line 255: <Text style={tw`text-red-500 text-xs font-bold`}>ĐĂNG XUẤT</Text>
+
+📄 File: \app\(tabs)\history.tsx
+  Line 144: Alert.alert(locale === 'vi' ? 'Đã sao chép' : 'Copied', locale === 'vi' ? `Đã sao chép mã vé #${code} vào bộ nhớ tạm.` : `Copied ticket code #${code} to clipboard.`);
+  Line 164: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Vui lòng điền đầy đủ Email và Số điện thoại' : 'Please fill in both Email and Phone Number');
+  Line 169: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Số điện thoại xác nhận không khớp với thông tin vé' : 'Confirmation phone number does not match ticket details');
+  Line 174: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Bạn phải đồng ý với quy định hủy vé' : 'You must agree to the ticket cancellation terms');
+  Line 186: Alert.alert(locale === 'vi' ? 'Thành công' : 'Success', response.data?.message || (locale === 'vi' ? 'Yêu cầu hủy vé của bạn đã được thực hiện.' : 'Your ticket cancellation request has been processed.'));
+  Line 201: console.error('Lỗi khi hủy vé:', error);
+  Line 202: const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu hủy vé.';
+  Line 203: Alert.alert(locale === 'vi' ? 'Thất bại' : 'Failed', errorMsg);
+  Line 244: console.error('Lỗi lấy lịch sử đặt vé:', error);
+  Line 252: locale === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete',
+  Line 253: locale === 'vi' ? 'Bạn có chắc chắn muốn xóa lịch sử đặt vé này khỏi danh sách của bạn?' : 'Are you sure you want to remove this booking history from your list?',
+  Line 255: { text: locale === 'vi' ? 'Hủy' : 'Cancel', style: 'cancel' },
+  Line 257: text: locale === 'vi' ? 'Xóa' : 'Delete',
+  Line 264: console.error('Lỗi khi xóa vé:', error);
+  Line 265: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Không thể xóa vé lúc này. Vui lòng thử lại sau.' : 'Cannot delete ticket right now. Please try again later.');
+  Line 547: {Number(item.amount).toLocaleString('vi-VN')} đ
+  Line 578: <Text style={tw`text-blue-600 text-[12px] font-black`}>{locale === 'vi' ? 'Vé QR' : 'QR Ticket'}</Text>
+  Line 607: <Text style={tw`text-emerald-600 text-[12px] font-black`}>{locale === 'vi' ? 'Theo dõi xe' : 'Track Bus'}</Text>
+  Line 622: <Text style={tw`text-amber-600 text-[12px] font-black`}>{locale === 'vi' ? 'Đánh giá' : 'Rate'}</Text>
+  Line 638: {locale === 'vi' ? 'Xem chi tiết vé' : 'View Details'}
+  Line 652: {/* ── HEADER BẢN WEB ĐỒNG BỘ ── */}
+  Line 664: {/* ── BỘ LỌC TÌM KIẾM HIỆN ĐẠI ── */}
+  Line 666: {/* Ô tìm kiếm */}
+  Line 670: placeholder={locale === 'vi' ? 'Tìm theo mã vé hoặc địa điểm...' : 'Search by code or location...'}
+  Line 683: {/* Nút Toggle Bộ lọc */}
+  Line 698: {/* Chấm tròn báo hiệu đang bật bộ lọc */}
+  Line 705: {/* Chips hiển thị bộ lọc đang hoạt động */}
+  Line 716: {statusFilter === 'upcoming' ? 'Sắp đi' :
+  Line 717: statusFilter === 'ongoing' ? 'Đang đi' :
+  Line 718: statusFilter === 'completed' ? 'Hoàn thành' : 'Đã hủy'}
+  Line 750: {/* Drawer Bộ lọc */}
+  Line 772: title={locale === 'vi' ? 'Trống trải quá...' : 'Quite empty here...'}
+  Line 775: ? "Không tìm thấy vé xe phù hợp với bộ lọc hiện tại."
+  Line 776: : "Bạn chưa có lịch sử chuyến đi nào."
+  Line 779: actionLabel={searchQuery || statusFilter !== 'all' || typeFilter !== 'all' ? (locale === 'vi' ? 'Đặt lại bộ lọc' : 'Reset filters') : (locale === 'vi' ? 'Đặt vé ngay' : 'Book now')}
+  Line 803: {/* Modal chi tiết vé */}
+  Line 820: <Text style={tw`text-[17px] font-black text-slate-800`}>{locale === 'vi' ? 'Chi tiết vé xe của bạn' : 'Your Ticket Details'}</Text>
+  Line 835: {/* Drawer hủy vé */}
+
+📄 File: \app\(tabs)\index.tsx
+  Line 106: console.error("Lỗi lấy tuyến đường:", err);
+  Line 121: .replace(/đ/g, "d")
+  Line 170: console.warn('Lỗi lấy vé sắp tới ở Trang chủ:', error);
+  Line 231: {/* Left: Avatar tài khoản */}
+  Line 318: {getTicketStatus(latestBooking) === 'ongoing' ? t('ongoing_trip') || 'Đang di chuyển' : t('upcoming_trip') || 'Chuyến đi sắp tới'}
+  Line 326: <Text style={[tw`text-[10px] font-bold uppercase tracking-wide`, { color: colors.textSecondary }]}>{t('search.from') || 'Điểm đi'}</Text>
+  Line 335: <Text style={[tw`text-[10px] font-bold uppercase tracking-wide`, { color: colors.textSecondary }]}>{t('search.to') || 'Điểm đến'}</Text>
+  Line 357: <Text style={[tw`text-[11px] font-bold`, { color: colors.textSecondary }]}>{t('historyPage.seatsNumber') || 'Số ghế'}:</Text>
+  Line 380: <Text style={tw`text-[12px] font-black text-[#EF5222]`}>{t('historyPage.viewTicket') || 'Xem chi tiết'}</Text>
+  Line 407: <Text style={tw`text-[12px] font-black text-white`}>{t('track_bus') || 'Theo dõi xe'}</Text>
+  Line 419: {/* Mua vé */}
+  Line 430: {/* Tra cứu */}
+  Line 441: {/* Lịch trình */}
+  Line 455: {/* Tin tức */}
+  Line 466: {/* Liên hệ */}
+  Line 477: {/* Giới thiệu */}
+  Line 516: Trải Nghiệm Công Nghệ Mới
+  Line 526: ĐẶT VÉ THÔNG MINH CÙNG AI
+  Line 530: Trợ lý AI giúp bạn đặt vé, kiểm tra giá, tra cứu chuyến đi hoặc hướng dẫn hủy vé 24/7 tức thì bằng giọng nói & tin nhắn tự nhiên.
+  Line 543: Nói tự nhiên: "Tôi muốn đặt vé đi Đà Lạt sáng mai" để chọn ghế & nhận mã QR thanh toán sau 30 giây.
+  Line 554: <Text style={tw`text-[12.5px] font-black text-slate-800`}>Gợi ý vị trí tốt nhất</Text>
+  Line 556: Tự động ghi nhớ thói quen đi lại, sở thích chọn ghế (cạnh cửa sổ, giường dưới) để đề xuất chuyến đi hoàn hảo.
+  Line 568: Thử Chat với AI Ngay
+  Line 580: {/* MODAL: LỊCH TRÌNH */}
+  Line 616: HÀNH TRÌNH KHAI THÁC
+  Line 619: Lịch trình chạy hàng ngày
+  Line 633: placeholder="Điểm đi..."
+  Line 649: placeholder="Điểm đến..."
+  Line 666: Đang tải dữ liệu...
+  Line 678: Tuyến đi từ {fromName}
+  Line 720: {route.price?.toLocaleString()}đ
+  Line 723: GIÁ VÉ GỐC
+  Line 740: Không tìm thấy tuyến đường phù hợp
+  Line 743: Hãy thử tìm kiếm với các từ khóa hoặc địa điểm khác.
+
+📄 File: \app\(tabs)\lookup.tsx
+  Line 36: Alert.alert(locale === 'vi' ? 'Thông báo' : 'Notice', locale === 'vi' ? 'Vui lòng điền mã vé và số điện thoại' : 'Please enter both ticket code and phone number');
+  Line 55: console.error('Lỗi tra cứu vé:', error);
+  Line 56: Alert.alert(locale === 'vi' ? 'Thất bại' : 'Failed', locale === 'vi' ? 'Không tìm thấy vé hợp lệ hoặc thông tin chưa chính xác' : 'Ticket not found or details are incorrect');
+  Line 93: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Vui lòng điền đầy đủ Email và Số điện thoại' : 'Please fill in both Email and Phone Number');
+  Line 98: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Số điện thoại xác nhận không khớp với thông tin vé' : 'Confirmation phone number does not match ticket details');
+  Line 103: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Bạn phải đồng ý với quy định hủy vé' : 'You must agree to the ticket cancellation terms');
+  Line 115: Alert.alert(locale === 'vi' ? 'Thành công' : 'Success', response.data?.message || (locale === 'vi' ? 'Yêu cầu hủy vé của bạn đã được thực hiện.' : 'Your ticket cancellation request has been processed.'));
+  Line 122: console.error('Lỗi khi hủy vé:', error);
+  Line 123: const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu hủy vé.';
+  Line 124: Alert.alert(locale === 'vi' ? 'Thất bại' : 'Failed', errorMsg);
+  Line 177: {/* Khối Form Tìm Kiếm hoặc Thông tin vé chi tiết */}
+  Line 189: {/* Nút quay lại tra cứu / Tìm vé khác */}
+  Line 196: <Text style={tw`text-[12.5px] font-black text-slate-500`}>{locale === 'vi' ? 'Tra cứu vé khác' : 'Lookup another ticket'}</Text>
+  Line 199: {/* Hiển Thị Thông Tin Vé Chi Tiết */}
+  Line 209: {/* BOTTOM SHEET/DRAWER: MODAL HỦY VÉ */}
+
+📄 File: \app\(tabs)\loyalty.tsx
+  Line 52: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Chức năng đăng nhập Google chưa sẵn sàng, vui lòng thử lại.' : 'Google Login is not ready yet, please try again.');
+  Line 58: console.error('Lỗi đăng nhập Google:', e);
+  Line 59: Alert.alert(locale === 'vi' ? 'Lỗi' : 'Error', locale === 'vi' ? 'Không thể mở đăng nhập Google. Vui lòng thử lại.' : 'Could not open Google Login. Please try again.');
+  Line 73: console.error('Lỗi tải dữ liệu loyalty:', error);
+  Line 87: locale === 'vi' ? 'Xác nhận' : 'Confirm',
+  Line 88: locale === 'vi' ? 'Bạn có chắc chắn muốn đăng xuất?' : 'Are you sure you want to sign out?',
+  Line 90: { text: locale === 'vi' ? 'Hủy' : 'Cancel', style: 'cancel' },
+  Line 91: { text: locale === 'vi' ? 'Đăng xuất' : 'Sign out', onPress: () => auth.logout() },
+  Line 100: locale === 'vi' ? 'Thất bại' : 'Failed',
+  Line 101: locale === 'vi' ? 'Bạn không có đủ điểm để đổi voucher này.' : 'You do not have enough points to redeem this voucher.'
+  Line 106: locale === 'vi' ? 'Xác nhận' : 'Confirm',
+  Line 107: locale === 'vi' ? `Dùng ${voucher.cost} điểm đổi "${voucher.title}"?` : `Use ${voucher.cost} points to redeem "${voucher.title}"?`,
+  Line 109: { text: locale === 'vi' ? 'Hủy' : 'Cancel', style: 'cancel' },
+  Line 111: text: locale === 'vi' ? 'Đồng ý' : 'Agree',
+  Line 117: locale === 'vi' ? 'Chúc mừng' : 'Congratulations',
+  Line 118: locale === 'vi' ? `Đổi voucher "${voucher.title}" thành công!` : `Successfully redeemed "${voucher.title}"!`
+  Line 126: locale === 'vi' ? 'Thất bại' : 'Failed',
+  Line 127: error.response?.data?.message || (locale === 'vi' ? 'Có lỗi xảy ra.' : 'An error occurred.')
+  Line 142: {/* Nền Gradient VIP */}
+  Line 157: {/* Vòng tròn VIP */}
+  Line 171: {locale === 'vi' ? 'CHƯƠNG TRÌNH THÀNH VIÊN CAO CẤP' : 'PREMIUM MEMBERSHIP PROGRAM'}
+  Line 178: { icon: <Star size={18} color="#F59E0B" fill="#F59E0B" />, label: locale === 'vi' ? 'Tích điểm\nmỗi chuyến' : 'Earn points\nevery trip' },
+  Line 179: { icon: <Gift size={18} color="#a78bfa" />, label: locale === 'vi' ? 'Đổi quà\nhấp dẫn' : 'Redeem\ngifts' },
+  Line 180: { icon: <Zap size={18} color="#34d399" />, label: locale === 'vi' ? 'Ưu đãi\nriêng tư' : 'Exclusive\noffers' },
+  Line 192: {/* Khung Đăng nhập */}
+  Line 200: {/* Nút Google */}
+  Line 229: ? 'Bằng cách tiếp tục, bạn đồng ý với\nĐiều khoản dịch vụ của Nhà xe ABC'
+  Line 235: {/* Dải tiers */}
+  Line 268: {/* ── HEADER BẢN WEB ĐỒNG BỘ ── */}
+  Line 325: {/* Đăng xuất chuẩn SaaSButton */}
+  Line 327: title={locale === 'vi' ? 'ĐĂNG XUẤT' : 'SIGN OUT'}
+
+📄 File: \app\(tabs)\notifications.tsx
+  Line 61: Alert.alert(locale === 'vi' ? 'Thành công' : 'Success', locale === 'vi' ? 'Đã tắt nhận các thông báo thuộc nhóm này.' : 'Muted notifications of this type.');
+  Line 67: Alert.alert(locale === 'vi' ? 'Báo cáo sự cố' : 'Report Issue', locale === 'vi' ? 'Cảm ơn bạn! Báo cáo sự cố đã được gửi tới đội ngũ hỗ trợ kỹ thuật.' : 'Thank you! The report has been sent to our technical support team.');
+  Line 131: if (item.type === 'TRANSACTION' || item.content.toLowerCase().includes('vé') || item.content.toLowerCase().includes('hủy')) {
+  Line 133: } else if (item.type === 'MARKETING' || item.content.toLowerCase().includes('voucher') || item.content.toLowerCase().includes('khuyến mãi')) {
+  Line 282: locale === 'vi' ? 'Xác nhận' : 'Confirm',
+  Line 416: {/* "Mới" Section */}
+  Line 431: {/* "Trước đó" Section */}
+
+📄 File: \app\(tabs)\_layout.tsx
+  Line 183: title: 'Trang chủ',
+  Line 190: title: 'Lịch sử',
+  Line 197: title: 'Thông báo',
+  Line 204: title: 'Tài khoản',
+  Line 212: title: 'Tra cứu',
+  Line 213: headerTitle: 'TRA CỨU VÉ XE',
+  Line 221: title: 'Tài khoản cũ',
+  Line 222: headerTitle: 'TÀI KHOẢN CỦA TÔI',
+
+📄 File: \app\about.tsx
+  Line 135: .catch((err) => console.log('Lỗi tải thống kê thực tế từ DB, dùng mặc định:', err))
+  Line 143: label: 'Chuyến Đi An Toàn',
+  Line 144: badgeText: 'Dữ liệu thực từ CSDL',
+  Line 154: label: 'Limousine Cao Cấp',
+  Line 155: badgeText: 'Cabin đôi 5 sao',
+  Line 165: label: 'Tài Xế Chuyên Nghiệp',
+  Line 166: badgeText: 'Đầy đủ chứng chỉ',
+  Line 176: label: 'Thành Viên Thân Thiết',
+  Line 177: badgeText: 'Tích lũy Loyalty VIP',
+  Line 189: title: 'An Toàn Tuyệt Đối',
+  Line 190: desc: 'Sinh mệnh của khách hàng là trên hết. Đội ngũ tài xế của chúng tôi được đào tạo bài bản và kiểm soát định kỳ, cam kết tuân thủ nghiêm ngặt mọi quy chuẩn an toàn giao thông.',
+  Line 196: title: 'Chất Lượng Là Danh Dự',
+  Line 197: desc: 'Dịch vụ xe Limousine VIP giường nằm cao cấp, phục vụ chu đáo, nước uống, khăn lạnh và cổng sạc USB đầy đủ. Cam kết xuất bến đúng giờ, đi đúng lộ trình.',
+  Line 203: title: 'Công Nghệ Dẫn Đầu',
+  Line 204: desc: 'Tiên phong ứng dụng Trợ lý AI đặt vé bằng giọng nói, thanh toán bảo mật đa nền tảng và tích hợp hệ thống Loyalty tích điểm đổi voucher VIP chăm sóc khách hàng tự động.',
+  Line 213: title: 'Khởi Nghiệp Vượt Thách Thức',
+  Line 214: desc: 'Thành lập ABC Bus Lines với chỉ 5 chiếc xe Limousine khoang đôi hạng thương gia đầu tiên phục vụ chặng bay bộ TP. Hồ Chí Minh - Đà Lạt.',
+  Line 218: title: 'Mở Rộng Mạng Lưới Phục Vụ',
+  Line 219: desc: 'Nâng quy mô đội xe lên hơn 40 xe, chính thức vận hành các tuyến trọng điểm đi Vũng Tàu, Nha Trang, Phan Thiết, Đà Nẵng và Hà Nội.',
+  Line 223: title: 'Chuyển Đổi Số Đột Phá',
+  Line 224: desc: 'ABC Bus Line tích hợp trí tuệ nhân tạo (AI Assistant) hỗ trợ đặt vé rảnh tay bằng giọng nói đầu tiên tại Việt Nam, cải tiến hệ thống thanh toán tự động.',
+  Line 228: title: 'Vươn Tầm Quốc Gia',
+  Line 229: desc: 'Đạt mốc hàng triệu lượt hành khách hài lòng, dẫn đầu chất lượng dịch vụ vận tải hành khách VIP cao cấp và chăm sóc khách hàng toàn diện.',
+  Line 273: Hành Trình Kiến Tạo Niềm Tin
+  Line 277: VỀ CHÚNG TÔI
+  Line 305: SỨ MỆNH DOANH NGHIỆP
+  Line 312: "Không chỉ là những chuyến xe đưa đón hành khách, chúng tôi kiến tạo những trải nghiệm di chuyển sang trọng, an toàn và ngập tràn niềm vui bằng sức mạnh của công nghệ đột phá."
+  Line 318: Được thành lập từ niềm đam mê kết nối vạn dặm hành trình Việt Nam, ABC Bus Lines tự hào là đơn vị vận tải hành khách uy tín hàng đầu, mang lại dịch vụ vượt trội đến từng khách hàng.
+  Line 375: Giá Trị Cốt Lõi
+  Line 407: Chặng Đường Phát Triển
+  Line 424: Năm {evt.year}
+
+📄 File: \app\booking\checkout.tsx
+  Line 38: const paymentUrl = (searchParams.paymentUrl as string) || '';   // deep-link / redirect URL từ API
+  Line 44: const [isPaymentFailed, setIsPaymentFailed] = useState(false); // thanh toán thất bại
+  Line 46: const [opening, setOpening]           = useState(false);   // trạng thái đang mở app
+  Line 84: return paymentMethod === 'VNPAY' ? 1200 : 300; // VNPAY 20ph, MoMo 5ph (như backend)
+  Line 173: 'Không thể mở',
+  Line 175: ? 'Vui lòng cài ứng dụng MoMo để thanh toán.'
+  Line 176: : 'Không thể mở trình duyệt. Vui lòng thử lại.',
+  Line 180: Alert.alert('Lỗi', 'Không thể mở liên kết thanh toán.');
+  Line 189: title: 'CỔNG THANH TOÁN VNPAY',
+  Line 192: buttonText: 'Mở Website VNPAY',
+  Line 193: instruction: 'Nhấn nút bên dưới để mở trang thanh toán VNPAY. Điền thông tin thẻ ATM/Visa/MasterCard để hoàn tất.',
+  Line 194: note: 'Trang VNPAY sẽ mở trong trình duyệt của bạn.',
+  Line 197: title: 'CỔNG THANH TOÁN MOMO',
+  Line 200: buttonText: 'Mở Ứng Dụng MoMo',
+  Line 201: instruction: 'Nhấn nút bên dưới để mở ứng dụng Ví MoMo. Xác nhận thanh toán trực tiếp trên app MoMo.',
+  Line 202: note: 'Ứng dụng MoMo sẽ tự động khởi chạy để xác nhận.',
+  Line 241: Thanh Toán Thành Công!
+  Line 244: Mã đặt chỗ: {orderCode}
+  Line 254: {totalPrice.toLocaleString('vi-VN')} đ
+  Line 264: <Text style={tw`text-slate-400 text-[11px] font-bold uppercase tracking-wider`}>Hành Trình</Text>
+  Line 269: <Text style={tw`text-slate-400 text-[11px] font-bold uppercase tracking-wider`}>Ngày Đi</Text>
+  Line 275: <Text style={tw`text-slate-400 text-[11px] font-bold uppercase tracking-wider`}>Ngày Về</Text>
+  Line 281: <Text style={tw`text-slate-400 text-[11px] font-bold uppercase tracking-wider`}>Số Ghế</Text>
+  Line 283: {seats}{returnSeats ? ` | Khứ hồi: ${returnSeats}` : ''}
+  Line 291: Hệ thống đang xuất vé điện tử gửi về email:{'\n'}
+  Line 302: Đang mở lịch sử đặt vé...
+  Line 342: Thanh Toán Thất Bại
+  Line 345: Giao dịch đã bị huỷ hoặc không thể thực hiện hoàn tất.{'\n'}
+  Line 346: Mã giao dịch: <Text style={tw`text-rose-400 font-black`}>{orderCode || 'N/A'}</Text>
+  Line 357: Ghế ngồi đã chọn của bạn đã được giải phóng trên hệ thống.
+  Line 363: Số tiền chưa được trừ khỏi tài khoản. Nếu đã bị trừ, hệ thống sẽ tự động hoàn trả lại ví.
+  Line 380: Quay Lại Đặt Vé
+  Line 391: Về Trang Chủ
+  Line 424: 💳 HỆ THỐNG THANH TOÁN VÉ XE
+  Line 434: {/* Mã đặt chỗ chip */}
+  Line 437: <Text style={tw`text-white/70 text-[10.5px] font-black uppercase tracking-widest`}>Mã đặt chỗ:</Text>
+  Line 472: <Text style={tw`text-[17px] font-black text-white text-center mb-1`}>Phiên thanh toán hết hạn</Text>
+  Line 474: Đơn giữ chỗ đã quá hạn.{'\n'}Vui lòng bắt đầu lại hành trình đặt vé.
+  Line 481: <Text style={tw`text-white text-[13px] font-black`}>← Quay lại chọn vé</Text>
+  Line 502: Quét mã QR bằng điện thoại để thanh toán, hoặc bấm nút dưới đây để chuyển tiếp trực tiếp
+  Line 517: Đang chờ xác nhận thanh toán...
+  Line 540: {opening ? 'Đang mở...' : brand.buttonText}
+  Line 547: <Text style={tw`text-slate-400 text-[12px] font-bold mt-3`}>Đang khởi tạo giao dịch...</Text>
+  Line 571: 🛠️ Công cụ Giả lập (Chỉ hiển thị khi Test)
+  Line 579: Alert.alert('Giả lập thành công', 'Đơn hàng đã được duyệt thanh toán trên Database.');
+  Line 581: Alert.alert('Thất bại', res.data.message);
+  Line 584: Alert.alert('Lỗi', err.message || 'Không thể gửi yêu cầu giả lập.');
+  Line 589: <Text style={tw`text-white text-[11px] font-black uppercase`}>Duyệt Thành Công</Text>
+  Line 597: Alert.alert('Giả lập huỷ', 'Đơn hàng đã bị xoá và giải phóng ghế.');
+  Line 600: Alert.alert('Thất bại', res.data.message);
+  Line 603: Alert.alert('Lỗi', err.message || 'Không thể gửi yêu cầu giả lập.');
+  Line 608: <Text style={tw`text-white text-[11px] font-black uppercase`}>Duyệt Huỷ/Thất Bại</Text>
+  Line 616: <Text style={tw`text-[9px] font-black text-white/30 uppercase tracking-widest`}>ĐỪNG THOÁT MÀN HÌNH NÀY</Text>
+  Line 617: <Text style={tw`text-[9px] font-black text-white/30 uppercase tracking-widest`}>TỰ ĐỘNG CẬP NHẬT</Text>
+  Line 631: <Text style={tw`text-[12px] font-black text-[#0f172a] uppercase tracking-wider`}>NHÀ XE ABC</Text>
+  Line 632: <Text style={tw`text-[9px] font-bold text-[#94a3b8] uppercase tracking-widest`}>THÔNG TIN ĐƠN HÀNG</Text>
+  Line 639: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Nhà cung cấp</Text>
+  Line 640: <Text style={tw`text-[13px] font-black text-[#0f172a] mt-0.5`}>CÔNG TY CỔ PHẦN XE ABC BUS LINE</Text>
+  Line 645: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Mã đặt chỗ</Text>
+  Line 662: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Tuyến đường</Text>
+  Line 668: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Mã ghế</Text>
+  Line 671: {returnSeats ? <Text style={tw`text-[11px] font-bold text-[#64748b] mt-0.5`}>Về: {returnSeats}</Text> : null}
+  Line 677: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Ngày đi</Text>
+  Line 680: {returnDate ? <Text style={tw`text-[11px] font-bold text-[#64748b] mt-0.5`}>Về: {returnDate}</Text> : null}
+  Line 688: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Tổng tiền</Text>
+  Line 690: {totalPrice.toLocaleString('vi-VN')}đ
+  Line 695: <Text style={tw`text-[10px] font-black text-[#94a3b8] uppercase tracking-widest`}>Trạng thái</Text>
+  Line 698: <Text style={tw`text-[10px] font-black text-amber-600 uppercase tracking-widest`}>CHỜ THANH TOÁN</Text>
+  Line 710: <Text style={tw`text-[11.5px] text-[#64748b] font-black`}>Đơn tự động hủy sau:</Text>
+  Line 717: <Text style={tw`text-[11.5px] font-black text-[#EF5222] uppercase tracking-widest`}>← Hủy đặt vé & Quay lại</Text>
+
+📄 File: \app\booking\search-trip.tsx
+  Line 44: pref: "✨ AI ĐỀ XUẤT THEO SỞ THÍCH",
+  Line 45: clearFast: "🍃 ĐƯỜNG THOÁNG - CHẠY NHANH ĐỠ MỆT",
+  Line 46: safeDay: "🛡️ TỚI NƠI BAN NGÀY AN TOÀN",
+  Line 47: overnightSave: "🌙 NGỦ ĐÊM TRÊN XE TIẾT KIỆM THỜI GIAN",
+  Line 48: clearCheckin: "🌟 ĐƯỜNG THOÁNG + ĐÚNG GIỜ NHẬN PHÒNG",
+  Line 49: hotelCheckin: "🏨 TỚI NƠI ĐÚNG GIỜ NHẬN PHÒNG",
+  Line 50: sunrise: "⛅ NGỦ MỘT GIẤC - TỈNH DẬY ĐÓN BÌNH MINH",
+  Line 51: lessSick: "🍃 KHỞI HÀNH ĐƯỜNG THOÁNG - ĐỠ SAY XE",
+  Line 52: leisureCafe: "☕ TỚI NƠI THONG THẢ ĂN SÁNG CAFE",
+  Line 53: clearFastest: "🍃 XUẤT BẾN ĐƯỜNG THOÁNG - ĐI NHANH NHẤT",
+  Line 54: clearFastestReturn: "🍃 XUẤT BẾN ĐƯỜNG THOÁNG - VỀ NHÀ NHANH NHẤT",
+  Line 55: workTime: "💼 KỊP GIỜ HÀNH CHÍNH / LÀM VIỆC",
+  Line 56: workTimeNext: "💼 KỊP GIỜ LÀM VIỆC SÁNG HÔM SAU",
+  Line 57: easySleep: "🌙 CHUYẾN ĐÊM DỄ NGỦ"
+  Line 101: console.error('Lỗi tải chuyến đi:', error);
+  Line 123: console.error('Lỗi tải chuyến về:', error);
+  Line 198: const touristDests = ['đà lạt', 'nha trang', 'vũng tàu', 'phan thiết', 'đà nẵng'];
+  Line 292: alert(trip.bookingBlockedReason || 'Chuyến xe này hiện tại không thể đặt.');
+  Line 406: {tripType === 'round' ? '🔄 HÀNH TRÌNH KHỨ HỒI' : '➡️ HÀNH TRÌNH MỘT CHIỀU'}
+  Line 438: <Text style={tw`text-white text-[11px] font-black`}>{tickets} vé</Text>
+  Line 442: <Text style={tw`text-white text-[11px] font-black`}>{currentTrips.length} chuyến</Text>
+  Line 453: <Text style={tw`text-white text-[11px] font-black uppercase tracking-wider`}>Lọc</Text>
+  Line 476: ✈ CHIỀU ĐI
+  Line 494: alert('Vui lòng chọn chuyến đi trước');
+  Line 506: ↩ CHIỀU VỀ
+  Line 509: <Text style={tw`text-white/50 text-[9px] font-black mt-0.5`}>Chọn chiều đi trước</Text>
+  Line 520: <Text style={tw`text-sm text-[#475569] mt-4 font-black tracking-wide`}>Đang tìm kiếm chuyến xe phù hợp...</Text>
+  Line 527: <Text style={tw`text-base text-[#0f172a] font-black tracking-wide`}>Không tìm thấy chuyến xe phù hợp</Text>
+  Line 529: Vui lòng thay đổi bộ lọc hoặc chọn ngày đi khác để tiếp tục tìm kiếm chuyến xe.
+  Line 549: if (bt.includes('giường')) return { bg: '#ede9fe', text: '#7c3aed', border: '#ddd6fe' };
+  Line 585: <Text style={tw`text-[9px] font-black text-white uppercase tracking-wider`}>AI GỢI Ý</Text>
+  Line 642: <Text style={tw`text-[10px] font-black text-[#dc2626]`}>Hết chỗ</Text>
+  Line 646: <Text style={tw`text-[10px] font-black text-[#b45309]`}>⚡ Còn {item.availableSeats} chỗ</Text>
+  Line 650: <Text style={tw`text-[10px] font-black text-[#15803d]`}>✓ {item.availableSeats} chỗ</Text>
+  Line 659: {Number(item.price).toLocaleString('vi-VN')}đ
+  Line 667: <Text style={tw`text-[11px] font-black text-white uppercase tracking-wider`}>Đặt vé</Text>
+  Line 691: <Text style={tw`text-base font-black text-[#0f172a] uppercase tracking-wider`}>Bộ lọc tìm kiếm</Text>
+  Line 702: <Text style={tw`text-xs font-black text-[#94a3b8] uppercase tracking-widest mb-3.5`}>Khung giờ xuất phát</Text>
+  Line 705: { label: 'Sáng sớm (00h-06h)', val: '00-06' },
+  Line 706: { label: 'Buổi sáng (06h-12h)', val: '06-12' },
+  Line 707: { label: 'Buổi chiều (12h-18h)', val: '12-18' },
+  Line 708: { label: 'Buổi tối (18h-24h)', val: '18-24' },
+  Line 735: <Text style={tw`text-xs font-black text-[#94a3b8] uppercase tracking-widest mb-3.5`}>Loại xe khách</Text>
+  Line 737: {['Limousine', 'Giường nằm 40 chỗ', 'Ghế ngồi'].map((type) => {
+  Line 768: <Text style={tw`text-[#475569] text-[13.5px] font-black uppercase tracking-wider`}>Xóa lọc</Text>
+  Line 775: <Text style={tw`text-white text-[13.5px] font-black uppercase tracking-wider`}>Áp dụng</Text>
+
+📄 File: \app\booking\select-seats.tsx
+  Line 122: .catch(err => console.error("Lỗi lấy dữ liệu Loyalty:", err));
+  Line 140: console.error(`Lỗi lấy ghế chuyến ${tripId}:`, error);
+  Line 167: const seatsTầngDưới = useMemo(() => [...generateFloor(1, 'A'), { id: 'A6', status: getSeatStatus('A6') }, ...generateFloor(1, 'B')], [currentBookedSeats, currentLockedSeats]);
+  Line 168: const seatsTầngTrên = useMemo(() => [...generateFloor(7, 'A'), { id: 'A12', status: getSeatStatus('A12') }, ...generateFloor(6, 'B')], [currentBookedSeats, currentLockedSeats]);
+  Line 179: Alert.alert('Quá số lượng', `Bạn chỉ được chọn tối đa ${tickets} ghế.`);
+  Line 193: preferredSeatFloor: 'Tầng dưới',
+  Line 197: const preferredFloorSeats = mockPreferences.preferredSeatFloor === 'Tầng dưới' ? seatsTầngDưới : seatsTầngTrên;
+  Line 198: const otherFloorSeats = mockPreferences.preferredSeatFloor === 'Tầng dưới' ? seatsTầngTrên : seatsTầngDưới;
+  Line 226: }, [isSeatsLoaded, bookingStep, seatsTầngDưới, seatsTầngTrên]);
+  Line 264: Alert.alert('Lỗi', 'Vui lòng nhập email hợp lệ để xác thực.');
+  Line 273: Alert.alert('Thành công', 'Mã xác thực OTP đã được gửi tới email của bạn.');
+  Line 275: Alert.alert('Lỗi', 'Không thể gửi mã OTP. Vui lòng thử lại!');
+  Line 283: Alert.alert('Lỗi', 'Vui lòng nhập đủ 6 chữ số OTP.');
+  Line 295: Alert.alert('Thành công', 'Xác thực email thành công!');
+  Line 297: Alert.alert('Lỗi', error.response?.data?.message || 'Mã OTP hết hạn hoặc không đúng.');
+  Line 313: Alert.alert('Thành công', `Đổi thành công voucher: ${promo.title}`);
+  Line 316: Alert.alert('Lỗi', error.response?.data?.message || 'Không thể đổi điểm.');
+  Line 326: Alert.alert('Lỗi', 'Voucher này đã được sử dụng.');
+  Line 333: Alert.alert('Lỗi', 'Không tìm thấy mã giảm giá này.');
+  Line 359: Alert.alert('Lỗi', `Vui lòng chọn đủ ${tickets} ghế cho lượt đi.`);
+  Line 363: Alert.alert('Lỗi', 'Không tìm thấy chuyến về. Vui lòng quay lại chọn lại.');
+  Line 373: Alert.alert('Lỗi', `Vui lòng chọn đủ ${tickets} ghế.`);
+  Line 379: Alert.alert('Lỗi', 'Chuyến xe khởi hành trong vòng 3 giờ tới. Bạn không thể đặt vé lúc này.');
+  Line 388: Alert.alert('Lỗi', 'Vui lòng nhập họ và tên đầy đủ (ít nhất 2 từ).');
+  Line 393: Alert.alert('Lỗi', 'Vui lòng nhập email liên hệ.');
+  Line 398: Alert.alert('Lỗi', 'Số điện thoại không hợp lệ. Vui lòng nhập số di động Việt Nam (03x, 05x, 07x, 08x, 09x).');
+  Line 403: Alert.alert('Lỗi', 'Vui lòng xác thực email của bạn bằng mã OTP trước khi đặt vé.');
+  Line 467: Alert.alert('Lỗi', error.response?.data?.message || 'Không thể tạo giao dịch thanh toán.');
+  Line 516: ? (bookingStep === 'outbound' ? '🎫 Chọn Ghế Lượt Đi' : '🔄 Chọn Ghế Lượt Về')
+  Line 517: : '🎫 Chọn Ghế & Liên Hệ'}
+  Line 520: {from} ➔ {to}  ·  {tickets} vé
+  Line 525: {/* Step indicator khứ hồi */}
+  Line 532: <Text style={[tw`text-[8.5px] font-bold mt-0.5`, { color: bookingStep === 'outbound' ? '#ffffff' : 'rgba(255,255,255,0.4)' }]}>Đi</Text>
+  Line 539: <Text style={[tw`text-[8.5px] font-bold mt-0.5`, { color: bookingStep === 'return' ? '#ffffff' : 'rgba(255,255,255,0.4)' }]}>Về</Text>
+  Line 566: <Text style={tw`text-white/80 text-[9px] font-black`}>{curBusType || 'Xe khách'}</Text>
+  Line 582: <Text style={tw`text-white text-[10px] font-black`}>🎫 {tickets} vé</Text>
+  Line 591: {curPrice > 0 ? curPrice.toLocaleString('vi-VN') + 'đ' : ''}
+  Line 604: <Text style={tw`text-[14.5px] font-black text-[#0f172a] uppercase tracking-wider`}>Thông tin liên hệ</Text>
+  Line 609: <Text style={tw`text-[12px] font-black text-[#64748b] mb-1.5`}>Họ và tên *</Text>
+  Line 616: setNameError(words.length < 2 ? 'Vui lòng nhập đủ họ và tên (ít nhất 2 từ)' : '');
+  Line 621: placeholder="Nhập họ và tên"
+  Line 634: <Text style={tw`text-[12px] font-black text-[#64748b] mb-1.5`}>Số điện thoại *</Text>
+  Line 641: setPhoneError('Số điện thoại không hợp lệ (03x, 05x, 07x, 08x, 09x)');
+  Line 648: placeholder="Nhập số điện thoại (VD: 0901234567)"
+  Line 659: <Text style={tw`text-[12px] font-black text-[#64748b] mb-1.5`}>Email nhận vé *</Text>
+  Line 669: placeholder="Nhập email"
+  Line 680: {countdown > 0 ? `${countdown}s` : 'Gửi mã'}
+  Line 691: Nhập mã OTP gồm 6 chữ số đã gửi qua email:
+  Line 699: placeholder="Mã OTP"
+  Line 706: <Text style={tw`text-white text-[12px] font-black`}>Xác thực</Text>
+  Line 722: CHỌN GHẾ
+  Line 725: {bookingStep === 'outbound' ? '🚌 Lượt đi' : '🔄 Lượt về'} · Tối đa {tickets} ghế
+  Line 730: <Text style={tw`text-white text-[10px] font-black tracking-wider`}>SƠ ĐỒ VIP</Text>
+  Line 741: <Text style={tw`text-[13.5px] font-black text-[#EF5222] mb-1`}>🤖 AI đề xuất ghế phù hợp nhất</Text>
+  Line 743: Ghế <Text style={tw`font-black text-[#EF5222]`}>{currentAiSuggestedSeat}</Text> được tự động chọn — vị trí cửa sổ thông thoáng, dễ xuống xe.
+  Line 753: <Text style={tw`text-[12px] text-[#64748b] font-black`}>Trống</Text>
+  Line 758: <Text style={tw`text-[12px] text-[#EF5222] font-black`}>Đã chọn</Text>
+  Line 763: <Text style={tw`text-[12px] text-[#94a3b8] font-black`}>Đã đặt</Text>
+  Line 772: <Text style={tw`text-center text-[11px] font-black text-[#475569] uppercase tracking-wider`}>🪜 Tầng dưới</Text>
+  Line 775: {seatsTầngDưới.map((seat) => {
+  Line 799: {isSold && <Text style={tw`text-[7px] font-black text-[#94a3b8] mt-0.5`}>HẾT</Text>}
+  Line 812: <Text style={tw`text-center text-[11px] font-black text-[#475569] uppercase tracking-wider`}>🔝 Tầng trên</Text>
+  Line 815: {seatsTầngTrên.map((seat) => {
+  Line 839: {isSold && <Text style={tw`text-[7px] font-black text-[#94a3b8] mt-0.5`}>HẾT</Text>}
+  Line 853: <Text style={tw`text-[14.5px] font-black text-[#0f172a] uppercase tracking-wider`}>Phương thức thanh toán</Text>
+  Line 857: { id: 'MOMO', label: 'Ví MoMo', desc: 'Thanh toán trực tuyến qua ứng dụng MoMo' },
+  Line 858: { id: 'BANK', label: 'Chuyển khoản VietQR', desc: 'Quét mã QR bằng ứng dụng Ngân hàng (Mobile Banking)' },
+  Line 859: { id: 'VNPAY', label: 'Cổng VNPAY', desc: 'Thanh toán bằng thẻ ATM nội địa / Quốc tế / VNPAY QR' },
+  Line 894: {appliedPromo ? `🎫 Voucher: ${appliedPromo.code}` : '🎫 Thêm mã voucher / ưu đãi'}
+  Line 898: <Text style={tw`text-[9.5px] font-black text-[#15803d]`}>-{discountAmount.toLocaleString('vi-VN')}đ</Text>
+  Line 909: <Text style={tw`text-[9.5px] font-black text-[#94a3b8] uppercase tracking-widest`}>Tổng thanh toán</Text>
+  Line 911: {finalAmount.toLocaleString('vi-VN')}đ
+  Line 914: <Text style={tw`text-[10px] text-[#22c55e] font-black`}>Đã tiết kiệm {discountAmount.toLocaleString('vi-VN')}đ</Text>
+  Line 928: {tripType === 'round' && bookingStep === 'outbound' ? 'Chiều về ›' : 'Đặt vé ngay'}
+  Line 961: <Text style={tw`text-xs font-bold text-[#475569]`}>Voucher sở hữu</Text>
+  Line 967: <Text style={tw`text-xs font-bold text-[#475569]`}>Đổi voucher</Text>
+  Line 976: <Text style={tw`text-xs text-[#94a3b8]`}>Bạn chưa sở hữu voucher nào.</Text>
+  Line 987: <Text style={tw`text-[11px] text-[#64748b] mt-1`}>Mã: {voucher.code}</Text>
+  Line 990: {voucher.type === 'percent' ? `Giảm ${voucher.value}%` : `Giảm ${(voucher.value).toLocaleString('vi-VN')}đ`}
+  Line 999: <Text style={tw`text-xs text-[#94a3b8]`}>Hiện không có voucher để đổi.</Text>
+  Line 1009: <Text style={tw`text-[11px] text-[#EF5222] font-bold mt-1`}>Cần {voucher.cost} LotusPoints</Text>
+  Line 1016: <Text style={tw`text-white text-[10px] font-black`}>Đổi điểm</Text>
+  Line 1030: placeholder="Nhập mã ưu đãi thủ công"
+  Line 1037: <Text style={tw`text-white text-xs font-bold`}>Áp dụng</Text>
+
+📄 File: \app\contact.tsx
+  Line 99: Linking.openURL(`mailto:${emailAddress}?subject=Liên hệ từ Mobile App ABC`);
+  Line 115: setStatusMsg({ type: 'error', text: 'Vui lòng kiểm tra và điền đầy đủ thông tin hợp lệ!' });
+  Line 133: setStatusMsg({ type: 'error', text: 'Máy chủ phản hồi lỗi. Vui lòng thử lại sau!' });
+  Line 136: setStatusMsg({ type: 'error', text: 'Không kết nối được đến máy chủ. Vui lòng kiểm tra mạng!' });
+  Line 182: Liên Hệ Ban CSKH ABC
+  Line 186: Kết Nối & Góp Ý
+  Line 204: Cam Kết Dịch Vụ
+  Line 207: Hành trình vạn dặm - Phục vụ tận tâm
+  Line 212: {/* Form Gửi Tin nhắn */}
+  Line 215: Gửi Tin Nhắn Phản Hồi
+  Line 245: <Text style={tw`text-[18px] font-black text-slate-800`}>Gửi thành công!</Text>
+  Line 247: Yêu cầu của bạn đã được lưu vào hệ thống của nhà xe ABC. Chúng tôi sẽ liên hệ lại sớm nhất có thể.
+  Line 257: Gửi thêm tin nhắn
+  Line 263: {/* Họ tên */}
+  Line 266: Họ tên của bạn
+  Line 271: placeholder="Ví dụ: Nguyễn Văn A"
+  Line 277: {/* Số điện thoại */}
+  Line 280: Số điện thoại
+  Line 285: placeholder="Ví dụ: 0912345678"
+  Line 295: Số điện thoại không hợp lệ!
+  Line 303: Địa chỉ Email
+  Line 308: placeholder="Ví dụ: nguyenVana@gmail.com"
+  Line 319: Email sai định dạng!
+  Line 324: {/* Nội dung tin nhắn */}
+  Line 327: Nội dung đóng góp, phản hồi
+  Line 332: placeholder="Nhập nội dung bác cần gửi phản hồi cho ABC..."
+  Line 362: Gửi yêu cầu ngay
+  Line 372: {/* Thông tin Trụ sở, Điện thoại khác */}
+  Line 374: Thông Tin Liên Hệ Khác
+  Line 377: {/* Card: Trụ sở */}
+  Line 384: Trụ sở chính
+  Line 387: 123 Đường Nguyễn Huệ, Quận 1, TP. HCM
+  Line 402: Tổng đài 24/7 (Bấm để gọi)
+  Line 420: Email phản hồi (Bấm để gửi)
+
+📄 File: \app\news.tsx
+  Line 65: title: "ABC Bus Line công bố Trợ lý AI đặt vé bằng giọng nói thông minh thế hệ mới",
+  Line 66: excerpt: "Nhà xe ABC Bus chính thức tích hợp trí tuệ nhân tạo AI vào hệ thống, cho phép khách hàng đặt vé và chọn ghế bằng khẩu lệnh tiếng Việt cực kỳ nhanh chóng.",
+  Line 68: "Công nghệ đặt vé bằng giọng nói thông minh (AI Voice Booking) của ABC Bus Line đánh dấu một bước đột phá lớn trong ngành vận tải hành khách tại Việt Nam. Giờ đây, thay vì phải thao tác nhiều bước trên điện thoại, khách hàng chỉ cần nói tự nhiên yêu cầu của mình.",
+  Line 69: "Trợ lý AI sẽ tự động phân tích điểm đi, điểm đến, ngày khởi hành và gợi ý chuyến xe phù hợp nhất, đồng thời hỗ trợ chọn ghế trống theo mong muốn chỉ trong vòng 5 giây. Hệ thống nhận diện chuẩn xác giọng nói 3 miền Bắc - Trung - Nam.",
+  Line 70: "Đây là nỗ lực không ngừng của ABC Bus Line nhằm mang đến trải nghiệm di chuyển hiện đại, tiện lợi nhất, giúp cả những khách hàng lớn tuổi cũng có thể dễ dàng tiếp cận công nghệ đặt vé trực tuyến."
+  Line 73: categoryLabel: "Thông báo",
+  Line 75: author: "Ban Công Nghệ ABC",
+  Line 76: readTime: "3 phút đọc",
+  Line 81: title: "Bí quyết du lịch Đà Lạt tự túc bằng xe Limousine giường nằm cao cấp",
+  Line 82: excerpt: "Chia sẻ cẩm nang chi tiết kinh nghiệm đặt xe cabin VIP đi Đà Lạt ngắm hoa dã quỳ, những điểm check-in không thể bỏ lỡ và mẹo đặt vé rẻ.",
+  Line 84: "Đà Lạt luôn là điểm đến hấp dẫn du khách vào mọi mùa trong năm. Để hành trình dài hơn 300km từ TP. Hồ Chí Minh trở nên êm ái và thư giãn, xe Limousine giường nằm đôi cao cấp của ABC Bus Line là sự lựa chọn tối ưu.",
+  Line 85: "Xe trang bị giường cabin rộng rãi có chức năng massage, cổng sạc điện thoại, tai nghe riêng biệt và rèm che riêng tư. Bạn hoàn toàn có thể ngủ một giấc thật ngon và thức dậy đón bình minh lạnh giá của Đà Lạt.",
+  Line 86: "Thời điểm đẹp nhất để ngắm Đà Lạt là từ tháng 10 đến tháng 12 với mùa hoa dã quỳ rực rỡ và đồi cỏ hồng thơ mộng. Hãy lên kế hoạch đặt vé trước 1-2 tuần qua website ABC để chọn được những khoang giường tầng dưới có view kính rộng ngắm cảnh đồi thông cực chất."
+  Line 89: categoryLabel: "Cẩm nang",
+  Line 91: author: "Nguyễn Hoài Nam (Travel Blogger)",
+  Line 92: readTime: "4 phút đọc",
+  Line 97: title: "Ưu đãi siêu khủng: Giảm ngay 20% cho khách hàng đặt vé khứ hồi dịp hè",
+  Line 98: excerpt: "Nhằm tri ân khách hàng và đồng hành cùng mùa du lịch sôi động, ABC Bus Line tung chương trình ưu đãi lớn dành riêng cho vé khứ hồi trên mọi hành trình.",
+  Line 100: "Mùa hè vẫy gọi với những bãi biển cát trắng nắng vàng tại Nha Trang, Phan Thiết, Vũng Tàu hay không khí trong lành tại Đà Lạt. Để tiếp thêm năng lượng cho chuyến đi của bạn, ABC Bus Line hân hạnh mang tới chương trình khuyến mại 'Vui Hè Rực Rỡ - Trọn Vẹn Hành Trình'.",
+  Line 101: "Cụ thể, tất cả các giao dịch mua vé khứ hồi (Outbound & Return) trực tiếp trên hệ thống website hoặc ứng dụng di động ABC Bus Line đều được giảm giá trực tiếp 20% trên tổng giá trị hóa đơn vé về.",
+  Line 102: "Chương trình áp dụng cho thời gian đặt vé và khởi hành từ ngày 01/06/2026 đến hết ngày 31/08/2026. Số lượng vé khuyến mãi có hạn mỗi ngày, hãy đặt ngay để tận hưởng mức giá tốt nhất cùng gia đình!"
+  Line 105: categoryLabel: "Khuyến mãi",
+  Line 107: author: "Phòng Truyền Thông ABC",
+  Line 108: readTime: "2 phút đọc",
+  Line 113: title: "Thông báo lịch chạy tăng cường phục vụ dịp Lễ lớn cam kết không tăng giá vé",
+  Line 114: excerpt: "Để phục vụ nhu cầu di chuyển tăng cao của người dân, ABC Bus Line tăng cường hơn 100 chuyến xe mỗi ngày và cam kết bình ổn giá vé.",
+  Line 116: "Nhằm đáp ứng tối đa nhu cầu đi lại, thăm quê và du lịch của hành khách trong dịp Lễ lớn sắp tới, ABC Bus Line đã chủ động lên kế hoạch tăng tần suất phục vụ trên toàn bộ các tuyến đường trọng điểm.",
+  Line 117: "Chúng tôi bổ sung thêm 120 chuyến xe Limousine VIP giường nằm mỗi ngày xuất phát từ các đầu bến Hà Nội, Đà Nẵng và TP. Hồ Chí Minh. Toàn bộ xe tăng cường đều được kiểm tra kỹ thuật nghiêm ngặt và vệ sinh sạch sẽ trước giờ khởi hành.",
+  Line 118: "Đặc biệt, ABC Bus Line long trọng cam kết thực hiện đúng triết lý 'Chất lượng là danh dự' - hoàn toàn bình ổn giá vé, tuyệt đối không phụ thu hay tăng giá vé dưới mọi hình thức, đảm bảo quyền lợi tốt nhất cho người tiêu dùng."
+  Line 121: categoryLabel: "Thông báo",
+  Line 123: author: "Ban Điều Hành Bến Xe ABC",
+  Line 124: readTime: "2 phút đọc",
+  Line 129: title: "Hướng dẫn tích điểm đổi quà VIP Loyalty dành cho khách hàng thân thiết",
+  Line 130: excerpt: "Khám phá đặc quyền của chương trình Loyalty VIP, cách tích điểm tự động sau mỗi hành trình và hướng dẫn đổi voucher giảm giá cực dễ dàng.",
+  Line 132: "Chương trình Khách hàng Thân thiết (Loyalty Program) của ABC Bus Line được thiết kế để mang lại những giá trị cộng thêm thiết thực nhất cho mỗi chuyến đi của hành khách.",
+  Line 133: "Sau khi hoàn thành mỗi hành trình, hệ thống sẽ tự động tích lũy điểm thưởng dựa trên giá trị vé của bạn (Ví dụ: mỗi 10,000đ chi tiêu tương đương với 1 điểm Loyalty). Khi tích lũy đạt các cột mốc quy định, bạn sẽ thăng hạng thành viên: Đồng, Bạc, Vàng và Kim Cương.",
+  Line 134: "Hành khách có thể sử dụng điểm tích lũy này để trực tiếp đổi lấy các voucher giảm giá 50k, 100k hoặc các phần quà lưu niệm cao cấp ngay trong ứng dụng của ABC Bus Line. Hãy đăng nhập tài khoản trước khi đặt vé để không bỏ lỡ điểm thưởng tích lũy nào nhé!"
+  Line 137: categoryLabel: "Hướng dẫn",
+  Line 139: author: "Phòng CSKH ABC",
+  Line 140: readTime: "3 phút đọc",
+  Line 145: title: "Tuyển dụng Tài xế & Tiếp viên dịch vụ tiêu chuẩn hàng không - Thu nhập hấp dẫn",
+  Line 146: excerpt: "Mở rộng quy mô hoạt động, ABC Bus Line tìm kiếm những cộng sự chuyên nghiệp gia nhập đội ngũ tài xế và tiếp viên cabin VIP.",
+  Line 148: "Với mục tiêu nâng tầm dịch vụ vận tải đường bộ đạt tiêu chuẩn hàng không 5 sao, ABC Bus Line đang mở rộng tuyển dụng nhiều vị trí nhân sự chất lượng cao trên phạm vi toàn quốc.",
+  Line 149: "Chúng tôi tìm kiếm các ứng viên cho vị trí Tài xế xe giường nằm (yêu cầu bằng lái hạng E, tối thiểu 3 năm kinh nghiệm chạy xe khách đường dài) và Tiếp viên chăm sóc cabin VIP (yêu cầu ngoại hình ưa nhìn, giao tiếp thân thiện, kỹ năng xử lý tình huống tốt).",
+  Line 150: "Gia nhập ABC Bus Line, bạn sẽ được làm việc trong môi trường chuyên nghiệp, lộ trình thăng tiến rõ ràng, đóng đầy đủ bảo hiểm cùng mức thu nhập vô cùng cạnh tranh trên thị trường (Lương cứng + thưởng năng suất chạy xe vượt trội)."
+  Line 153: categoryLabel: "Tuyển dụng",
+  Line 155: author: "Phòng Nhân Sự ABC",
+  Line 156: readTime: "3 phút đọc",
+  Line 217: { id: 'all', label: 'Tất cả', icon: (color: string) => getCategoryIcon('all', color) },
+  Line 218: { id: 'khuyenmai', label: 'Khuyến mãi', icon: (color: string) => getCategoryIcon('khuyenmai', color) },
+  Line 219: { id: 'thongbao', label: 'Thông báo', icon: (color: string) => getCategoryIcon('thongbao', color) },
+  Line 220: { id: 'huongdan', label: 'Hướng dẫn', icon: (color: string) => getCategoryIcon('huongdan', color) },
+  Line 221: { id: 'camnang', label: 'Cẩm nang', icon: (color: string) => getCategoryIcon('camnang', color) },
+  Line 222: { id: 'tuyendung', label: 'Tuyển dụng', icon: (color: string) => getCategoryIcon('tuyendung', color) }
+  Line 301: .replace(/đ/g, "d")
+  Line 358: Tin Tức & Sự Kiện ABC
+  Line 362: Khám Phá Hành Trình
+  Line 375: placeholder="Tìm ưu đãi, cẩm nang, thông báo..."
+  Line 561: Đọc đầy đủ bài viết
+  Line 565: Đọc ngay
+  Line 580: Không tìm thấy bài viết nào phù hợp
+  Line 583: Vui lòng thử tìm kiếm bằng từ khóa hoặc chọn danh mục lọc khác.
+  Line 611: <Text style={tw`text-[9.5px] font-black text-slate-400 uppercase tracking-widest`}>CHI TIẾT BÀI BÁO</Text>
+  Line 665: <Text style={tw`text-[9px] font-black text-slate-400 uppercase mt-1`}>TÁC GIẢ</Text>
+  Line 671: <Text style={tw`text-[9px] font-black text-slate-400 uppercase mt-1`}>NGÀY ĐĂNG</Text>
+  Line 677: <Text style={tw`text-[9px] font-black text-slate-400 uppercase mt-1`}>ĐỌC TIN</Text>
+  Line 708: BẢN QUYỀN THUỘC VỀ ABC BUS LINES
+  Line 712: Hệ thống đặt vé xe khách thông minh hàng đầu Việt Nam
+
+📄 File: \app\oauthredirect.tsx
+  Line 62: Đang xác thực tài khoản Google...
+  Line 71: {/* Background Gradient Sang Trọng */}
+  Line 78: {/* Glow effect đằng sau biểu tượng */}
+  Line 95: {/* Biểu tượng lấp lánh trang trí xung quanh */}
+  Line 104: {/* Nội dung lời chúc */}
+  Line 115: Thành công
+  Line 118: Đăng nhập hoàn tất!
+  Line 121: Chào mừng <Text style={tw`text-white font-black`}>{user?.name || 'Thành viên'}</Text> đã quay trở lại với ABC Bus Lines.
+  Line 125: {/* Chấm tròn hiệu ứng loading nhỏ ở dưới */}
+  Line 128: <Text style={tw`text-slate-500 text-xs font-bold`}>Đang chuyển hướng...</Text>
+
+📄 File: \app\tracking\[orderId].tsx
+  Line 36: if (ms <= 0) return 'Đã đến nơi';
+  Line 40: if (h > 0) return `${h} giờ ${m} phút`;
+  Line 41: return `${m} phút`;
+  Line 65: <Text style={tw`text-[10px] font-black text-slate-500 uppercase tracking-wide`}>Điểm đi</Text>
+  Line 71: <Text style={tw`text-[10px] font-black text-slate-500 uppercase tracking-wide`}>Điểm đến</Text>
+  Line 115: <Text style={tw`text-[12px] font-bold text-slate-400`}>Tiến độ hành trình</Text>
+  Line 165: Alert.alert('Thông báo', 'Không có thông tin số điện thoại tài xế.');
+  Line 172: const statusLabel = tripStatus === 'arrived' ? 'Đã đến nơi' : tripStatus === 'ongoing' ? 'Đang trên đường' : 'Chưa khởi hành';
+  Line 196: Theo dõi xe thời gian thực
+  Line 228: <Text style={tw`text-[14px] font-black text-slate-800`}>Vị trí xe ước tính</Text>
+  Line 256: <Text style={tw`text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3`}>Thời gian dự kiến</Text>
+  Line 259: <Text style={tw`text-[11px] font-bold text-slate-400`}>ETA còn lại</Text>
+  Line 261: {tripStatus === 'arrived' ? '🎉 Đã đến!' : formatDuration(etaMs)}
+  Line 265: <Text style={tw`text-[11px] font-bold text-slate-400`}>Giờ đến dự kiến</Text>
+  Line 274: <Text style={tw`text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3`}>Thông tin xe & Tài xế</Text>
+  Line 282: <Text style={tw`text-[11px] font-bold text-slate-400`}>Biển số xe</Text>
+  Line 296: <Text style={tw`text-[13px] font-bold text-slate-400`}>Chưa có thông tin xe</Text>
+  Line 307: <Text style={tw`text-[11px] font-bold text-slate-400`}>Tài xế</Text>
+  Line 318: <Text style={tw`text-[12px] font-black text-white`}>Gọi ngay</Text>
+  Line 327: <Text style={tw`text-[13px] font-bold text-slate-400`}>Chưa phân công tài xế</Text>
+  Line 335: ⚠️ Vị trí xe được ước tính dựa trên thời gian hành trình. Để theo dõi chính xác hơn, vui lòng liên hệ tài xế trực tiếp.
+
+📄 File: \app\_layout.tsx
+  Line 64: {/* Các màn hình xác thực và điều hướng gốc */}
+
+📄 File: \components\auth\LoginGuard.tsx
+  Line 41: Alert.alert('Chờ một chút', 'Chức năng đăng nhập Google đang khởi tạo, vui lòng nhấn lại sau giây lát.');
+  Line 47: console.error('Lỗi đăng nhập Google:', e);
+  Line 48: Alert.alert('Lỗi', 'Không thể kết nối với dịch vụ Google. Vui lòng thử lại.');
+  Line 56: 'Bypass đăng nhập Google để tiến hành kiểm thử nhanh các trang giao diện khác?',
+  Line 58: { text: 'Hủy bỏ', style: 'cancel' },
+  Line 60: text: 'Tiến hành',
+  Line 64: 'Mại Cao',
+  Line 68: Alert.alert('Thành công', 'Đăng nhập Developer Test hoàn tất.');
+  Line 70: Alert.alert('Thất bại', 'Lỗi liên kết cơ sở dữ liệu ở local.');
+  Line 101: Trải nghiệm hành trình số hiện đại & thông minh
+  Line 108: Chào mừng bạn đến với ABC
+  Line 111: Đăng nhập để đặt vé xe nhanh chóng, theo dõi lộ trình và tích điểm thưởng hấp dẫn.
+  Line 114: {/* Nút Đăng nhập Google chuẩn SaaS */}
+  Line 131: Tiếp tục với Google
+  Line 138: Bằng cách tiếp tục, bạn đồng ý với Điều khoản sử dụng & Chính sách bảo mật của chúng tôi.
+  Line 141: {/* Badges tin cậy */}
+  Line 149: <Text style={[styles.badgeText, { color: colors.text }]}>Bảo mật cao</Text>
+  Line 156: <Text style={[styles.badgeText, { color: colors.text }]}>Chính xác</Text>
+  Line 163: <Text style={[styles.badgeText, { color: colors.text }]}>Tối ưu UX</Text>
+
+📄 File: \components\ChatAI.tsx
+  Line 39: const defaultWelcome = "Xin chào! Tôi là Trợ lý AI của Nhà Xe ABC. Tôi có thể giúp gì cho bạn hôm nay? (Tìm chuyến xe, giá vé, quy định hủy vé...)";
+  Line 42: { label: 'Giá vé Sài Gòn - Đà Lạt?', query: 'Giá vé chuyến Sài Gòn đi Đà Lạt là bao nhiêu?' },
+  Line 43: { label: 'Quy định hủy vé?', query: 'Quy định hủy trả vé của nhà xe như thế nào?' },
+  Line 44: { label: 'Cách đặt vé khứ hồi?', query: 'Làm thế nào để đặt vé khứ hồi trên app?' },
+  Line 45: { label: 'Thời gian chạy?', query: 'Mất bao lâu để đi từ Sài Gòn đến Nha Trang?' },
+  Line 77: history: messages.slice(-10), // Gửi 10 tin nhắn gần nhất làm ngữ cảnh
+  Line 85: setMessages((prev) => [...prev, { role: 'assistant', content: 'Tôi đã nhận được câu hỏi, xin chờ trong giây lát.' }]);
+  Line 88: console.error('Lỗi gửi chat AI:', error);
+  Line 91: { role: 'assistant', content: 'Hiện tại hệ thống kết nối AI đang bận. Vui lòng thử lại sau!' },
+  Line 182: <Text style={tw`text-[14.5px] font-black text-white uppercase tracking-wider`}>Trợ lý Trực tuyến AI</Text>
+  Line 186: {user ? `Liên kết: ${user.name}` : 'Chế độ Khách'}
+  Line 321: placeholder="Hỏi trợ lý AI bất cứ điều gì..."
+
+📄 File: \components\home\BrandTrustBadges.tsx
+  Line 10: title: 'An toàn tối đa',
+  Line 11: desc: 'Tài xế được đào tạo chuyên nghiệp, xe bảo dưỡng định kỳ',
+  Line 16: title: 'Tiện nghi cao cấp',
+  Line 17: desc: 'Wifi, nước uống, cổng sạc USB, chăn gối mỗi ghế',
+  Line 22: title: 'Đúng giờ cam kết',
+  Line 23: desc: 'Khởi hành và đến nơi đúng giờ hoặc hoàn tiền',
+  Line 29: desc: 'Tích điểm mỗi chuyến, đổi quà và ưu đãi hấp dẫn',
+  Line 34: title: 'Hỗ trợ 24/7',
+  Line 35: desc: 'Đội ngũ CSKH trực tuyến mọi lúc, mọi nơi cho bạn',
+  Line 40: title: 'Đặt vé nhanh chóng',
+  Line 41: desc: 'Chỉ 3 bước đặt vé online, xác nhận ngay tức thì',
+  Line 49: Cam kết dịch vụ 5 sao
+
+📄 File: \components\home\HeroBanner.tsx
+  Line 10: { id: 4, src: `${WEB_URL}/brand/banner4.jpg` }, // Ảnh đi biển gia đình
+  Line 25: {/* Ảnh banner hiện tại */}
+  Line 41: {/* Lớp phủ mờ nhẹ */}
+  Line 47: {/* Dãy số 01 02 03 04 phát sáng ở góc trên phải */}
+  Line 66: {/* Châm ngôn thương hiệu */}
+  Line 72: Chất lượng là danh dự
+
+📄 File: \components\home\PopularRoutes.tsx
+  Line 11: displayName: "TP. Hồ Chí Minh",
+  Line 12: searchKey: "hồ chí minh",
+  Line 15: { to: "Đà Lạt", distance: "310km", duration: "6h30p" },
+  Line 16: { to: "Hà Nội", distance: "1700km", duration: "30h" },
+  Line 17: { to: "Cần Thơ", distance: "170km", duration: "3h" }
+  Line 21: displayName: "Đà Lạt",
+  Line 22: searchKey: "đà lạt",
+  Line 26: { to: "Cần Thơ", distance: "470km", duration: "9h" },
+  Line 27: { to: "Hà Nội", distance: "1480km", duration: "26h40p" }
+  Line 31: displayName: "Đà Nẵng",
+  Line 32: searchKey: "đà nẵng",
+  Line 35: { to: "Phan Thiết", distance: "790km", duration: "15h" },
+  Line 36: { to: "Vũng Tàu", distance: "870km", duration: "17h" },
+  Line 86: ? `${match.price.toLocaleString()}đ`
+  Line 87: : "10.000đ";
+  Line 105: console.warn(`Không tải được tuyến đường phổ biến${status ? ` (HTTP ${status})` : ''}, dùng dữ liệu mặc định.`);
+  Line 111: price: "10.000đ",
+  Line 133: Tuyến đường phổ biến
+  Line 162: Khởi hành từ
+  Line 205: {route.bookingsCount} lượt đặt
+
+📄 File: \components\home\SearchCard.tsx
+  Line 33: 'TP. Hồ Chí Minh',
+  Line 34: 'Hà Nội',
+  Line 35: 'Đà Lạt',
+  Line 37: 'Cần Thơ',
+  Line 38: 'Đà Nẵng',
+  Line 39: 'Vũng Tàu',
+  Line 40: 'Phan Thiết',
+  Line 68: Alert.alert(t('historyPage.toastInfo') || 'Thông báo', t('search.fillFromTo'));
+  Line 72: Alert.alert(t('historyPage.toastInfo') || 'Thông báo', t('search.sameFromTo'));
+  Line 76: Alert.alert(t('historyPage.toastInfo') || 'Thông báo', t('search.selectReturnDate'));
+  Line 110: 'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+  Line 111: 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+  Line 191: {/* Khung Tìm Kiếm Xe */}
+  Line 204: {/* Toggle Một chiều / Khứ hồi dạng Tab Pill cao cấp */}
+  Line 245: {/* Form Điểm đi & Điểm đến */}
+  Line 247: {/* Điểm đi */}
+  Line 269: {/* Điểm đến */}
+  Line 291: {/* Nút Tráo Đổi Swapper (tròn trịa đè ở giữa góc phải) */}
+  Line 312: {/* Ngày đi */}
+  Line 334: {/* Ngày về (chỉ hiển thị khi Khứ hồi) */}
+  Line 358: {/* Số lượng hành khách */}
+  Line 371: <Text style={[tw`text-[15px] font-black mt-0.5`, { color: colors.text }]}>{`${booking.tickets} ${locale === 'vi' ? 'Vé' : 'Ticket(s)'}`}</Text>
+  Line 375: {/* Nút Tìm kiếm chính */}
+  Line 401: {/* MODAL 1: CHỌN ĐIỂM ĐI */}
+  Line 438: {/* MODAL 2: CHỌN ĐIỂM ĐẾN */}
+  Line 475: {/* MODAL 3: CHỌN NGÀY */}
+  Line 506: {/* MODAL 4: CHỌN SỐ VÉ */}
+  Line 549: {/* MODAL 5: CHỌN LOẠI VÉ */}
+
+📄 File: \components\lookup\CancelDrawer.tsx
+  Line 59: {/* Chi tiết hoàn tiền */}
+  Line 68: {((ticketInfo.amount * refundPolicy.refundPercent) / 100).toLocaleString('vi-VN')}đ
+  Line 73: {/* Điều khoản quy định */}
+  Line 76: <Text style={tw`text-[12.5px] text-[#475569] font-bold leading-5`}>• {locale === 'vi' ? 'Trả vé trước 24h: Hoàn 100% tiền vé.' : 'Cancel before 24h: 100% refund.'}</Text>
+  Line 77: <Text style={tw`text-[12.5px] text-[#475569] font-bold leading-5 mt-1`}>• {locale === 'vi' ? 'Trả vé từ 12h đến 24h: Hoàn 50% tiền vé.' : 'Cancel 12h-24h before: 50% refund.'}</Text>
+  Line 78: <Text style={tw`text-[12.5px] text-[#475569] font-bold leading-5 mt-1`}>• {locale === 'vi' ? 'Dưới 12h: Không hoàn tiền hủy vé dưới mọi hình thức.' : 'Under 12h: No refund under any circumstances.'}</Text>
+  Line 93: {/* Form Xác nhận bảo mật */}
+  Line 97: placeholder={locale === 'vi' ? 'Nhập email đã đăng ký mua vé...' : 'Enter email used for booking...'}
+  Line 105: placeholder={locale === 'vi' ? 'Nhập số điện thoại để xác nhận...' : 'Enter phone number for confirmation...'}
+  Line 112: {/* Nút bấm */}
+
+📄 File: \components\lookup\FilterDrawer.tsx
+  Line 45: { value: 'all', label: 'Tất cả', icon: Layers, color: '#64748b', bgColor: '#f1f5f9' },
+  Line 46: { value: 'upcoming', label: 'Sắp đi', icon: Clock, color: '#EF5222', bgColor: '#fff7ed' },
+  Line 47: { value: 'ongoing', label: 'Đang đi', icon: Bus, color: '#3b82f6', bgColor: '#eff6ff' },
+  Line 48: { value: 'completed', label: 'Hoàn thành', icon: ShieldCheck, color: '#10b981', bgColor: '#ecfdf5' },
+  Line 49: { value: 'cancelled', label: 'Đã hủy', icon: XCircle, color: '#f43f5e', bgColor: '#fff1f2' },
+  Line 53: { value: 'all', label: 'Tất cả', icon: Ticket },
+  Line 54: { value: 'oneway', label: 'Một chiều', icon: ArrowUpRight },
+  Line 55: { value: 'round', label: 'Khứ hồi', icon: Repeat },
+  Line 76: <Text style={tw`text-[18px] font-black text-slate-800`}>Bộ lọc tìm kiếm</Text>
+  Line 86: {/* Trạng thái chuyến */}
+  Line 89: Trạng thái chuyến
+  Line 133: {/* Loại vé */}
+  Line 136: Loại vé
+  Line 182: <Text style={tw`text-slate-600 font-black text-[15px]`}>Thiết lập lại</Text>
+  Line 190: <Text style={tw`text-white font-black text-[15px]`}>Áp dụng</Text>
+
+📄 File: \components\lookup\LookupForm.tsx
+  Line 45: {locale === 'vi' ? 'Nhập mã vé và số điện thoại đã sử dụng để đặt vé để kiểm tra lịch trình, trạng thái thanh toán hoặc thực hiện yêu cầu hủy vé.' : 'Enter your ticket code and phone number used for booking to verify schedules, payment status, or request a refund.'}
+  Line 48: {/* Input Mã vé */}
+  Line 69: {/* Input Số điện thoại */}
+  Line 90: {/* Nút Tra cứu */}
+
+📄 File: \components\lookup\TicketDetails.tsx
+  Line 30: Alert.alert(locale === 'vi' ? 'Đã sao chép' : 'Copied', locale === 'vi' ? `Đã sao chép mã vé #${code}` : `Copied ticket code #${code}`);
+  Line 194: <Text style={tw`text-[9px] font-black text-slate-400 uppercase tracking-wider mt-2`}>{locale === 'vi' ? 'Quét mã tại quầy soát vé' : 'Scan code at boarding counter'}</Text>
+  Line 202: {Number(ticketInfo.amount).toLocaleString('vi-VN')}đ
+  Line 218: {locale === 'vi' ? `Yêu cầu hủy vé (Hoàn ${refundPolicy.refundPercent}%)` : `Request Cancellation (Refund ${refundPolicy.refundPercent}%)`}
+  Line 225: {locale === 'vi' ? 'Không thể tự hủy vé (Bắt đầu trong dưới 12h)' : 'Cannot self-cancel (Starts in under 12h)'}
+
+📄 File: \components\loyalty\HistoryTab.tsx
+  Line 17: <Text style={[tw`text-base font-extrabold`, { color: colors.text }]}>Lịch sử giao dịch điểm</Text>
+  Line 19: Nhật ký quá trình cộng điểm đi xe và trừ điểm khi đổi vouchers
+  Line 26: <Text style={[tw`text-xs mt-2.5`, { color: colors.textSecondary }]}>Bạn chưa có lịch sử tích điểm nào</Text>
+
+📄 File: \components\loyalty\MyVouchersTab.tsx
+  Line 19: <Text style={[tw`text-base font-extrabold`, { color: colors.text }]}>Ưu đãi của bạn</Text>
+  Line 21: Các mã giảm giá bạn đang sở hữu và có thể áp dụng khi thanh toán vé
+  Line 28: <Text style={[tw`text-xs mt-2.5 mb-4`, { color: colors.textSecondary }]}>Bạn chưa sở hữu mã giảm giá nào</Text>
+  Line 30: title="Đổi điểm ngay"
+  Line 65: {v.isUsed ? 'ĐÃ DÙNG' : 'KHẢ DỤNG'}
+
+📄 File: \components\loyalty\RedeemTab.tsx
+  Line 19: <Text style={[tw`text-base font-extrabold`, { color: colors.text }]}>Đổi quà ưu đãi</Text>
+  Line 21: Sử dụng điểm tích lũy của bạn để lấy mã giảm giá trực tiếp vào giá vé xe
+  Line 28: <Text style={[tw`text-xs mt-2.5`, { color: colors.textSecondary }]}>Hiện tại chưa có chương trình đổi quà nào</Text>
+  Line 45: {/* Cánh trái của voucher */}
+  Line 62: {v.type === 'percent' ? `Giảm ${v.value}%` : `Giảm ${v.value.toLocaleString()}đ`}
+  Line 65: <Text style={[tw`text-[9px] mt-0.5`, { color: colors.textSecondary }]}>Tối đa {v.maxAmount.toLocaleString()}đ</Text>
+  Line 69: {/* Cánh phải của voucher (Điểm đổi) */}
+  Line 86: <Text style={[tw`text-[9px] font-black`, { color: canRedeem ? '#FFFFFF' : colors.textSecondary }]}>ĐỔI QUÀ</Text>
+  Line 90: {/* Ticket Notches (Gờ xén của vé) */}
+
+📄 File: \components\loyalty\VIPCard.tsx
+  Line 36: <Text style={[tw`text-[9px] font-bold tracking-widest`, { color: cfg.textColor }]}>THÀNH VIÊN ABC BUS LINES</Text>
+  Line 45: {/* Điểm tích lũy */}
+  Line 47: <Text style={[tw`text-[8px] font-bold tracking-widest`, { color: cfg.textColor }]}>ĐIỂM TÍCH LŨY</Text>
+  Line 54: {/* Bottom: Avatar + Tên */}
+  Line 68: <Text style={[tw`text-[10px] font-bold ml-1`, { color: cfg.textColor }]}>{user.totalTrips || 0} chuyến</Text>
+
+📄 File: \components\ticket\QRTicketModal.tsx
+  Line 78: message: `🎫 Vé xe ABC - Mã đơn: #${order.orderCode}\n` +
+  Line 81: `💺 Ghế: ${outboundSeats}\n` +
+  Line 84: title: `Vé xe ABC #${order.orderCode}`,
+  Line 87: console.error('Lỗi chia sẻ vé:', error);
+  Line 124: <Text style={tw`text-[18px] font-black text-slate-900`}>Vé điện tử</Text>
+  Line 170: Quét để xác minh vé
+  Line 180: <Text style={tw`text-[11px] font-black text-emerald-700`}>Vé hợp lệ - Đã xác nhận</Text>
+  Line 185: <Text style={tw`text-[11px] font-black text-red-700`}>Vé đã bị hủy</Text>
+  Line 190: <Text style={tw`text-[11px] font-black text-amber-700`}>Chờ xác nhận thanh toán</Text>
+  Line 236: <Text style={tw`text-[11px] font-bold text-slate-400 uppercase tracking-wider`}>Số ghế</Text>
+  Line 256: <Text style={tw`text-[11px] font-bold text-slate-400 uppercase tracking-wider`}>Tổng tiền</Text>
+  Line 258: {Number(order.amount || 0).toLocaleString('vi-VN')}đ
+  Line 271: <Text style={tw`text-[13px] font-black text-slate-700`}>Chia sẻ vé</Text>
+  Line 274: onPress={() => Alert.alert('Thông báo', 'Chụp màn hình vé để lưu về điện thoại!')}
+  Line 282: <Text style={tw`text-[13px] font-black text-white`}>Lưu vé</Text>
+
+📄 File: \components\ticket\RatingDrawer.tsx
+  Line 22: { key: 'seat', label: '💺 Ghế thoải mái' },
+  Line 23: { key: 'ontime', label: '⏰ Đúng giờ' },
+  Line 24: { key: 'clean', label: '🚌 Xe sạch sẽ' },
+  Line 25: { key: 'driver', label: '😊 Tài xế thân thiện' },
+  Line 26: { key: 'service', label: '⭐ Dịch vụ tốt' },
+  Line 27: { key: 'smooth', label: '🛣️ Chạy êm ái' },
+  Line 86: if (r === 0) return 'Chọn số sao đánh giá';
+  Line 87: if (r === 1) return 'Rất tệ 😞';
+  Line 88: if (r === 2) return 'Tệ 😕';
+  Line 89: if (r === 3) return 'Bình thường 😐';
+  Line 90: if (r === 4) return 'Tốt 😊';
+  Line 91: return 'Tuyệt vời! 🤩';
+  Line 96: Alert.alert('Thiếu đánh giá', 'Vui lòng chọn ít nhất 1 sao để gửi đánh giá!');
+  Line 114: const msg = error?.response?.data?.message || 'Lỗi gửi đánh giá, vui lòng thử lại.';
+  Line 115: Alert.alert('Lỗi', msg);
+  Line 153: Cảm ơn bạn!
+  Line 156: Đánh giá của bạn giúp chúng tôi cải thiện dịch vụ tốt hơn mỗi ngày 🙏
+  Line 165: Đánh giá chuyến đi
+  Line 208: Nhận xét nhanh
+  Line 242: Bình luận thêm (tùy chọn)
+  Line 247: placeholder="Chia sẻ trải nghiệm của bạn về chuyến đi này..."
+  Line 279: {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+
+📄 File: \components\ui\EmptyState.tsx
+  Line 25: {/* Khối biểu tượng minh họa tối giản */}
+
+📄 File: \constants\api.ts
+  Line 37: console.error('Lỗi khi lấy token:', error);
+
+📄 File: \constants\theme.ts
+  Line 12: primary: '#EF5222',        // Cam thương hiệu chính
+  Line 13: primaryLight: '#FFF5F2',   // Cam nhạt làm nền
+  Line 14: background: '#F8FAFC',     // Nền xám Slate nhạt
+  Line 15: card: '#FFFFFF',           // Nền card trắng tinh
+  Line 16: text: '#0F172A',           // Văn bản chính xanh đen
+  Line 17: textSecondary: '#64748B',  // Văn bản phụ xám Slate
+  Line 18: border: '#E2E8F0',         // Viền nhạt
+  Line 19: success: '#10B981',        // Xanh lá thành công
+  Line 20: warning: '#F59E0B',        // Vàng cảnh báo
+  Line 21: backgroundElement: '#F1F5F9', // Phần tử phụ
+  Line 25: primary: '#FF6B4A',        // Cam sáng hơn cho Dark Mode
+  Line 26: primaryLight: '#2C1B17',   // Cam đậm/tối làm nền highlight
+  Line 27: background: '#090D16',     // Nền tối hẳn phong cách SaaS
+  Line 28: card: '#131C2E',           // Nền card tối xanh dương sang trọng
+  Line 29: text: '#F8FAFC',           // Văn bản chính trắng Slate
+  Line 30: textSecondary: '#94A3B8',  // Văn bản phụ xám nhạt
+  Line 31: border: '#1E293B',         // Viền tối
+  Line 32: success: '#34D399',        // Xanh lá sáng
+  Line 33: warning: '#FBBF24',        // Vàng sáng
+  Line 34: backgroundElement: '#1E293B', // Phần tử phụ tối
+
+📄 File: \hooks\useAuthStore.ts
+  Line 61: isLoading: true, // Khởi động bằng true để kiểm tra token từ bộ nhớ trước
+  Line 79: console.warn('Lỗi lấy điểm loyalty:', err);
+  Line 99: console.error('Lỗi đăng nhập:', error);
+  Line 119: console.warn('Lỗi lấy điểm loyalty:', err);
+  Line 139: console.error('Lỗi đăng nhập Google:', error);
+  Line 164: console.error('Lỗi kiểm tra auth:', error);
+  Line 186: console.error('Lỗi tải lại điểm:', error);
+  Line 198: console.warn('Lỗi lấy số thông báo chưa đọc:', error);
+
+📄 File: \hooks\useBookingStore.ts
+  Line 83: selectedOutboundSeats: [] // Reset ghế khi đổi chuyến
+  Line 95: : [...state.selectedOutboundSeats, seatCode].slice(0, state.tickets); // Giới hạn số lượng chọn bằng số vé đăng ký
+
+📄 File: \hooks\useGoogleAuth.ts
+  Line 21: ? makeRedirectUri({ preferLocalhost: false })   // Dùng chính URL hiện tại (ví dụ localtunnel HTTPS)
+  Line 22: : undefined; // Expo tự động sinh redirectUri chuẩn của Google cho Native (iOS: reversed client id, Android: package name)
+  Line 50: console.warn('[useGoogleAuth] Không nhận được accessToken từ Google');
+  Line 64: console.error('[useGoogleAuth] Google UserInfo API lỗi:', userInfoRes.status);
+  Line 76: console.error('[useGoogleAuth] Không lấy được email từ Google');
+  Line 83: console.error('[useGoogleAuth] Lỗi khi xử lý Google Sign-In:', err);

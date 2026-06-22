@@ -67,17 +67,22 @@ export class AdminTripsService implements OnModuleInit {
     private prisma: PrismaService,
     private auditLogService: AuditLogService
   ) { }
-  // 🟢 DÁN ĐOẠN NÀY VÀO: Hàm này sẽ tự động chạy 1 lần duy nhất ngay khi server Backend vừa bật lên
-  async onModuleInit() {
-    this.logger.log('⚡ Server vừa khởi động: Tiến hành rà soát và bù đắp thời gian thực...');
+  onModuleInit() {
+    // Chạy bất đồng bộ (fire-and-forget) để tránh block cổng 3001 lúc startup khi kết nối DB qua internet
+    setImmediate(async () => {
+      this.logger.log('⚡ Server vừa khởi động: Tiến hành rà soát và bù đắp thời gian thực...');
+      try {
+        // 1. Quét và gán tài xế cho các chuyến bị lỡ trước tiên (để có tài xế)
+        await this.autoAssignUpcomingTrips();
 
-    // 1. Quét và gán tài xế cho các chuyến bị lỡ trước tiên (để có tài xế)
-    await this.autoAssignUpcomingTrips();
+        // 2. Quét và cập nhật trạng thái chuyến xe/tài xế bị lỡ trong lúc server tắt
+        await this.autoUpdateRealtimeStatuses();
 
-    // 2. Quét và cập nhật trạng thái chuyến xe/tài xế bị lỡ trong lúc server tắt
-    await this.autoUpdateRealtimeStatuses();
-
-    this.logger.log('✅ Rà soát hoàn tất! Hệ thống đã bắt kịp thời gian thực.');
+        this.logger.log('✅ Rà soát hoàn tất! Hệ thống đã bắt kịp thời gian thực.');
+      } catch (err: any) {
+        this.logger.error(`❌ Lỗi khi rà soát thời gian thực lúc startup: ${err.message}`);
+      }
+    });
   }
 
   async getAllTrips(dateStr?: string) {
@@ -399,6 +404,41 @@ export class AdminTripsService implements OnModuleInit {
           status: data.status as any,
         }
       });
+
+      // Gửi thông báo đến hành khách khi cập nhật tài xế/xe
+      const newDriver = data.driverId ? await tx.driver.findUnique({ where: { id: Number(data.driverId) } }) : null;
+      const newBus = data.busId ? await tx.bus.findUnique({ where: { id: Number(data.busId) } }) : null;
+
+      if (newDriver || newBus) {
+        const passengerOrders = await tx.order.findMany({
+          where: {
+            OR: [
+              { outboundTripId: tripId },
+              { returnTripId: tripId }
+            ],
+            paymentStatus: 'PAID',
+            bookingStatus: { not: 'CANCELLED' }
+          }
+        });
+
+        for (const order of passengerOrders) {
+          if (order.userId) {
+            let content = `Chuyến xe đi ${updatedTrip.to} (Mã vé: #${order.orderCode}) đã được cập nhật thông tin mới.`;
+            if (newBus) content += ` Xe phục vụ: ${newBus.plateNumber} (${newBus.busType || 'Limousine'}).`;
+            if (newDriver) content += ` Tài xế: ${newDriver.name} (SĐT: ${newDriver.driverCode}).`;
+
+            await tx.notification.create({
+              data: {
+                userId: order.userId,
+                title: 'Cập nhật chuyến đi 🔄',
+                content,
+                type: 'TRIP',
+                isRead: false
+              }
+            });
+          }
+        }
+      }
 
       // 3. Cập nhật Bảng Phân Công (DriverAssignment)
       if (data.driverId) {
@@ -872,7 +912,8 @@ export class AdminTripsService implements OnModuleInit {
         status: 'PUBLISHED',
         departDate: { gte: twentyFourHoursAgo, lte: oneHundredSixtyEightHoursLater },
         OR: [{ driverId: null }, { busId: null }]
-      }
+      },
+      take: 10 // ⚡ Chỉ xử lý tối đa 10 chuyến mỗi lần chạy để tránh nghẽn DB pool
     });
 
     for (const trip of upcomingOrphanTrips) {

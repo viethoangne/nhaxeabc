@@ -8,6 +8,7 @@ import * as qs from 'qs';
 import * as QRCode from 'qrcode';
 import nodeHtmlToImage from 'node-html-to-image';
 import { OtpService } from '../otp/otp.service'; // Import service OTP
+import { NotificationService } from '../notification/notification.service';
 import PayOS from '@payos/node';
 import {
   Prisma,
@@ -37,6 +38,9 @@ type CreatePaymentDto = {
   appliedPromoCode?: string; // Dữ liệu mã khuyến mãi gửi từ Frontend
   otp?: string;              // THÊM DÒNG NÀY ĐỂ NHẬN OTP
   paymentMethod?: 'MOMO' | 'VIETQR' | 'VNPAY';
+  // Mobile deep link: dùng để redirect về app sau khi thanh toán
+  mobileReturnUrl?: string;
+  mobileReturnCancelUrl?: string;
 };
 
 @Injectable()
@@ -48,6 +52,7 @@ export class PaymentService {
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
     private readonly otpService: OtpService, // Inject vào đây
+    private readonly notificationService: NotificationService,
   ) {
     const clientId = this.configService.get<string>('PAYOS_CLIENT_ID');
     const apiKey = this.configService.get<string>('PAYOS_API_KEY');
@@ -369,6 +374,8 @@ export class PaymentService {
       await tx.orderSeat.createMany({ data: seatsToCreate });
 
       return order;
+    }, {
+      timeout: 15000 // Tăng timeout lên 15 giây để tránh lỗi nghẽn đường truyền local -> cloud
     });
 
 
@@ -413,17 +420,26 @@ export class PaymentService {
       console.log('[VNPAY DEBUG] signed:', signed);
       console.log('[VNPAY DEBUG] vnpUrl:', vnpUrl);
 
+      // Lưu mobileReturnUrl vào checkoutUrl tạm để vnpay-return dùng sau
       await this.prisma.order.update({
         where: { id: createdOrder.id },
-        data: { checkoutUrl: vnpUrl },
+        data: { 
+          checkoutUrl: vnpUrl,
+          // Lưu mobile deep link vào rawExtraData field tạm để vnpay-return dùng sau
+          ...(dto.mobileReturnUrl ? { rawExtraData: JSON.stringify({ mobileReturnUrl: dto.mobileReturnUrl, mobileReturnCancelUrl: dto.mobileReturnCancelUrl }) } : {})
+        },
       });
 
       return { checkoutUrl: vnpUrl, amount, orderCode, isVietQR: false, isVnpay: true };
     }
 
     // NẾU LÀ MOMO
-    const redirectUrl = `${frontendUrl}/payment-success?orderCode=${orderCode}&amount=${amount}`;
-    const ipnUrl = `${backendUrl}/api/payment/momo-ipn`;
+    // MoMo yêu cầu redirectUrl bắt buộc phải là http/https.
+    // Nếu là mobile, ta redirect về endpoint của backend để từ đó deep link về app.
+    const redirectUrl = dto.mobileReturnUrl 
+      ? `${backendUrl}/api/payment/momo-return?orderCode=${orderCode}`
+      : `${frontendUrl}/payment-success?orderCode=${orderCode}&amount=${amount}`;
+    const ipnUrl = this.configService.get<string>('MOMO_IPN_URL') || `${backendUrl}/api/payment/momo-ipn`;
     const extraData = Buffer.from(JSON.stringify({ orderCode })).toString('base64');
     
     const orderInfo = dto.tripType === 'round' 
@@ -452,7 +468,11 @@ export class PaymentService {
       if (response.data.resultCode === 0) {
         await this.prisma.order.update({
           where: { id: createdOrder.id },
-          data: { checkoutUrl: response.data.payUrl },
+          data: { 
+            checkoutUrl: response.data.payUrl,
+            // Lưu mobile deep link vào rawExtraData
+            ...(dto.mobileReturnUrl ? { rawExtraData: JSON.stringify({ mobileReturnUrl: dto.mobileReturnUrl, mobileReturnCancelUrl: dto.mobileReturnCancelUrl }) } : {})
+          },
         });
 
         return { checkoutUrl: response.data.payUrl, amount, orderCode, isVietQR: false };
@@ -1016,6 +1036,154 @@ export class PaymentService {
     }
   }
 
+  // --- XỬ LÝ REDIRECT TỪ MOMO VỀ BACKEND (Return URL) ---
+  async handleMomoReturn(query: any): Promise<{ redirect: string }> {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const orderCode = query.orderCode;
+    if (!orderCode) {
+      return { redirect: `${frontendUrl}/payment-cancel?reason=invalid` };
+    }
+
+    const order = await this.prisma.order.findUnique({ where: { orderCode } });
+    if (!order) {
+      return { redirect: `${frontendUrl}/payment-cancel?reason=not_found` };
+    }
+
+    // Lấy deep link từ rawExtraData nếu có
+    let mobileReturnUrl: string | null = null;
+    let mobileReturnCancelUrl: string | null = null;
+    if (order.rawExtraData) {
+      try {
+        const extra = JSON.parse(order.rawExtraData);
+        mobileReturnUrl = extra.mobileReturnUrl || null;
+        mobileReturnCancelUrl = extra.mobileReturnCancelUrl || null;
+      } catch {}
+    }
+
+    const successRedirect = (code: string) =>
+      mobileReturnUrl ? `${mobileReturnUrl}&orderCode=${code}` : `${frontendUrl}/payment-success?orderCode=${code}`;
+    const cancelRedirect = (code: string, reason: string) =>
+      mobileReturnCancelUrl ? `${mobileReturnCancelUrl}&orderCode=${code}&reason=${reason}` : `${frontendUrl}/payment-cancel?orderCode=${code}&reason=${reason}`;
+
+    // MoMo truyền resultCode vào redirectUrl: 0 = thành công, khác = thất bại/hủy
+    const resultCode = query.resultCode !== undefined ? Number(query.resultCode) : null;
+    console.log(`[MoMo Return] orderCode=${orderCode} resultCode=${resultCode}`);
+
+    if (resultCode !== null && resultCode !== 0) {
+      // User đã hủy hoặc thanh toán thất bại
+      console.log(`[MoMo Return] Giao dịch thất bại/hủy (resultCode: ${resultCode}) - Xóa đơn ${orderCode}`);
+      try {
+        if (order.paymentStatus !== PaymentStatus.PAID) {
+          await this.prisma.orderSeat.deleteMany({ where: { orderId: order.id } });
+          await this.prisma.order.delete({ where: { id: order.id } });
+        }
+      } catch (err: any) {
+        if (err?.code !== 'P2025') console.error('[MoMo Return] Lỗi xóa đơn:', err);
+      }
+      return { redirect: cancelRedirect(orderCode, `momo_${resultCode}`) };
+    }
+
+    // resultCode === 0 hoặc không có (fallback) → thành công
+    try {
+      if (order.paymentStatus !== PaymentStatus.PAID) {
+        await this.processOrderSuccess(order.id, { transId: query.transId || 'MOMO' });
+      }
+    } catch (err) {
+      console.error('[MoMo Return] Lỗi khi processOrderSuccess:', err);
+    }
+    return { redirect: successRedirect(orderCode) };
+  }
+
+  // --- HTML CHUYỂN HƯỚNG DEEP LINK (Dùng cho cả VNPAY và MOMO trên Mobile) ---
+  getDeepLinkHtml(redirectUrl: string, orderCode: string, status: string): string {
+    const title = status === 'success' ? 'Thanh toán thành công' : 'Thanh toán thất bại/đã hủy';
+    const statusText = status === 'success' 
+      ? 'Thanh toán hoàn tất! Đang chuyển hướng bạn quay lại ứng dụng...' 
+      : 'Giao dịch không thành công hoặc bị hủy. Đang chuyển hướng bạn quay lại ứng dụng...';
+    const buttonColor = status === 'success' ? '#EF5222' : '#64748b';
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>\${title}</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+          }
+          .card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #e2e8f0;
+          }
+          .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+          }
+          h2 {
+            margin-top: 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          p {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 30px;
+          }
+          .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 14px;
+            background-color: \${buttonColor};
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            box-sizing: border-box;
+            transition: background-color 0.2s;
+          }
+          .btn:active {
+            opacity: 0.9;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="icon">\${status === 'success' ? '🎉' : '❌'}</div>
+          <h2>\${title}</h2>
+          <p>\${statusText}<br><b>Mã đơn: \${orderCode}</b></p>
+          <a id="redirect-btn" href="\${redirectUrl}" class="btn">Tiếp Tục Trên Ứng Dụng</a>
+        </div>
+        <script>
+          // Tự động chuyển hướng ngay lập tức
+          setTimeout(function() {
+            window.location.href = "\${redirectUrl}";
+          }, 300);
+        </script>
+      </body>
+      </html>
+    `;
+  }
+
   // --- XỬ LÝ REDIRECT TỪ VNPAY VỀ BACKEND (Return URL) ---
   // Đây là nơi user được redirect sau khi thanh toán/huỷ trên trang VNPAY
   async handleVnpayReturn(query: any): Promise<{ redirect: string }> {
@@ -1025,10 +1193,27 @@ export class PaymentService {
     const responseCode = query['vnp_ResponseCode'];
     const orderCode = query['vnp_TxnRef'];
 
+    // Lấy order để kiểm tra xem có mobileReturnUrl không
+    const orderRecord = orderCode ? await this.prisma.order.findUnique({ where: { orderCode } }) : null;
+    let mobileReturnUrl: string | null = null;
+    let mobileReturnCancelUrl: string | null = null;
+    if (orderRecord?.rawExtraData) {
+      try {
+        const extra = JSON.parse(orderRecord.rawExtraData);
+        mobileReturnUrl = extra.mobileReturnUrl || null;
+        mobileReturnCancelUrl = extra.mobileReturnCancelUrl || null;
+      } catch {}
+    }
+
+    const successRedirect = (code: string) => 
+      mobileReturnUrl ? `${mobileReturnUrl}&orderCode=${code}` : `${frontendUrl}/payment-success?orderCode=${code}&vnp_ResponseCode=00`;
+    const cancelRedirect = (reason: string) =>
+      mobileReturnCancelUrl ? `${mobileReturnCancelUrl}&orderCode=${orderCode}&reason=${reason}` : `${frontendUrl}/payment-cancel?reason=${reason}`;
+
     // Nếu không có chữ ký hoặc mã đơn → redirect về trang lỗi
     if (!secureHash || !orderCode) {
       console.warn('[VNPAY Return] Thiếu secureHash hoặc orderCode');
-      return { redirect: `${frontendUrl}/payment-cancel?reason=invalid` };
+      return { redirect: cancelRedirect('invalid') };
     }
 
     // Xác thực chữ ký
@@ -1044,7 +1229,7 @@ export class PaymentService {
 
     if (calculatedHash !== secureHash) {
       console.error('[VNPAY Return] Chữ ký không hợp lệ');
-      return { redirect: `${frontendUrl}/payment-cancel?reason=invalid_signature` };
+      return { redirect: cancelRedirect('invalid_signature') };
     }
 
     // Thanh toán THÀNH CÔNG (responseCode === '00')
@@ -1053,10 +1238,8 @@ export class PaymentService {
       try {
         const order = await this.prisma.order.findUnique({ where: { orderCode } });
         if (!order) {
-          // Đơn đã bị auto-expire xoá trước khi VNPAY trả về — CRITICAL!
-          // Tiền đã trừ nhưng đơn không còn → cần xử lý thủ công
           console.error(`[VNPAY Return] ⚠️ CRITICAL: Đơn ${orderCode} đã bị auto-expire xoá trước khi VNPAY confirm! Cần hoàn tiền thủ công!`);
-          return { redirect: `${frontendUrl}/payment-success?orderCode=${orderCode}&vnp_ResponseCode=00&warn=expired` };
+          return { redirect: successRedirect(orderCode) };
         }
         if (order.paymentStatus !== PaymentStatus.PAID) {
           await this.processOrderSuccess(order.id, { transId: query['vnp_TransactionNo'] || 'VNPAY' });
@@ -1064,7 +1247,7 @@ export class PaymentService {
       } catch (err) {
         console.error('[VNPAY Return] Lỗi khi processOrderSuccess:', err);
       }
-      return { redirect: `${frontendUrl}/payment-success?orderCode=${orderCode}&vnp_ResponseCode=00` };
+      return { redirect: successRedirect(orderCode) };
     }
 
     // Thanh toán THẤT BẠI / BỊ HUỶ → XOÁ ĐƠN HÀNG NGAY
@@ -1083,6 +1266,10 @@ export class PaymentService {
       }
     }
 
+    // Mobile: redirect về deep link cancel thay vì trang web
+    if (mobileReturnCancelUrl) {
+      return { redirect: `${mobileReturnCancelUrl}&orderCode=${orderCode}&reason=vnpay_${responseCode}` };
+    }
     return { redirect: `${frontendUrl}/payment-cancel?orderCode=${orderCode}&vnp_ResponseCode=${responseCode}` };
   }
 
@@ -1166,6 +1353,24 @@ export class PaymentService {
         returnTrip: true
       },
     });
+
+    if (order.userId) {
+      try {
+        const departureTime = order.outboundDepartDateSnapshot 
+          ? new Date(order.outboundDepartDateSnapshot).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) 
+          : new Date(order.date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        const departureDate = new Date(order.date).toLocaleDateString('vi-VN');
+        
+        await this.notificationService.createNotification(
+          order.userId,
+          'Đặt vé thành công 🎉',
+          `Bạn đã đặt thành công vé đi ${order.to} khởi hành lúc ${departureTime} ngày ${departureDate}. Mã vé của bạn là #${order.orderCode}.`,
+          'TRANSACTION'
+        );
+      } catch (err) {
+        console.error('Failed to create booking success notification:', err);
+      }
+    }
 
     // ... (Giữ nguyên toàn bộ phần Logic Loyalty và Gửi Mail bên dưới của bạn) ...
 

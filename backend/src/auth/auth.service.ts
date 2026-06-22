@@ -89,6 +89,58 @@ export class AuthService {
     };
   }
 
+  // Đăng nhập nhanh bằng Số điện thoại cho Mobile Client
+  async loginDemo(phone: string, name: string) {
+    phone = phone.trim();
+    name = name.trim();
+
+    // Tìm user có số điện thoại này
+    let user = await this.prisma.user.findFirst({
+      where: { phone }
+    });
+
+    if (!user) {
+      // Nếu chưa có, tự động tạo mới
+      const email = `${phone}@nhaxeabc.vn`;
+      const emailExists = await this.prisma.user.findUnique({ where: { email } });
+      const finalEmail = emailExists ? `${phone}_${Date.now()}@nhaxeabc.vn` : email;
+
+      user = await this.prisma.user.create({
+        data: {
+          phone,
+          name,
+          email: finalEmail,
+          role: 'CUSTOMER',
+        }
+      });
+    } else {
+      if (!user.name && name) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { name },
+        });
+      }
+    }
+
+    const token = await this.jwt.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        points: user.points,
+      }
+    };
+  }
+
   // Lấy thông tin người dùng hiện tại
   async me(userId: any) {
     const id = typeof userId === 'string' && !isNaN(Number(userId)) ? Number(userId) : userId;

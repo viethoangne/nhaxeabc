@@ -23,6 +23,16 @@ export class AuthController {
     return { user: result.user };
   }
 
+  @Post('login-demo')
+  async loginDemo(
+    @Body() body: { phone: string; name: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.loginDemo(body.phone, body.name);
+    this.setCookie(res, result.token);
+    return { token: result.token, user: result.user };
+  }
+
   @Post('logout')
   async logout(@Req() _req: Request, @Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
@@ -44,7 +54,7 @@ export class AuthController {
 
     this.setCookie(res, result.token);
 
-    return { user: result.user };
+    return { token: result.token, user: result.user };
   }
 
   // Hàm phụ trợ để tái sử dụng việc cấu hình Cookie

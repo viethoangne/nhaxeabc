@@ -57,8 +57,21 @@ export class LoyaltyService {
 
         if (updateResult.count > 0) {
           // Tính điểm: 100 điểm cho mỗi 10.000đ giá trị vé
-          pointsToAdd += Math.floor(order.amount / 10000) * 100;
+          const earned = Math.floor(order.amount / 10000) * 100;
+          pointsToAdd += earned;
           tripsToAdd += 1;
+
+          if (earned > 0) {
+            await this.prisma.notification.create({
+              data: {
+                userId,
+                title: 'Điểm tích lũy mới 🪙',
+                content: `Chúc mừng bạn đã được tích lũy thêm +${earned} điểm từ chuyến đi #${order.orderCode} đã hoàn thành.`,
+                type: 'MARKETING',
+                isRead: false
+              }
+            });
+          }
         }
       }
     }
@@ -288,6 +301,17 @@ export class LoyaltyService {
         include: { voucher: true },
       });
 
+      // Tạo thông báo đổi quà thành công
+      await tx.notification.create({
+        data: {
+          userId,
+          title: 'Đổi quà thành công 🎁',
+          content: `Bạn đã đổi thành công ${voucher.costInPoints} điểm tích lũy lấy mã ưu đãi: ${voucher.title} (Mã: ${voucher.code}).`,
+          type: 'MARKETING',
+          isRead: false
+        }
+      });
+
       return {
         message: 'Đổi quà thành công',
         newPoints: updatedUser.points,
@@ -346,6 +370,18 @@ export class LoyaltyService {
               },
             });
 
+            if (earnedPoints > 0) {
+              await this.prisma.notification.create({
+                data: {
+                  userId: order.userId!,
+                  title: 'Điểm tích lũy mới 🪙',
+                  content: `Chúc mừng bạn đã được tích lũy thêm +${earnedPoints} điểm từ chuyến đi #${order.orderCode} đã hoàn thành.`,
+                  type: 'MARKETING',
+                  isRead: false
+                }
+              });
+            }
+
             if (updatedUser.totalTrips >= 4) {
               let trip5Voucher = await this.prisma.voucher.findUnique({ where: { code: 'TRIP5' } });
               if (!trip5Voucher) {
@@ -375,5 +411,94 @@ export class LoyaltyService {
     if (updatedCount > 0) {
       this.logger.log(`✅ CronJob hoàn tất: Đã cộng điểm thành công cho ${updatedCount} chuyến đi.`);
     }
+  }
+
+  // =========================================================
+  // 5. GAME VÒNG QUAY MAY MẮN (TRỪ 50 ĐIỂM ĐỔI VOUCHER NGẪU NHIÊN)
+  // =========================================================
+  async spinGame(userId: string) {
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new Error('Không tìm thấy người dùng');
+      }
+
+      const spinCost = 50;
+      if (user.points < spinCost) {
+        throw new Error('Bạn không đủ điểm để quay vòng quay may mắn (yêu cầu 50 điểm)');
+      }
+
+      // 1. Trừ điểm người dùng
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: { points: { decrement: spinCost } },
+      });
+
+      // 2. Quay thưởng: 60% trúng, 40% trượt
+      const isWin = Math.random() < 0.6;
+
+      if (!isWin) {
+        // Tạo thông báo trượt
+        await tx.notification.create({
+          data: {
+            userId,
+            title: 'Kết quả vòng quay may mắn 🎡',
+            content: `Bạn đã tiêu tốn 50 điểm nhưng chưa trúng thưởng lần này. Chúc bạn may mắn lần sau!`,
+            type: 'MARKETING',
+            isRead: false
+          }
+        });
+
+        return {
+          status: 'lose',
+          message: 'Chúc bạn may mắn lần sau!',
+          newPoints: updatedUser.points,
+          voucher: null,
+        };
+      }
+
+      // Trúng thưởng: Lấy ngẫu nhiên voucher đang có trong hệ thống có costInPoints không null
+      const vouchers = await tx.voucher.findMany({
+        where: { costInPoints: { not: null } }
+      });
+
+      if (vouchers.length === 0) {
+        throw new Error('Hiện tại không có phần quà nào trong hệ thống');
+      }
+
+      const randomIndex = Math.floor(Math.random() * vouchers.length);
+      const chosenVoucher = vouchers[randomIndex];
+
+      // Thêm voucher vào UserVoucher
+      const userVoucher = await tx.userVoucher.create({
+        data: { userId, voucherId: chosenVoucher.id, isUsed: false },
+        include: { voucher: true },
+      });
+
+      // Tạo thông báo trúng
+      await tx.notification.create({
+        data: {
+          userId,
+          title: 'Trúng thưởng vòng quay may mắn! 🎉',
+          content: `Chúc mừng bạn đã quay trúng mã ưu đãi: ${chosenVoucher.title} (Mã: ${chosenVoucher.code}).`,
+          type: 'MARKETING',
+          isRead: false
+        }
+      });
+
+      return {
+        status: 'win',
+        message: `Chúc mừng bạn đã trúng voucher: ${chosenVoucher.title}!`,
+        newPoints: updatedUser.points,
+        voucher: {
+          id: userVoucher.voucher.id,
+          code: userVoucher.voucher.code,
+          title: userVoucher.voucher.title,
+          type: userVoucher.voucher.type,
+          value: userVoucher.voucher.value,
+          isUsed: userVoucher.isUsed,
+        },
+      };
+    });
   }
 }
